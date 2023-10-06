@@ -1,0 +1,233 @@
+<!-- python -m http.server 8080 -->
+<!-- http://localhost:8080/Desktop/ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>篩選表格</title>
+    <style>
+        table {
+            width: 100%;
+        }
+
+        td {
+            word-wrap: break-word;
+        }
+		.fixed-width {
+    width: 3em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+		.fixed-width2 {
+    width: 4em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function loadData() {
+                fetch('data.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        renderTable(data);
+                        document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
+						document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
+						document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
+                        document.getElementById('searchButton').addEventListener('click', () => filterData(data));
+                        document.querySelectorAll('.char-em-filter').forEach(checkbox => {
+                            checkbox.addEventListener('change', () => filterData(data));
+                        });
+						document.querySelectorAll('.char-wep-filter').forEach(checkbox => {
+						    checkbox.addEventListener('change', () => filterData(data));
+						});
+						document.querySelectorAll('.skill-type-filter').forEach(checkbox => {
+							checkbox.addEventListener('change', () => filterData(data));
+						});
+						document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
+							checkbox.addEventListener('change', () => filterData(data));
+						});
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+					document.getElementById('resetButton').addEventListener('click', function() {
+						// Reset checkboxes
+						document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+							checkbox.checked = false;
+						});
+
+						// Reset select elements to their first option
+						document.querySelectorAll('select').forEach(select => {
+							select.selectedIndex = 0;
+						});
+						// Clear descriptionFilter
+						document.getElementById('descriptionFilter').value = '';
+						// Finally, reload the data
+						loadData();
+					});
+
+            function renderTable(data) {
+                let tableBody = document.getElementById('tableBody');
+                tableBody.innerHTML = '';
+                for (let item of data) {
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.skill_name}</td>
+                        <td>${item.skill_type}</td>
+                        <td>${item.skill_state}</td>
+                        <td><a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a></td>
+                        <td>${item.char_em}</td>
+                        <td>${item.char_wep}</td>
+                        <td>${item.description}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                }
+            }
+
+            function filterData(data) {
+                let ctValue = parseInt(document.getElementById('ctFilter').value);
+				let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
+				let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
+                let descriptionKeyword = document.getElementById('descriptionFilter').value;
+
+                // Get selected char_em values
+                let selectedCharEm = [];
+                document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
+                    selectedCharEm.push(checkbox.value);
+                });
+				// Get selected char_wep values
+				let selectedCharWep = [];
+				document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
+					selectedCharWep.push(checkbox.value);
+				});
+				// Get selected skill_type values
+				let selectedSkillType = [];
+				document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
+					// Since a checkbox might represent multiple filter values, we split them and add to the array
+					selectedSkillType.push(...checkbox.value.split(','));
+				});
+				// Get selected skill_state values
+				let selectedSkillState = [];
+				document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
+					// Since a checkbox might represent multiple filter values, we split them and add to the array
+					selectedSkillState.push(...checkbox.value.split(','));
+				});
+				let filteredData = data.filter(item => {
+				    let matchesCt = item.drain_baria >= ctValue;
+					let matchesbuff_cancel_rate = item.buff_cancel_rate >= buff_cancel_rateValue ;
+					let matchesbuff_cancel_count = item.buff_cancel_count >= buff_cancel_countValue;
+					let matchesDescription = item.description.includes(descriptionKeyword);
+					let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+					let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
+					let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
+					let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
+					return matchesCt&&matchesbuff_cancel_rate&& matchesbuff_cancel_count&&  matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
+				});
+
+                renderTable(filteredData);
+            }
+
+            loadData();
+        });
+    </script>
+</head>
+
+<body>
+    <div>
+<button id="resetButton">重置</button>
+    </div>
+<div>
+    <label for="descriptionFilter">描述過濾:</label>
+    <input type="text" id="descriptionFilter" placeholder="輸入過濾關鍵字...">
+    <button id="searchButton">搜尋</button>
+</div>
+    <div>
+        <label for="ctFilter">CT:</label>
+        <select id="ctFilter">
+            <option value="0" selected>無</option>
+            <option value="1">小</option>
+            <option value="2">大</option>
+        </select>
+    </div>
+	<div>
+        <label for="buff_cancel_rate">有利打消: </label>
+        <select id="buff_cancel_rate">
+            <option value="0" selected>無</option>
+            <option value="1">ごく稀</option>
+            <option value="2">稀</option>
+			<option value="3">低確率</option>
+			<option value="4">確率</option>
+			<option value="5">高確率</option>
+			<option value="6">確率50％</option>
+			<option value="7">確実</option>
+        </select>
+		<label for="buff_cancel_count">數量: </label>
+        <select id="buff_cancel_count">
+            <option value="0" selected>無</option>
+            <option value="1">1</option>
+            <option value="2">有2以上</option>
+			<option value="3">全部</option>
+        </select>
+    </div>
+    <!-- Checkbox for char_em filtering -->
+	
+    <label>skill_state篩選:</label>
+    <label><input type="checkbox" value="転生" class="skill-state-filter">転生</label>
+    <label><input type="checkbox" value="昇華" class="skill-state-filter">昇華</label>
+    <label><input type="checkbox" value="昇華変化" class="skill-state-filter">昇華変化</label>
+    <label><input type="checkbox" value="昇華超変" class="skill-state-filter">昇華超変</label>
+    <label><input type="checkbox" value="限突" class="skill-state-filter">限突</label>
+    <label><input type="checkbox" value="限突変化" class="skill-state-filter">限突変化</label>
+    <label><input type="checkbox" value="限突超変" class="skill-state-filter">限突超変</label>
+    <label><input type="checkbox" value="アナザー" class="skill-state-filter">Another Skill</label>
+	<label><input type="checkbox" value="ULT" class="skill-state-filter">ULT Skill</label>
+<div>
+    <label>skill_type篩選:</label>
+    <label><input type="checkbox" value="攻D,攻C,攻B,攻A" class="skill-type-filter">攻擊(橘)</label>
+    <label><input type="checkbox" value="魔D,魔C,魔B,魔A" class="skill-type-filter">魔法(紫)</label>
+    <label><input type="checkbox" value="特D,特C,特B,特A" class="skill-type-filter">特殊(藍)</label>
+    <label><input type="checkbox" value="補D,補C,補B,補A" class="skill-type-filter">輔助(粉)</label>
+    <label><input type="checkbox" value="パD,パC,パB,パA" class="skill-type-filter">被動(綠)-A以下</label>
+    <label><input type="checkbox" value="パS" class="skill-type-filter">被動(綠)-S</label>
+    <label><input type="checkbox" value="パSS" class="skill-type-filter">被動(綠)-SS</label>
+    <label><input type="checkbox" value="パS3" class="skill-type-filter">被動(綠)-S3</label>
+</div>
+    <div>
+        <label>char_em篩選:</label>
+        <label><input type="checkbox" value="火" class="char-em-filter">火</label>
+        <label><input type="checkbox" value="水" class="char-em-filter">水</label>
+        <label><input type="checkbox" value="樹" class="char-em-filter">樹</label>
+        <label><input type="checkbox" value="光" class="char-em-filter">光</label>
+        <label><input type="checkbox" value="闇" class="char-em-filter">闇</label>
+    <div>
+    <label>char_wep篩選:</label>
+    <label><input type="checkbox" value="劍" class="char-wep-filter">劍</label>
+    <label><input type="checkbox" value="斧" class="char-wep-filter">斧</label>
+    <label><input type="checkbox" value="槍" class="char-wep-filter">槍</label>
+    <label><input type="checkbox" value="本" class="char-wep-filter">本</label>
+    <label><input type="checkbox" value="短劍" class="char-wep-filter">短劍</label>
+    <label><input type="checkbox" value="杖" class="char-wep-filter">杖</label>
+    <label><input type="checkbox" value="弓" class="char-wep-filter">弓</label>
+    <label><input type="checkbox" value="特殊" class="char-wep-filter">特殊</label>
+</div>
+
+	</div>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>技能名</th>
+                <th class="fixed-width">種類</th>
+                <th class="fixed-width2">狀態</th>
+                <th>角色</th>
+                <th class="fixed-width">屬性</th>
+                <th class="fixed-width">武器</th>
+                <th>技能描述</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
+</body>
+
+</html>
