@@ -106,28 +106,33 @@ function highlightKeywords(text, keywords) {
     });
     return text;
 }
-            function renderTable(data) {
-                let tableBody = document.getElementById('tableBody');
-                tableBody.innerHTML = '';
-                for (let item of data) {
-                    let tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${item.skill_name}</td>
-                        <td>${item.skill_type}</td>
-                        <td>${item.skill_state}</td>
-                        <td><a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a></td>
-                        <td>${item.char_em}</td>
-                        <td>${item.char_wep}</td>
-                        <td>${item.description}</td>
-                    `;
-                    tableBody.appendChild(tr);
-                }
-            }
+function renderTable(data) {
+    let tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+    for (let item of data) {
+        let tr = document.createElement('tr');
+        let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+        tr.innerHTML = `
+            <td>${item.skill_name}</td>
+            <td>${item.skill_type}</td>
+            <td>${item.skill_state}</td>
+            <td>
+                <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
+                    <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">  <!-- 修改此處 -->
+                </a>
+                <br>
+                <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
+                ${additionalInfo}
+            </td>
+            <td>${item.char_em}</td>
+            <td>${item.char_wep}</td>
+            <td>${item.description}</td>
+        `;
+        tableBody.appendChild(tr);
+    }
+}
 
             function filterData(data) {
-
-			
-			
                 let ctValue = parseInt(document.getElementById('ctFilter').value);
 				let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
 				let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
@@ -212,11 +217,10 @@ switch (searchMode) {
     <button id="searchButton">搜尋</button>
 </div>
     <div>
-        <label for="ctFilter">CT:</label>
+        <label for="ctFilter">防偷盾(=紅果凍=ドレインバリア):</label>
         <select id="ctFilter">
             <option value="0" selected>無</option>
-            <option value="1">小</option>
-            <option value="2">大</option>
+            <option value="1">有</option>
         </select>
     </div>
 	<div>
