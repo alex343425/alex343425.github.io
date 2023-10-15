@@ -35,84 +35,92 @@
     background-color: lightgreen;
 }
     </style>
-    <script>
+     <script>
 
-        document.addEventListener("DOMContentLoaded", function () {
-		let searchMode = 'original';  // 這是默認的搜索模式
-            function loadData() {
-                fetch('data.json')
-                    .then(response => response.json())
-                    .then(data => {
-                        renderTable(data);
-                        document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
-						document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
-						document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
-                        document.getElementById('searchButton').addEventListener('click', () => filterData(data));
-                        document.querySelectorAll('.char-em-filter').forEach(checkbox => {
-                            checkbox.addEventListener('change', () => filterData(data));
-                        });
-						document.querySelectorAll('.char-wep-filter').forEach(checkbox => {
-						    checkbox.addEventListener('change', () => filterData(data));
-						});
-						document.querySelectorAll('.skill-type-filter').forEach(checkbox => {
-							checkbox.addEventListener('change', () => filterData(data));
-						});
-						document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
-							checkbox.addEventListener('change', () => filterData(data));
-						});
-document.getElementById('modeOriginal').addEventListener('click', function() {
-    searchMode = 'original';
+    document.addEventListener("DOMContentLoaded", function () {
+        let searchMode = 'original'; // 這是默認的搜索模式
+        function loadData() {
+            fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                renderTable(data);
+                document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
+                document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
+                document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
+                document.getElementById('searchButton').addEventListener('click', () => filterData(data));
+                document.querySelectorAll('.char-em-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.querySelectorAll('.char-wep-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.querySelectorAll('.skill-type-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.getElementById('modeOriginal').addEventListener('click', function () {
+                    searchMode = 'original';
 
-});
+                });
 
-document.getElementById('modeSequential').addEventListener('click', function() {
-    searchMode = 'sequential';
+                document.getElementById('modeSequential').addEventListener('click', function () {
+                    searchMode = 'sequential';
 
-});
+                });
 
-document.getElementById('modeStrictSequential').addEventListener('click', function() {
-    searchMode = 'strictSequential';
+                document.getElementById('modeStrictSequential').addEventListener('click', function () {
+                    searchMode = 'strictSequential';
 
-});
-document.querySelectorAll('input[name="searchMode"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        searchMode = this.value;
-    });
-});
-                    })
-                    .catch(error => console.error('Error fetching data:', error));
-            }
-					document.getElementById('resetButton').addEventListener('click', function() {
-						// Reset checkboxes
-						document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-							checkbox.checked = false;
-						});
+                });
+				document.querySelector("#descriptionFilter").addEventListener("keyup", function(event) {
+					// 如果按下的是Enter鍵
+					if (event.keyCode === 13) {
+						event.preventDefault();
+						// 觸發搜尋
+						filterData(data);
+					}
+				});
+                document.querySelectorAll('input[name="searchMode"]').forEach(radio => {
+                    radio.addEventListener('change', function () {
+                        searchMode = this.value;
+                    });
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+        document.getElementById('resetButton').addEventListener('click', function () {
+            // Reset checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
 
-						// Reset select elements to their first option
-						document.querySelectorAll('select').forEach(select => {
-							select.selectedIndex = 0;
-						});
-						// Clear descriptionFilter
-						document.getElementById('descriptionFilter').value = '';
-						// Finally, reload the data
-						loadData();
-					});
-function highlightKeywords(text, keywords) {
-    keywords.forEach((keyword, index) => {
-        // 創建一個正則表達式來匹配當前的關鍵字
-        let regex = new RegExp(keyword, "gi");
-        // 使用帶有特定背景色的<span>替換該關鍵字
-        text = text.replace(regex, `<span class="highlight${index + 1}">$&</span>`);
-    });
-    return text;
-}
-function renderTable(data) {
-    let tableBody = document.getElementById('tableBody');
-    tableBody.innerHTML = '';
-    for (let item of data) {
-        let tr = document.createElement('tr');
-        let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
-        tr.innerHTML = `
+            // Reset select elements to their first option
+            document.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+            // Clear descriptionFilter
+            document.getElementById('descriptionFilter').value = '';
+            // Finally, reload the data
+            loadData();
+        });
+        function highlightKeywords(text, keywords) {
+            keywords.forEach((keyword, index) => {
+                // 創建一個正則表達式來匹配當前的關鍵字
+                let regex = new RegExp(keyword, "gi");
+                // 使用帶有藍定背景色的<span>替換該關鍵字
+                text = text.replace(regex, `<span class="highlight${index + 1}">$&</span>`);
+            });
+            return text;
+        }
+        function renderTable(data) {
+            let tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            for (let item of data) {
+                let tr = document.createElement('tr');
+                let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+                tr.innerHTML = `
             <td>${item.skill_name}</td>
             <td>${item.skill_type}</td>
             <td>${item.skill_state}</td>
@@ -128,75 +136,74 @@ function renderTable(data) {
             <td>${item.char_wep}</td>
             <td>${item.description}</td>
         `;
-        tableBody.appendChild(tr);
-    }
-}
-
-            function filterData(data) {
-                let ctValue = parseInt(document.getElementById('ctFilter').value);
-				let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
-				let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
-                let descriptionKeyword = document.getElementById('descriptionFilter').value;
-				let keywords = descriptionKeyword.split(' ');
-                // Get selected char_em values
-                let selectedCharEm = [];
-                document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
-                    selectedCharEm.push(checkbox.value);
-                });
-				// Get selected char_wep values
-				let selectedCharWep = [];
-				document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
-					selectedCharWep.push(checkbox.value);
-				});
-				// Get selected skill_type values
-				let selectedSkillType = [];
-				document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
-					// Since a checkbox might represent multiple filter values, we split them and add to the array
-					selectedSkillType.push(...checkbox.value.split(','));
-				});
-				// Get selected skill_state values
-				let selectedSkillState = [];
-				document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
-					// Since a checkbox might represent multiple filter values, we split them and add to the array
-					selectedSkillState.push(...checkbox.value.split(','));
-				});
-				
-				let filteredData = data.filter(item => {
-				    let matchesCt = item.drain_baria >= ctValue;
-					let matchesbuff_cancel_rate = item.buff_cancel_rate >= buff_cancel_rateValue ;
-					let matchesbuff_cancel_count = item.buff_cancel_count >= buff_cancel_countValue;
-					let keywords = descriptionKeyword.split(' ');
-switch (searchMode) {
-    case 'original':
-        matchesDescription = keywords.every(keyword => 
-            item.description.includes(keyword) || item.skill_name.includes(keyword)
-        );
-        break;
-
-    case 'sequential':
-        let combinedKeywords = keywords.join('.*');  // 連接關鍵字，使它們可以按順序匹配，但允許它們之間有其他字符
-        let regex = new RegExp(combinedKeywords);
-        matchesDescription = regex.test(item.description);
-        break;
-
-    case 'strictSequential':
-        let combinedKeywords2 = keywords.join('[^、：。・]*');  // 連接關鍵字，允許它們之間沒有指定的字符
-        let regex2 = new RegExp(combinedKeywords2);
-        matchesDescription = regex2.test(item.description);
-        break;
-}
-					let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
-					let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
-					let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
-					let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
-					return matchesCt&&matchesbuff_cancel_rate&& matchesbuff_cancel_count&&  matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
-				});
-
-                renderTable(filteredData);
+                tableBody.appendChild(tr);
             }
+        }
 
-            loadData();
-        });
+        function filterData(data) {
+            let ctValue = parseInt(document.getElementById('ctFilter').value);
+            let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
+            let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
+            let descriptionKeyword = document.getElementById('descriptionFilter').value;
+            let keywords = descriptionKeyword.split(' ');
+            // Get selected char_em values
+            let selectedCharEm = [];
+            document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
+                selectedCharEm.push(checkbox.value);
+            });
+            // Get selected char_wep values
+            let selectedCharWep = [];
+            document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
+                selectedCharWep.push(checkbox.value);
+            });
+            // Get selected skill_type values
+            let selectedSkillType = [];
+            document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
+                // Since a checkbox might represent multiple filter values, we split them and add to the array
+                selectedSkillType.push(...checkbox.value.split(','));
+            });
+            // Get selected skill_state values
+            let selectedSkillState = [];
+            document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
+                // Since a checkbox might represent multiple filter values, we split them and add to the array
+                selectedSkillState.push(...checkbox.value.split(','));
+            });
+
+            let filteredData = data.filter(item => {
+                let matchesCt = item.drain_baria >= ctValue;
+                let matchesbuff_cancel_rate = item.buff_cancel_rate >= buff_cancel_rateValue;
+                let matchesbuff_cancel_count = item.buff_cancel_count >= buff_cancel_countValue;
+                let keywords = descriptionKeyword.split(' ');
+                switch (searchMode) {
+                case 'original':
+                    matchesDescription = keywords.every(keyword =>
+                            item.description.includes(keyword) || item.skill_name.includes(keyword));
+                    break;
+
+                case 'sequential':
+                    let combinedKeywords = keywords.join('.*'); // 連接關鍵字，使它們可以按順序匹配，但允許它們之間有其他字符
+                    let regex = new RegExp(combinedKeywords);
+                    matchesDescription = regex.test(item.description);
+                    break;
+
+                case 'strictSequential':
+                    let combinedKeywords2 = keywords.join('[^、：。・]*'); // 連接關鍵字，允許它們之間沒有指定的字符
+                    let regex2 = new RegExp(combinedKeywords2);
+                    matchesDescription = regex2.test(item.description);
+                    break;
+                }
+                let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+                let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
+                let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
+                let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
+                return matchesCt && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
+            });
+
+            renderTable(filteredData);
+        }
+
+        loadData();
+    });
     </script>
 </head>
 
@@ -246,26 +253,28 @@ switch (searchMode) {
     <!-- Checkbox for char_em filtering -->
 	
     <label>skill_state篩選:</label>
-    <label><input type="checkbox" value="転生" class="skill-state-filter">転生</label>
+    <label><input type="checkbox" value="拆技" class="skill-state-filter">転生</label>
     <label><input type="checkbox" value="昇華" class="skill-state-filter">昇華</label>
-    <label><input type="checkbox" value="昇華変化" class="skill-state-filter">昇華変化</label>
-    <label><input type="checkbox" value="昇華超変" class="skill-state-filter">昇華超変</label>
+    <label><input type="checkbox" value="昇華變化" class="skill-state-filter">昇華変化</label>
+    <label><input type="checkbox" value="昇華超變化" class="skill-state-filter">昇華超変</label>
     <label><input type="checkbox" value="限突" class="skill-state-filter">限突</label>
-    <label><input type="checkbox" value="限突変化" class="skill-state-filter">限突変化</label>
-    <label><input type="checkbox" value="限突超変" class="skill-state-filter">限突超変</label>
-    <label><input type="checkbox" value="アナザー" class="skill-state-filter">Another Skill</label>
+    <label><input type="checkbox" value="限突變化" class="skill-state-filter">限突変化</label>
+    <label><input type="checkbox" value="限突超變化" class="skill-state-filter">限突超変</label>
+    <label><input type="checkbox" value="Another skill" class="skill-state-filter">Another Skill</label>
 	<label><input type="checkbox" value="ULT" class="skill-state-filter">ULT Skill</label>
+
 <div>
     <label>skill_type篩選:</label>
-    <label><input type="checkbox" value="攻D,攻C,攻B,攻A" class="skill-type-filter">攻擊(橘)</label>
-    <label><input type="checkbox" value="魔D,魔C,魔B,魔A" class="skill-type-filter">魔法(紫)</label>
-    <label><input type="checkbox" value="特D,特C,特B,特A" class="skill-type-filter">特殊(藍)</label>
-    <label><input type="checkbox" value="補D,補C,補B,補A" class="skill-type-filter">輔助(粉)</label>
-    <label><input type="checkbox" value="パD,パC,パB,パA" class="skill-type-filter">被動(綠)-A以下</label>
-    <label><input type="checkbox" value="パS" class="skill-type-filter">被動(綠)-S</label>
-    <label><input type="checkbox" value="パSS" class="skill-type-filter">被動(綠)-SS</label>
-    <label><input type="checkbox" value="パS3" class="skill-type-filter">被動(綠)-S3</label>
+    <label><input type="checkbox" value="橘D,橘C,橘B,橘A" class="skill-type-filter">攻擊(橘)</label>
+    <label><input type="checkbox" value="紫D,紫C,紫B,紫A" class="skill-type-filter">魔法(紫)</label>
+    <label><input type="checkbox" value="藍D,藍C,藍B,藍A" class="skill-type-filter">特殊(藍)</label>
+    <label><input type="checkbox" value="粉D,粉C,粉B,粉A" class="skill-type-filter">輔助(粉)</label>
+    <label><input type="checkbox" value="綠D,綠C,綠B,綠A" class="skill-type-filter">被動(綠)-A以下</label>
+    <label><input type="checkbox" value="綠S" class="skill-type-filter">被動(綠)-S</label>
+    <label><input type="checkbox" value="綠SS" class="skill-type-filter">被動(綠)-SS</label>
+    <label><input type="checkbox" value="綠S3" class="skill-type-filter">被動(綠)-S3</label>
 </div>
+
     <div>
         <label>char_em篩選:</label>
         <label><input type="checkbox" value="火" class="char-em-filter">火</label>
