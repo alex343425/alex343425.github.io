@@ -82,6 +82,31 @@
 						filterData(data);
 					}
 				});
+				document.querySelector("#toggleKeywordButtons").addEventListener("click", function() {
+					const keywordArea = document.querySelector("#keywordButtonsArea");
+					if (keywordArea.style.display === "none") {
+						keywordArea.style.display = "block";
+						this.innerText = "收起常用關鍵字";
+					} else {
+						keywordArea.style.display = "none";
+						this.innerText = "展開常用關鍵字";
+					}
+				});
+				// 當按下常用關鍵字按鈕時，將其關聍的關鍵字添加到descriptionFilter輸入框
+				document.querySelectorAll(".keywordBtn").forEach(button => {
+					button.addEventListener("click", function() {
+						const keyword = this.getAttribute("data-keyword");
+						const currentInput = document.querySelector("#descriptionFilter").value.trim();
+
+						if (currentInput) {
+							document.querySelector("#descriptionFilter").value = currentInput + " " + keyword;
+						} else {
+							document.querySelector("#descriptionFilter").value = keyword;
+						}
+					});
+				});
+				
+				
                 document.querySelectorAll('input[name="searchMode"]').forEach(radio => {
                     radio.addEventListener('change', function () {
                         searchMode = this.value;
@@ -187,7 +212,7 @@
                     break;
 
                 case 'strictSequential':
-                    let combinedKeywords2 = keywords.join('[^、：。・]*'); // 連接關鍵字，允許它們之間沒有指定的字符
+                    let combinedKeywords2 = keywords.join('[^、。・]*'); // 連接關鍵字，允許它們之間沒有指定的字符
                     let regex2 = new RegExp(combinedKeywords2);
                     matchesDescription = regex2.test(item.description);
                     break;
@@ -222,6 +247,33 @@
     <label for="descriptionFilter">描述過濾:</label>
     <input type="text" id="descriptionFilter" placeholder="輸入過濾關鍵字...">
     <button id="searchButton">搜尋</button>
+</div>
+<div>
+<button id="toggleKeywordButtons">展開常用關鍵字</button>
+
+<div id="keywordButtonsArea" style="display: none;">
+---------------------------------------------<br>
+    <button class="keywordBtn" data-keyword="デバフムーブ">debuff move</button>　
+    <button class="keywordBtn" data-keyword="ディスペルバリア">藍果凍(防打消盾)</button>　
+    <button class="keywordBtn" data-keyword="スティール">偷竊</button>　
+	<button class="keywordBtn" data-keyword="バフドレイン">偷Buff</button>　
+	<br>星宮解預兆用：(將搜尋模式調整成 前到後且同句)<br>
+	<button class="keywordBtn" data-keyword="攻撃 回 アップ">攻擊多回UP</button>　
+	<button class="keywordBtn" data-keyword="防御 回 アップ">防禦多回UP</button>　
+	<button class="keywordBtn" data-keyword="攻撃魔力 回 アップ">攻魔多回UP</button>　
+	<button class="keywordBtn" data-keyword="すばやさ 回 アップ">速度(すばやさ)多回UP</button>　
+	<button class="keywordBtn" data-keyword="HP 回 アップ">HP多回UP</button>　
+	<button class="keywordBtn" data-keyword="全パラ 回 アップ">全能力多回UP (可能不含HP)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="攻撃 回 ダウン">攻擊多回下降</button>　
+	<button class="keywordBtn" data-keyword="防御 回 ダウン">防禦多回下降</button>　
+	<button class="keywordBtn" data-keyword="攻撃魔力 回 ダウン">攻魔多回下降</button>　
+	<button class="keywordBtn" data-keyword="すばやさ 回 ダウン">速度(すばやさ)多回下降</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="状態異常耐性 回 アップ">異常耐性多回UP</button>　
+	<button class="keywordBtn" data-keyword="状態異常耐性 回 ダウン">異常耐性多回下降</button>　
+	<br>---------------------------------------------
+</div>
 </div>
     <div>
         <label for="ctFilter">防偷盾(=紅果凍=ドレインバリア):</label>
