@@ -139,31 +139,39 @@
             });
             return text;
         }
-        function renderTable(data) {
-            let tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '';
-            for (let item of data) {
-                let tr = document.createElement('tr');
-                let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
-                tr.innerHTML = `
+function renderTable(data) {
+    let tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+    for (let item of data) {
+        let tr = document.createElement('tr');
+        let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+        
+        let imgCellContent;
+        if (item.img_name) {
+            imgCellContent = `
+            <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
+                <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">
+            </a>
+            <br>
+            <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
+            ${additionalInfo}`;
+        } else {
+            imgCellContent = '--';
+        }
+
+        tr.innerHTML = `
             <td>${item.skill_name}</td>
             <td>${item.skill_type}</td>
             <td>${item.skill_state}</td>
-            <td>
-                <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
-                    <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">  <!-- 修改此處 -->
-                </a>
-                <br>
-                <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
-                ${additionalInfo}
-            </td>
+            <td>${imgCellContent}</td>
             <td>${item.char_em}</td>
             <td>${item.char_wep}</td>
             <td>${item.description}</td>
         `;
-                tableBody.appendChild(tr);
-            }
-        }
+
+        tableBody.appendChild(tr);
+    }
+}
 
         function filterData(data) {
             let ctValue = parseInt(document.getElementById('ctFilter').value);
@@ -255,8 +263,43 @@
 ---------------------------------------------<br>
     <button class="keywordBtn" data-keyword="デバフムーブ">debuff move</button>　
     <button class="keywordBtn" data-keyword="ディスペルバリア">藍果凍(防打消盾)</button>　
-    <button class="keywordBtn" data-keyword="スティール">偷竊</button>　
 	<button class="keywordBtn" data-keyword="バフドレイン">偷Buff</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="スティール">偷竊(主動技)</button>　
+	<button class="keywordBtn" data-keyword="ドロップ率">打寶力</button>　
+	<button class="keywordBtn" data-keyword="クエスト アイテム">掉落複製</button>　
+	<button class="keywordBtn" data-keyword="プレイヤー">玩家經驗</button>　
+	<br>異常賦予<br>
+	<button class="keywordBtn" data-keyword="毒">毒(5%)</button>　
+	<button class="keywordBtn" data-keyword="猛毒">猛毒(10%)</button>　
+	<button class="keywordBtn" data-keyword="劇毒">劇毒(15%)</button>　
+	<button class="keywordBtn" data-keyword="爆毒">爆毒(20%)</button>　
+	<button class="keywordBtn" data-keyword="どくりんご">蘋果毒(30% 3回合)</button>　
+	<button class="keywordBtn" data-keyword="どくりんご改">蘋果毒改(35% 3回合)</button>　
+	<button class="keywordBtn" data-keyword="ピュルテバウンド">看板毒(30% 5回合)(技能名)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="麻痺">麻痺</button>　
+	<button class="keywordBtn" data-keyword="金縛り">金縛(80%不能行動)</button>　
+	<button class="keywordBtn" data-keyword="びびりんご">麻蘋果(85%)</button>　
+	<button class="keywordBtn" data-keyword="びびりんご改">麻蘋果改(88%)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="幻惑">幻惑</button>　
+	<button class="keywordBtn" data-keyword="幻覚">幻覚</button>　
+	<button class="keywordBtn" data-keyword="悩殺">悩殺(5回合60%物理MISS)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="スタン">暈眩(1回無法行動)</button>　
+	<button class="keywordBtn" data-keyword="失神">失神(1回無法行動)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="眠り">睡眠</button>　
+	<button class="keywordBtn" data-keyword="昏睡">昏睡</button>　
+	<button class="keywordBtn" data-keyword="ねむりんご">睡蘋果(被打10次才會醒)</button>　
+	<button class="keywordBtn" data-keyword="超昏睡">超昏睡(被打15次才會醒)</button>　
+	<button class="keywordBtn" data-keyword="ねむりんご改">睡蘋果改(被打15次才會醒)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="混乱">混亂</button>　
+	<button class="keywordBtn" data-keyword="呪い">詛咒</button>　
+	<button class="keywordBtn" data-keyword="封印">封印</button>　
+	<br>
 	<br>星宮解預兆用：(將搜尋模式調整成 前到後且同句)<br>
 	<button class="keywordBtn" data-keyword="攻撃 回 アップ">攻擊多回UP</button>　
 	<button class="keywordBtn" data-keyword="防御 回 アップ">防禦多回UP</button>　
