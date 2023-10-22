@@ -98,9 +98,9 @@
 						const keyword = this.getAttribute("data-keyword");
 						const currentInput = document.querySelector("#descriptionFilter").value.trim();
 
-						if (currentInput) {
+						if (currentInput && !currentInput.endsWith(keyword)) {
 							document.querySelector("#descriptionFilter").value = currentInput + " " + keyword;
-						} else {
+						} else if (!currentInput) {
 							document.querySelector("#descriptionFilter").value = keyword;
 						}
 					});
@@ -125,6 +125,7 @@
             document.querySelectorAll('select').forEach(select => {
                 select.selectedIndex = 0;
             });
+			
             // Clear descriptionFilter
             document.getElementById('descriptionFilter').value = '';
             // Finally, reload the data
