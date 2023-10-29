@@ -1,0 +1,390 @@
+<!-- python -m http.server 8080 -->
+<!-- http://localhost:8080/Desktop/ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>篩選表格</title>
+    <style>
+        table {
+            width: 100%;
+        }
+
+        td {
+            word-wrap: break-word;
+        }
+		.fixed-width {
+    width: 3em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+		.fixed-width2 {
+    width: 4em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+.highlight1 {
+    background-color: yellow;
+}
+
+.highlight2 {
+    background-color: lightblue;
+}
+
+.highlight3 {
+    background-color: lightgreen;
+}
+    </style>
+     <script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let searchMode = 'original'; // 這是默認的搜索模式
+        function loadData() {
+            fetch('data_leader_wep.json')
+            .then(response => response.json())
+            .then(data => {
+                renderTable(data);
+                document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
+                document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
+                
+				document.getElementById('em_resist').addEventListener('change', () => filterData(data));
+                document.getElementById('searchButton').addEventListener('click', () => filterData(data));
+                document.querySelectorAll('.char-em-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.querySelectorAll('.char-wep-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.querySelectorAll('.skill-type-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
+                document.getElementById('modeOriginal').addEventListener('click', function () {
+                    searchMode = 'original';
+
+                });
+
+                document.getElementById('modeSequential').addEventListener('click', function () {
+                    searchMode = 'sequential';
+
+                });
+
+                document.getElementById('modeStrictSequential').addEventListener('click', function () {
+                    searchMode = 'strictSequential';
+
+                });
+				document.querySelector("#descriptionFilter").addEventListener("keyup", function(event) {
+					// 如果按下的是Enter鍵
+					if (event.keyCode === 13) {
+						event.preventDefault();
+						// 觸發搜尋
+						filterData(data);
+					}
+				});
+				document.querySelector("#toggleKeywordButtons").addEventListener("click", function() {
+					const keywordArea = document.querySelector("#keywordButtonsArea");
+					if (keywordArea.style.display === "none") {
+						keywordArea.style.display = "block";
+						this.innerText = "收起常用關鍵字";
+					} else {
+						keywordArea.style.display = "none";
+						this.innerText = "展開常用關鍵字";
+					}
+				});
+				// 當按下常用關鍵字按鈕時，將其關聍的關鍵字添加到descriptionFilter輸入框
+				document.querySelectorAll(".keywordBtn").forEach(button => {
+					button.addEventListener("click", function() {
+						const keyword = this.getAttribute("data-keyword");
+						const currentInput = document.querySelector("#descriptionFilter").value.trim();
+
+						if (currentInput && !currentInput.endsWith(keyword)) {
+							document.querySelector("#descriptionFilter").value = currentInput + " " + keyword;
+						} else if (!currentInput) {
+							document.querySelector("#descriptionFilter").value = keyword;
+						}
+					});
+				});
+				
+				
+                document.querySelectorAll('input[name="searchMode"]').forEach(radio => {
+                    radio.addEventListener('change', function () {
+                        searchMode = this.value;
+                    });
+                });
+            })
+            .catch(error => console.error('Error fetching data:', error));
+        }
+        document.getElementById('resetButton').addEventListener('click', function () {
+            // Reset checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Reset select elements to their first option
+            document.querySelectorAll('select').forEach(select => {
+                select.selectedIndex = 0;
+            });
+			
+            // Clear descriptionFilter
+            document.getElementById('descriptionFilter').value = '';
+            // Finally, reload the data
+            loadData();
+        });
+        function highlightKeywords(text, keywords) {
+            keywords.forEach((keyword, index) => {
+                // 創建一個正則表達式來匹配當前的關鍵字
+                let regex = new RegExp(keyword, "gi");
+                // 使用帶有藍定背景色的<span>替換該關鍵字
+                text = text.replace(regex, `<span class="highlight${index + 1}">$&</span>`);
+            });
+            return text;
+        }
+function renderTable(data) {
+    let tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+    for (let item of data) {
+        let tr = document.createElement('tr');
+        let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+        
+        let imgCellContent;
+        if (item.img_name) {
+            imgCellContent = `
+            <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
+                <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">
+            </a>
+            <br>
+            <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
+            ${additionalInfo}`;
+        } else {
+            imgCellContent = '--';
+        }
+
+        tr.innerHTML = `
+            <td>${item.skill_name}</td>
+            <td>${item.type}</td>
+            <td>${imgCellContent}</td>
+            <td>${item.char_em}</td>
+            <td>${item.char_wep}</td>
+            <td>${item.description}</td>
+        `;
+
+        tableBody.appendChild(tr);
+    }
+}
+
+        function filterData(data) {
+            let ctValue = parseInt(document.getElementById('ctFilter').value);
+            let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);            
+			let em_resistValue = parseInt(document.getElementById('em_resist').value);
+            let descriptionKeyword = document.getElementById('descriptionFilter').value;
+            let keywords = descriptionKeyword.split(' ');
+            // Get selected char_em values
+            let selectedCharEm = [];
+            document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
+                selectedCharEm.push(checkbox.value);
+            });
+            // Get selected char_wep values
+            let selectedCharWep = [];
+            document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
+                selectedCharWep.push(checkbox.value);
+            });
+            // Get selected skill_type values
+            let selectedSkillType = [];
+            document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
+                // Since a checkbox might represent multiple filter values, we split them and add to the array
+                selectedSkillType.push(...checkbox.value.split(','));
+            });
+            // Get selected skill_state values
+            let selectedSkillState = [];
+            document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
+                // Since a checkbox might represent multiple filter values, we split them and add to the array
+                selectedSkillState.push(...checkbox.value.split(','));
+            });
+
+            let filteredData = data.filter(item => {
+                let keywords = descriptionKeyword.split(' ');
+                switch (searchMode) {
+                case 'original':
+                    matchesDescription = keywords.every(keyword =>
+                            item.description.includes(keyword) || item.skill_name.includes(keyword));
+                    break;
+
+                case 'sequential':
+                    let combinedKeywords = keywords.join('.*'); // 連接關鍵字，使它們可以按順序匹配，但允許它們之間有其他字符
+                    let regex = new RegExp(combinedKeywords);
+                    matchesDescription = regex.test(item.description);
+                    break;
+
+                case 'strictSequential':
+                    let combinedKeywords2 = keywords.join('[^、。・]*'); // 連接關鍵字，允許它們之間沒有指定的字符
+                    let regex2 = new RegExp(combinedKeywords2);
+                    matchesDescription = regex2.test(item.description);
+                    break;
+                }
+				let matchesCt = item.permanent_skill_up >= ctValue;
+				let matchesdebuff = item.debuff >= buff_cancel_rateValue;
+				let matchesem_resist = item.enchant >= em_resistValue;
+                let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+                let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
+                let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.type);
+                return matchesCt && matchesdebuff && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType;
+            });
+
+            renderTable(filteredData);
+        }
+
+        loadData();
+    });
+    </script>
+</head>
+
+<body>
+    <div>
+<button id="resetButton">重置</button> <a href="./index.html" target="_blank">前往一般技能搜尋</a>
+
+    </div>
+	    <div>
+<div>
+    <label>描述搜尋模式:</label>
+    <input type="radio" name="searchMode" value="original" id="modeOriginal" checked> 原始
+    <input type="radio" name="searchMode" value="sequential" id="modeSequential"> 前到後
+    <input type="radio" name="searchMode" value="strictSequential" id="modeStrictSequential"> 前到後且不分句
+</div>
+<div>
+    <label for="descriptionFilter">描述過濾:</label>
+    <input type="text" id="descriptionFilter" placeholder="輸入過濾關鍵字...">
+    <button id="searchButton">搜尋</button>
+</div>
+<div>
+<button id="toggleKeywordButtons">展開常用關鍵字</button>
+
+<div id="keywordButtonsArea" style="display: none;">
+---------------------------------------------<br>
+    <button class="keywordBtn" data-keyword="デバフムーブ">debuff move</button>　
+    <button class="keywordBtn" data-keyword="ディスペルバリア">藍果凍(防打消盾)</button>　
+	<button class="keywordBtn" data-keyword="ドレインバリア">紅果凍(防偷BUFF盾)</button>　
+	<button class="keywordBtn" data-keyword="バフドレイン">偷Buff</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="スティール">偷竊(主動技)</button>　
+	<button class="keywordBtn" data-keyword="ドロップ率">打寶力</button>　
+	<button class="keywordBtn" data-keyword="クエスト アイテム">掉落複製</button>　
+	<button class="keywordBtn" data-keyword="プレイヤー経験">玩家經驗</button>　
+	<br>異常賦予<br>
+	<button class="keywordBtn" data-keyword="毒">毒(5%)</button>　
+	<button class="keywordBtn" data-keyword="猛毒">猛毒(10%)</button>　
+	<button class="keywordBtn" data-keyword="劇毒">劇毒(15%)</button>　
+	<button class="keywordBtn" data-keyword="爆毒">爆毒(20%)</button>　
+	<button class="keywordBtn" data-keyword="どくりんご">蘋果毒(30% 3回合)</button>　
+	<button class="keywordBtn" data-keyword="どくりんご改">蘋果毒改(35% 3回合)</button>　
+	<button class="keywordBtn" data-keyword="ピュルテバウンド">看板毒(30% 5回合)(技能名)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="麻痺">麻痺</button>　
+	<button class="keywordBtn" data-keyword="金縛り">金縛(80%不能行動)</button>　
+	<button class="keywordBtn" data-keyword="びびりんご">麻蘋果(85%)</button>　
+	<button class="keywordBtn" data-keyword="びびりんご改">麻蘋果改(88%)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="幻惑">幻惑</button>　
+	<button class="keywordBtn" data-keyword="幻覚">幻覚</button>　
+	<button class="keywordBtn" data-keyword="悩殺">悩殺(5回合60%物理MISS)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="スタン">暈眩(1回無法行動)</button>　
+	<button class="keywordBtn" data-keyword="失神">失神(2回無法行動)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="眠り">睡眠</button>　
+	<button class="keywordBtn" data-keyword="昏睡">昏睡</button>　
+	<button class="keywordBtn" data-keyword="ねむりんご">睡蘋果(被打10次才會醒)</button>　
+	<button class="keywordBtn" data-keyword="超昏睡">超昏睡(被打15次才會醒)</button>　
+	<button class="keywordBtn" data-keyword="ねむりんご改">睡蘋果改(被打15次才會醒)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="混乱">混亂</button>　
+	<button class="keywordBtn" data-keyword="呪い">詛咒</button>　
+	<button class="keywordBtn" data-keyword="封印">封印</button>　
+	<br>
+	<br>星宮解預兆用：(將搜尋模式調整成 前到後且同句)<br>
+	<button class="keywordBtn" data-keyword="攻撃 回 アップ">攻擊多回UP</button>　
+	<button class="keywordBtn" data-keyword="防御 回 アップ">防禦多回UP</button>　
+	<button class="keywordBtn" data-keyword="攻撃魔力 回 アップ">攻魔多回UP</button>　
+	<button class="keywordBtn" data-keyword="すばやさ 回 アップ">速度(すばやさ)多回UP</button>　
+	<button class="keywordBtn" data-keyword="HP 回 アップ">HP多回UP</button>　
+	<button class="keywordBtn" data-keyword="全パラ 回 アップ">全能力多回UP (可能不含HP)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="攻撃 回 ダウン">攻擊多回下降</button>　
+	<button class="keywordBtn" data-keyword="防御 回 ダウン">防禦多回下降</button>　
+	<button class="keywordBtn" data-keyword="攻撃魔力 回 ダウン">攻魔多回下降</button>　
+	<button class="keywordBtn" data-keyword="すばやさ 回 ダウン">速度(すばやさ)多回下降</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="状態異常耐性 回 アップ">異常耐性多回UP</button>　
+	<button class="keywordBtn" data-keyword="状態異常耐性 回 ダウン">異常耐性多回下降</button>　
+	<br>---------------------------------------------
+</div>
+</div>
+    <div>
+        <label for="ctFilter">永續昇華:</label>
+        <select id="ctFilter">
+            <option value="0" selected>無</option>
+            <option value="1">有</option>
+        </select>
+    </div>
+	<div>
+        <label for="buff_cancel_rate">Debuff突破: </label>
+        <select id="buff_cancel_rate">
+            <option value="0" selected>無</option>
+            <option value="1">有</option>
+        </select>
+    </div>
+	<div>
+        <label for="em_resist">エンチャント(普攻/技能觸發特效): </label>
+        <select id="em_resist">
+            <option value="0" selected>無</option>
+            <option value="1">有</option>
+        </select>
+    </div>
+    <!-- Checkbox for char_em filtering -->
+	
+
+<div>
+    <label>skill_type篩選:</label>
+    <label><input type="checkbox" value="隊長技能" class="skill-type-filter">隊長技能</label>
+    <label><input type="checkbox" value="專武技能" class="skill-type-filter">專武技能</label>
+</div>
+
+    <div>
+        <label>char_em篩選:</label>
+        <label><input type="checkbox" value="火" class="char-em-filter">火</label>
+        <label><input type="checkbox" value="水" class="char-em-filter">水</label>
+        <label><input type="checkbox" value="樹" class="char-em-filter">樹</label>
+        <label><input type="checkbox" value="光" class="char-em-filter">光</label>
+        <label><input type="checkbox" value="闇" class="char-em-filter">闇</label>
+    <div>
+    <label>char_wep篩選:</label>
+    <label><input type="checkbox" value="剣" class="char-wep-filter">劍</label>
+    <label><input type="checkbox" value="斧" class="char-wep-filter">斧</label>
+    <label><input type="checkbox" value="槍" class="char-wep-filter">槍</label>
+    <label><input type="checkbox" value="本" class="char-wep-filter">本</label>
+    <label><input type="checkbox" value="短剣" class="char-wep-filter">短劍</label>
+    <label><input type="checkbox" value="杖" class="char-wep-filter">杖</label>
+    <label><input type="checkbox" value="弓" class="char-wep-filter">弓</label>
+    <label><input type="checkbox" value="特殊" class="char-wep-filter">特殊</label>
+</div>
+
+	</div>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>技能名</th>
+                <th class="fixed-width">種類</th>
+                <th>角色</th>
+                <th class="fixed-width">屬性</th>
+                <th class="fixed-width">武器</th>
+                <th>技能描述</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
+</body>
+
+</html>
