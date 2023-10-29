@@ -209,7 +209,7 @@ function renderTable(data) {
                 let matchesCt = item.drain_baria >= ctValue;
                 let matchesbuff_cancel_rate = item.buff_cancel_rate >= buff_cancel_rateValue;
                 let matchesbuff_cancel_count = item.buff_cancel_count >= buff_cancel_countValue;
-				let matchesem_resist = item.em_resist == em_resistValue;
+				
                 let keywords = descriptionKeyword.split(' ');
                 switch (searchMode) {
                 case 'original':
@@ -233,6 +233,9 @@ function renderTable(data) {
                 let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
                 let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
                 let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
+				
+				let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
+				
                 return matchesCt && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
             });
 
