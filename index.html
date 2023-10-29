@@ -47,6 +47,7 @@
                 document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
                 document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
                 document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
+				document.getElementById('em_resist').addEventListener('change', () => filterData(data));
                 document.getElementById('searchButton').addEventListener('click', () => filterData(data));
                 document.querySelectorAll('.char-em-filter').forEach(checkbox => {
                     checkbox.addEventListener('change', () => filterData(data));
@@ -178,6 +179,7 @@ function renderTable(data) {
             let ctValue = parseInt(document.getElementById('ctFilter').value);
             let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
             let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
+			let em_resistValue = parseInt(document.getElementById('em_resist').value);
             let descriptionKeyword = document.getElementById('descriptionFilter').value;
             let keywords = descriptionKeyword.split(' ');
             // Get selected char_em values
@@ -207,6 +209,7 @@ function renderTable(data) {
                 let matchesCt = item.drain_baria >= ctValue;
                 let matchesbuff_cancel_rate = item.buff_cancel_rate >= buff_cancel_rateValue;
                 let matchesbuff_cancel_count = item.buff_cancel_count >= buff_cancel_countValue;
+				let matchesem_resist = item.em_resist == em_resistValue;
                 let keywords = descriptionKeyword.split(' ');
                 switch (searchMode) {
                 case 'original':
@@ -230,7 +233,7 @@ function renderTable(data) {
                 let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
                 let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
                 let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
-                return matchesCt && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
+                return matchesCt && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
             });
 
             renderTable(filteredData);
@@ -344,6 +347,18 @@ function renderTable(data) {
             <option value="1">1</option>
             <option value="2">有2以上</option>
 			<option value="3">全部</option>
+        </select>
+    </div>
+	<div>
+        <label for="em_resist">屬性弱體: </label>
+        <select id="em_resist">
+            <option value="0" selected>無</option>
+            <option value="1">火</option>
+            <option value="2">水</option>
+			<option value="3">樹</option>
+			<option value="4">光</option>
+			<option value="5">闇</option>
+			<option value="6">全</option>			
         </select>
     </div>
     <!-- Checkbox for char_em filtering -->
