@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>篩選表格</title>
+    <title>篩選表格：隊長技+專武</title>
     <style>
         table {
             width: 100%;
@@ -48,6 +48,7 @@
                 document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
                 
 				document.getElementById('em_resist').addEventListener('change', () => filterData(data));
+				document.getElementById('img_show').addEventListener('change', () => filterData(data));
                 document.getElementById('searchButton').addEventListener('click', () => filterData(data));
                 document.querySelectorAll('.char-em-filter').forEach(checkbox => {
                     checkbox.addEventListener('change', () => filterData(data));
@@ -143,18 +144,19 @@
         }
 function renderTable(data) {
     let tableBody = document.getElementById('tableBody');
+	let img_showValue = parseInt(document.getElementById('img_show').value);
     tableBody.innerHTML = '';
     for (let item of data) {
         let tr = document.createElement('tr');
         let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+		let img_show_data = img_showValue ? `<a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
+                <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">
+            </a><br>` : '';
         
         let imgCellContent;
         if (item.img_name) {
             imgCellContent = `
-            <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
-                <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">
-            </a>
-            <br>
+            ${img_show_data}
             <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
             ${additionalInfo}`;
         } else {
@@ -368,6 +370,14 @@ function renderTable(data) {
     <label><input type="checkbox" value="弓" class="char-wep-filter">弓</label>
     <label><input type="checkbox" value="特殊" class="char-wep-filter">特殊</label>
 </div>
+	<div>
+        <label for="img_show">顯示圖片: </label>
+        <select id="img_show">
+            <option value="0" selected>關</option>
+            <option value="1">開</option>
+        </select>
+		　※若未篩選時，直接顯示圖片，可能導致載入過慢
+    </div>
 
 	</div>
     <table border="1">
