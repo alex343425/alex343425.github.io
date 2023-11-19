@@ -225,9 +225,9 @@ function renderTable(data) {
                     matchesDescription = regex2.test(item.description);
                     break;
                 }
-				let matchesCt = item.permanent_skill_up >= ctValue;
-				let matchesdebuff = item.debuff >= buff_cancel_rateValue;
-				let matchesem_resist = item.enchant >= em_resistValue;
+				let matchesCt = ctValue == 0 || item.permanent_skill_up >= ctValue;
+				let matchesdebuff = buff_cancel_rateValue == 0 || item.debuff >= buff_cancel_rateValue;
+				let matchesem_resist = em_resistValue == 0 || item.enchant >= em_resistValue;
                 let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
                 let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
                 let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.type);

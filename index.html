@@ -45,6 +45,7 @@
             .then(data => {
                 renderTable(data);
                 document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
+				document.getElementById('spirit_gauge').addEventListener('change', () => filterData(data));
                 document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
                 document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
 				document.getElementById('em_resist').addEventListener('change', () => filterData(data));
@@ -180,6 +181,7 @@ function renderTable(data) {
 
         function filterData(data) {
             let ctValue = parseInt(document.getElementById('ctFilter').value);
+			let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
             let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
             let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
 			let em_resistValue = parseInt(document.getElementById('em_resist').value);
@@ -209,9 +211,10 @@ function renderTable(data) {
             });
 
             let filteredData = data.filter(item => {
-                let matchesCt = item.drain_baria >= ctValue;
-                let matchesbuff_cancel_rate = item.buff_cancel_rate >= buff_cancel_rateValue;
-                let matchesbuff_cancel_count = item.buff_cancel_count >= buff_cancel_countValue;
+                let matchesCt = ctValue == 0 || item.drain_baria >= ctValue;
+				let matchesspirit_gauge = spirit_gaugeValue == 0 || item.spirit_gauge >= spirit_gaugeValue;
+                let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
+                let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
 				
                 let keywords = descriptionKeyword.split(' ');
                 switch (searchMode) {
@@ -239,7 +242,7 @@ function renderTable(data) {
 				
 				let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
 				
-                return matchesCt && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
+                return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
             });
 
             renderTable(filteredData);
@@ -274,6 +277,7 @@ function renderTable(data) {
     <button class="keywordBtn" data-keyword="デバフムーブ">debuff move</button>　
     <button class="keywordBtn" data-keyword="ディスペルバリア">藍果凍(防打消盾)</button>　
 	<button class="keywordBtn" data-keyword="バフドレイン">偷Buff</button>　
+	<button class="keywordBtn" data-keyword="不利">不利效果解除</button>　
 	<br>
 	<button class="keywordBtn" data-keyword="スティール">偷竊(主動技)</button>　
 	<button class="keywordBtn" data-keyword="ドロップ率">打寶力</button>　
@@ -331,6 +335,13 @@ function renderTable(data) {
     <div>
         <label for="ctFilter">防偷盾(=紅果凍=ドレインバリア):</label>
         <select id="ctFilter">
+            <option value="0" selected>無</option>
+            <option value="1">有</option>
+        </select>
+    </div>
+    <div>
+        <label for="spirit_gauge">精靈砲充能(可能包含消耗):</label>
+        <select id="spirit_gauge">
             <option value="0" selected>無</option>
             <option value="1">有</option>
         </select>
