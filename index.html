@@ -60,6 +60,9 @@
                 document.querySelectorAll('.skill-type-filter').forEach(checkbox => {
                     checkbox.addEventListener('change', () => filterData(data));
                 });
+				document.querySelectorAll('.stat_down_filter').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => filterData(data));
+                });
                 document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
                     checkbox.addEventListener('change', () => filterData(data));
                 });
@@ -179,74 +182,77 @@ function renderTable(data) {
     }
 }
 
-        function filterData(data) {
-            let ctValue = parseInt(document.getElementById('ctFilter').value);
-			let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
-            let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
-            let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
-			let em_resistValue = parseInt(document.getElementById('em_resist').value);
-            let descriptionKeyword = document.getElementById('descriptionFilter').value;
-            let keywords = descriptionKeyword.split(' ');
-            // Get selected char_em values
-            let selectedCharEm = [];
-            document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
-                selectedCharEm.push(checkbox.value);
-            });
-            // Get selected char_wep values
-            let selectedCharWep = [];
-            document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
-                selectedCharWep.push(checkbox.value);
-            });
-            // Get selected skill_type values
-            let selectedSkillType = [];
-            document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
-                // Since a checkbox might represent multiple filter values, we split them and add to the array
-                selectedSkillType.push(...checkbox.value.split(','));
-            });
-            // Get selected skill_state values
-            let selectedSkillState = [];
-            document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
-                // Since a checkbox might represent multiple filter values, we split them and add to the array
-                selectedSkillState.push(...checkbox.value.split(','));
-            });
+function filterData(data) {
+    let ctValue = parseInt(document.getElementById('ctFilter').value);
+    let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
+    let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
+    let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
+    let em_resistValue = parseInt(document.getElementById('em_resist').value);
+    let descriptionKeyword = document.getElementById('descriptionFilter').value;
+    let keywords = descriptionKeyword.split(' ');
 
-            let filteredData = data.filter(item => {
-                let matchesCt = ctValue == 0 || item.drain_baria >= ctValue;
-				let matchesspirit_gauge = spirit_gaugeValue == 0 || item.spirit_gauge >= spirit_gaugeValue;
-                let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
-                let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
-				
-                let keywords = descriptionKeyword.split(' ');
-                switch (searchMode) {
-                case 'original':
-                    matchesDescription = keywords.every(keyword =>
-                            item.description.includes(keyword) || item.skill_name.includes(keyword));
-                    break;
+    let selectedCharEm = [];
+    document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
+        selectedCharEm.push(checkbox.value);
+    });
 
-                case 'sequential':
-                    let combinedKeywords = keywords.join('.*'); // 連接關鍵字，使它們可以按順序匹配，但允許它們之間有其他字符
-                    let regex = new RegExp(combinedKeywords);
-                    matchesDescription = regex.test(item.description);
-                    break;
+    let selectedCharWep = [];
+    document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
+        selectedCharWep.push(checkbox.value);
+    });
 
-                case 'strictSequential':
-                    let combinedKeywords2 = keywords.join('[^、。・]*'); // 連接關鍵字，允許它們之間沒有指定的字符
-                    let regex2 = new RegExp(combinedKeywords2);
-                    matchesDescription = regex2.test(item.description);
-                    break;
-                }
-                let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
-                let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
-                let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
-                let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
-				
-				let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
-				
-                return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState;
-            });
+    let selectedSkillType = [];
+    document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
+        selectedSkillType.push(...checkbox.value.split(','));
+    });
 
-            renderTable(filteredData);
+    let selectedStatDown = [];
+    document.querySelectorAll('.stat_down_filter:checked').forEach(checkbox => {
+        selectedStatDown.push(parseInt(checkbox.value));  // 确保是数字
+    });
+
+    let selectedSkillState = [];
+    document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
+        selectedSkillState.push(...checkbox.value.split(','));
+    });
+
+    let filteredData = data.filter(item => {
+        let matchesCt = ctValue == 0 || item.drain_baria >= ctValue;
+        let matchesspirit_gauge = spirit_gaugeValue == 0 || item.spirit_gauge >= spirit_gaugeValue;
+        let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
+        let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
+        let matchesDescription;
+
+        switch (searchMode) {
+            case 'original':
+                matchesDescription = keywords.every(keyword =>
+                    item.description.includes(keyword) || item.skill_name.includes(keyword));
+                break;
+            case 'sequential':
+                let combinedKeywords = keywords.join('.*');
+                let regex = new RegExp(combinedKeywords);
+                matchesDescription = regex.test(item.description);
+                break;
+            case 'strictSequential':
+                let combinedKeywords2 = keywords.join('[^、。・]*');
+                let regex2 = new RegExp(combinedKeywords2);
+                matchesDescription = regex2.test(item.description);
+                break;
         }
+
+        let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+        let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
+        let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
+        let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(val => item.stat_down.includes(val)));
+        let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
+        let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
+
+        return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState && matchesStatDown;
+    });
+
+    renderTable(filteredData);
+}
+
 
         loadData();
     });
@@ -283,10 +289,7 @@ function renderTable(data) {
 	<button class="keywordBtn" data-keyword="ドロップ率">打寶力</button>　
 	<button class="keywordBtn" data-keyword="クエスト アイテム">掉落複製</button>　
 	<button class="keywordBtn" data-keyword="プレイヤー">玩家經驗</button>　
-	<br>
-	<button class="keywordBtn" data-keyword="関わらず 攻撃力">無視耐性降攻</button>　
-	<button class="keywordBtn" data-keyword="関わらず 防御">無視耐性降防</button>　
-	<button class="keywordBtn" data-keyword="関わらず 攻撃魔力">無視耐性降攻魔</button>　
+	<br> 
 	<br>異常賦予<br>
 	<button class="keywordBtn" data-keyword="毒">毒(5%)</button>　
 	<button class="keywordBtn" data-keyword="猛毒">猛毒(10%)</button>　
@@ -382,8 +385,17 @@ function renderTable(data) {
 			<option value="6">全</option>			
         </select>
     </div>
+<div>
+    <label>無視耐性降能力:</label>
+    <label><input type="checkbox" value="1" class="stat_down_filter">降攻擊</label>
+	<label><input type="checkbox" value="2" class="stat_down_filter">降防禦</label>
+	<label><input type="checkbox" value="3" class="stat_down_filter">降攻擊魔力</label>
+	<label><input type="checkbox" value="4" class="stat_down_filter">降回魔</label>
+	<label><input type="checkbox" value="5" class="stat_down_filter">降速度</label>
+	<label><input type="checkbox" value="6" class="stat_down_filter">機率零防</label>	
+</div>
     <!-- Checkbox for char_em filtering -->
-	
+	<br>
     <label>skill_state篩選:</label>
     <label><input type="checkbox" value="拆技" class="skill-state-filter">転生</label>
     <label><input type="checkbox" value="昇華" class="skill-state-filter">昇華</label>
