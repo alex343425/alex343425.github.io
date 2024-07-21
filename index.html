@@ -49,6 +49,7 @@
                 document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
                 document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
 				document.getElementById('em_resist').addEventListener('change', () => filterData(data));
+				document.getElementById('markFilter').addEventListener('change', () => filterData(data));
 				document.getElementById('img_show').addEventListener('change', () => filterData(data));
                 document.getElementById('searchButton').addEventListener('click', () => filterData(data));
                 document.querySelectorAll('.char-em-filter').forEach(checkbox => {
@@ -188,6 +189,7 @@ function filterData(data) {
     let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
     let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
     let em_resistValue = parseInt(document.getElementById('em_resist').value);
+	let markFilterValue = parseInt(document.getElementById('markFilter').value); // 新增這一行
     let descriptionKeyword = document.getElementById('descriptionFilter').value;
     let keywords = descriptionKeyword.split(' ');
 
@@ -246,8 +248,9 @@ function filterData(data) {
         let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(val => item.stat_down.includes(val)));
         let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
         let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
+		let matchesMarkFilter = isNaN(markFilterValue) || item.mark >= markFilterValue; // 新增這一行
 
-        return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState && matchesStatDown;
+        return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesMarkFilter && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState && matchesStatDown;
     });
 
     renderTable(filteredData);
@@ -385,6 +388,18 @@ function filterData(data) {
 			<option value="6">全</option>			
         </select>
     </div>
+<div>
+    <label for="markFilter">刻印等效倍率:</label>
+    <select id="markFilter">
+        <option value="0" selected>0</option>
+        <option value="15">15</option>
+		<option value="25">25</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+		<option value="49">49</option>
+    </select>
+</div>
+
 <div>
     <label>無視耐性降能力:</label>
     <label><input type="checkbox" value="1" class="stat_down_filter">降攻擊</label>
