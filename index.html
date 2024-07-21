@@ -248,7 +248,7 @@ function filterData(data) {
         let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(val => item.stat_down.includes(val)));
         let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
         let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
-		let matchesMarkFilter = isNaN(markFilterValue) || item.mark >= markFilterValue; // 新增這一行
+		let matchesMarkFilter = markFilterValue == 0 || item.mark >= markFilterValue; // 新增這一行
 
         return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesem_resist && matchesMarkFilter && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesSkillState && matchesStatDown;
     });
