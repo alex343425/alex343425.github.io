@@ -1,0 +1,224 @@
+document.addEventListener("DOMContentLoaded", function () {
+    let searchMode = 'original'; // 這是默認的搜索模式
+    let enemyDmgUpFilterValue = 'noFilter'; // 這是新的篩選條件
+
+    function loadData() {
+        fetch('data.json')
+        .then(response => response.json())
+        .then(data => {
+            renderTable(data);
+            document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
+            document.getElementById('spirit_gauge').addEventListener('change', () => filterData(data));
+            document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
+            document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
+            document.getElementById('em_resist').addEventListener('change', () => filterData(data));
+            document.getElementById('markFilter').addEventListener('change', () => filterData(data));
+            document.getElementById('img_show').addEventListener('change', () => filterData(data));
+            document.getElementById('searchButton').addEventListener('click', () => filterData(data));
+            document.querySelectorAll('.char-em-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', () => filterData(data));
+            });
+            document.querySelectorAll('.char-wep-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', () => filterData(data));
+            });
+            document.querySelectorAll('.skill-type-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', () => filterData(data));
+            });
+            document.querySelectorAll('.stat_down_filter').forEach(checkbox => {
+                checkbox.addEventListener('change', () => filterData(data));
+            });
+            document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', () => filterData(data));
+            });
+            document.getElementById('modeOriginal').addEventListener('click', function () {
+                searchMode = 'original';
+            });
+            document.getElementById('modeSequential').addEventListener('click', function () {
+                searchMode = 'sequential';
+            });
+            document.getElementById('modeStrictSequential').addEventListener('click', function () {
+                searchMode = 'strictSequential';
+            });
+            document.querySelector("#descriptionFilter").addEventListener("keyup", function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    filterData(data);
+                }
+            });
+            document.querySelector("#toggleKeywordButtons").addEventListener("click", function() {
+                const keywordArea = document.querySelector("#keywordButtonsArea");
+                if (keywordArea.style.display === "none") {
+                    keywordArea.style.display = "block";
+                    this.innerText = "收起常用關鍵字";
+                } else {
+                    keywordArea.style.display = "none";
+                    this.innerText = "展開常用關鍵字";
+                }
+            });
+            document.querySelectorAll(".keywordBtn").forEach(button => {
+                button.addEventListener("click", function() {
+                    const keyword = this.getAttribute("data-keyword");
+                    const currentInput = document.querySelector("#descriptionFilter").value.trim();
+                    if (currentInput && !currentInput.endsWith(keyword)) {
+                        document.querySelector("#descriptionFilter").value = currentInput + " " + keyword;
+                    } else if (!currentInput) {
+                        document.querySelector("#descriptionFilter").value = keyword;
+                    }
+                });
+            });
+            document.querySelectorAll('input[name="searchMode"]').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    searchMode = this.value;
+                });
+            });
+            document.querySelectorAll('input[name="enemyDmgUpFilter"]').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    enemyDmgUpFilterValue = this.value;
+                    filterData(data);
+                });
+            });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    }
+
+    document.getElementById('resetButton').addEventListener('click', function () {
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        document.querySelectorAll('select').forEach(select => {
+            select.selectedIndex = 0;
+        });
+        document.getElementById('descriptionFilter').value = '';
+        loadData();
+    });
+
+    function highlightKeywords(text, keywords) {
+        keywords.forEach((keyword, index) => {
+            let regex = new RegExp(keyword, "gi");
+            text = text.replace(regex, `<span class="highlight${index + 1}">$&</span>`);
+        });
+        return text;
+    }
+
+    function renderTable(data) {
+        let tableBody = document.getElementById('tableBody');
+        let img_showValue = parseInt(document.getElementById('img_show').value);
+        tableBody.innerHTML = '';
+        for (let item of data) {
+            let tr = document.createElement('tr');
+            let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+            let img_show_data = img_showValue ? `<a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
+                    <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">
+                </a><br>` : '';
+            let imgCellContent;
+            if (item.img_name) {
+                imgCellContent = `
+                ${img_show_data}
+                <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
+                ${additionalInfo}`;
+            } else {
+                imgCellContent = '--';
+            }
+            tr.innerHTML = `
+                <td>${item.skill_name}</td>
+                <td>${item.skill_type}</td>
+                <td>${item.skill_state}</td>
+                <td>${imgCellContent}</td>
+                <td>${item.char_em}</td>
+                <td>${item.char_wep}</td>
+                <td>${item.description}</td>
+            `;
+            tableBody.appendChild(tr);
+        }
+    }
+
+    function filterData(data) {
+        let ctValue = parseInt(document.getElementById('ctFilter').value);
+        let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
+        let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
+        let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
+        let em_resistValue = parseInt(document.getElementById('em_resist').value);
+        let markFilterValue = parseInt(document.getElementById('markFilter').value);
+        let descriptionKeyword = document.getElementById('descriptionFilter').value;
+        let keywords = descriptionKeyword.split(' ');
+        let selectedCharEm = [];
+        document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
+            selectedCharEm.push(checkbox.value);
+        });
+        let selectedCharWep = [];
+        document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
+            selectedCharWep.push(checkbox.value);
+        });
+        let selectedSkillType = [];
+        document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
+            selectedSkillType.push(...checkbox.value.split(','));
+        });
+        let selectedStatDown = [];
+        document.querySelectorAll('.stat_down_filter:checked').forEach(checkbox => {
+            selectedStatDown.push(parseInt(checkbox.value));
+        });
+        let selectedSkillState = [];
+        document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
+            selectedSkillState.push(...checkbox.value.split(','));
+        });
+
+        let filteredData = data.filter(item => {
+            let matchesCt = ctValue == 0 || item.drain_baria >= ctValue;
+            let matchesspirit_gauge = spirit_gaugeValue == 0 || item.spirit_gauge >= spirit_gaugeValue;
+            let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
+            let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
+            let matchesDescription;
+            switch (searchMode) {
+                case 'original':
+                    matchesDescription = keywords.every(keyword =>
+                        item.description.includes(keyword) || item.skill_name.includes(keyword));
+                    break;
+                case 'sequential':
+                    let combinedKeywords = keywords.join('.*');
+                    let regex = new RegExp(combinedKeywords);
+                    matchesDescription = regex.test(item.description);
+                    break;
+                case 'strictSequential':
+                    let combinedKeywords2 = keywords.join('[^、。・]*');
+                    let regex2 = new RegExp(combinedKeywords2);
+                    matchesDescription = regex2.test(item.description);
+                    break;
+            }
+            let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+            let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
+            let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
+            let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(stat => item.stat_down.includes(stat)));
+            let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
+            let matchesem_resist = em_resistValue == 0 || item.em_resist >= em_resistValue;
+            let matchesmarkFilter = markFilterValue == 0 || item.mark == markFilterValue;
+
+            let matchesEnemyDmgUp;
+            switch (enemyDmgUpFilterValue) {
+                case 'noFilter':
+                    matchesEnemyDmgUp = true;
+                    break;
+                case 'anyValue':
+                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.length > 0;
+                    break;
+                case 'contains1':
+                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(1);
+                    break;
+                case 'contains2':
+                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(2);
+                    break;
+                case 'contains3':
+                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(3);
+                    break;
+            }
+
+            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesem_resist && matchesmarkFilter && matchesEnemyDmgUp;
+        });
+        renderTable(filteredData);
+        document.querySelectorAll('.description-column').forEach((cell, index) => {
+            let highlightedText = highlightKeywords(filteredData[index].description, keywords);
+            cell.innerHTML = highlightedText;
+        });
+    }
+
+    loadData();
+});
