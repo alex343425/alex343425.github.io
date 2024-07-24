@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
             let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(stat => item.stat_down.includes(stat)));
             let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
-            let matchesem_resist = em_resistValue == 0 || item.em_resist >= em_resistValue;
+            let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
             let matchesmarkFilter = markFilterValue == 0 || item.mark == markFilterValue;
 
             let matchesEnemyDmgUp;
