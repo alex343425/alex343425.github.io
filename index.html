@@ -1,5 +1,6 @@
 <!-- python -m http.server 8080 -->
 <!-- http://localhost:8080/Desktop/ -->
+<!-- http://localhost:8080/Documents/GitHub/alex343425.github.io/ -->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -119,7 +120,7 @@
 </div>
 </div>
     <div>
-        <label for="ctFilter">防偷盾(=紅果凍=ドレインバリア):</label>
+        <label for="ctFilter"><img src="icon/drainbarrier.png" />防偷盾(=紅果凍=ドレインバリア):</label>
         <select id="ctFilter">
             <option value="0" selected>無</option>
             <option value="1">有</option>
@@ -155,23 +156,23 @@
     <div>
         <label>屬性弱點包含:</label>
         <label><input type="radio" name="elementDmgUpFilter" value="0" checked> 無篩選</label>
-        <label><input type="radio" name="elementDmgUpFilter" value="1"> 火</label>
-        <label><input type="radio" name="elementDmgUpFilter" value="2"> 水</label>
-        <label><input type="radio" name="elementDmgUpFilter" value="3"> 樹</label>
-        <label><input type="radio" name="elementDmgUpFilter" value="4"> 光</label>
-		<label><input type="radio" name="elementDmgUpFilter" value="5"> 暗</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="1"><img src="icon/blight_fire.png" />火</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="2"><img src="icon/blight_water.png" />水</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="3"><img src="icon/blight_tree.png" />樹</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="4"><img src="icon/blight_light.png" />光</label>
+		<label><input type="radio" name="elementDmgUpFilter" value="5"><img src="icon/blight_dark.png" />暗</label>
     </div>
     <div>
         <label>敵被傷:</label>
         <label><input type="radio" name="enemyDmgUpFilter" value="noFilter" checked> 無篩選</label>
         <label><input type="radio" name="enemyDmgUpFilter" value="anyValue"> 任意值</label>
-        <label><input type="radio" name="enemyDmgUpFilter" value="contains1"> 通用被傷</label>
-        <label><input type="radio" name="enemyDmgUpFilter" value="contains2"> 武器種類被傷</label>
-        <label><input type="radio" name="enemyDmgUpFilter" value="contains3"> 技能種類被傷</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="contains1"><img src="icon/25_2.png" />通用被傷</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="contains2"><img src="icon/damageup_weaponsword.png" />武器種類被傷</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="contains3"><img src="icon/damageup_attack.png" />技能種類被傷</label>
     </div>
 	
 <div>
-    <label for="markFilter">刻印等效倍率:</label>
+    <label for="markFilter"><img src="icon/kokuin_weaponsword.png" />刻印等效倍率:</label>
     <select id="markFilter">
         <option value="0" selected>0</option>
         <option value="15">15</option>
@@ -218,21 +219,21 @@
 
     <div>
         <label>char_em篩選:</label>
-        <label><input type="checkbox" value="火" class="char-em-filter">火</label>
-        <label><input type="checkbox" value="水" class="char-em-filter">水</label>
-        <label><input type="checkbox" value="樹" class="char-em-filter">樹</label>
-        <label><input type="checkbox" value="光" class="char-em-filter">光</label>
-        <label><input type="checkbox" value="闇" class="char-em-filter">闇</label>
+        <label><input type="checkbox" value="火" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_f.png" width="30" />火</label>
+        <label><input type="checkbox" value="水" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_w.png" width="30" />水</label>
+        <label><input type="checkbox" value="樹" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_r.png" width="30" />樹</label>
+        <label><input type="checkbox" value="光" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_l.png" width="30" />光</label>
+        <label><input type="checkbox" value="闇" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_d.png" width="30" />闇</label>
     <div>
     <label>char_wep篩選:</label>
-    <label><input type="checkbox" value="劍" class="char-wep-filter">劍</label>
-    <label><input type="checkbox" value="斧" class="char-wep-filter">斧</label>
-    <label><input type="checkbox" value="槍" class="char-wep-filter">槍</label>
-    <label><input type="checkbox" value="本" class="char-wep-filter">本</label>
-    <label><input type="checkbox" value="短劍" class="char-wep-filter">短劍</label>
-    <label><input type="checkbox" value="杖" class="char-wep-filter">杖</label>
-    <label><input type="checkbox" value="弓" class="char-wep-filter">弓</label>
-    <label><input type="checkbox" value="特殊" class="char-wep-filter">特殊</label>
+    <label><input type="checkbox" value="劍" class="char-wep-filter"><img src="icon/kokuin_weaponsword.png" />劍</label>
+    <label><input type="checkbox" value="斧" class="char-wep-filter"><img src="icon/kokuin_weaponaxe.png" />斧</label>
+    <label><input type="checkbox" value="槍" class="char-wep-filter"><img src="icon/kokuin_weaponspear.png" />槍</label>
+    <label><input type="checkbox" value="本" class="char-wep-filter"><img src="icon/kokuin_weaponbook.png" />本</label>
+    <label><input type="checkbox" value="短劍" class="char-wep-filter"><img src="icon/kokuin_weaponshortsword.png" />短劍</label>
+    <label><input type="checkbox" value="杖" class="char-wep-filter"><img src="icon/kokuin_weaponthue.png" />杖</label>
+    <label><input type="checkbox" value="弓" class="char-wep-filter"><img src="icon/kokuin_weaponbow.png" />弓</label>
+    <label><input type="checkbox" value="特殊" class="char-wep-filter"><img src="icon/kokuin_weapontokushu.png" />特殊</label>
 </div>
 	<div>
         <label for="img_show">顯示圖片: </label>
