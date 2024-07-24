@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
     let searchMode = 'original'; // 這是默認的搜索模式
     let enemyDmgUpFilterValue = 'noFilter'; // 這是新的篩選條件
-
+	let elementDmgUpFilterValue = 0; // 新增這行
+	
     function loadData() {
         fetch('data.json')
         .then(response => response.json())
@@ -11,7 +12,6 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('spirit_gauge').addEventListener('change', () => filterData(data));
             document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
             document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
-            document.getElementById('em_resist').addEventListener('change', () => filterData(data));
             document.getElementById('markFilter').addEventListener('change', () => filterData(data));
             document.getElementById('img_show').addEventListener('change', () => filterData(data));
             document.getElementById('searchButton').addEventListener('click', () => filterData(data));
@@ -77,6 +77,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     filterData(data);
                 });
             });
+           document.querySelectorAll('input[name="elementDmgUpFilter"]').forEach(radio => {
+                radio.addEventListener('change', function () {
+                    elementDmgUpFilterValue = parseInt(this.value);
+                    filterData(data);
+                });
+            });
         })
         .catch(error => console.error('Error fetching data:', error));
     }
@@ -137,7 +143,6 @@ document.addEventListener("DOMContentLoaded", function () {
         let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
         let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
         let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
-        let em_resistValue = parseInt(document.getElementById('em_resist').value);
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
         let descriptionKeyword = document.getElementById('descriptionFilter').value;
         let keywords = descriptionKeyword.split(' ');
@@ -189,7 +194,6 @@ document.addEventListener("DOMContentLoaded", function () {
             let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
             let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(stat => item.stat_down.includes(stat)));
             let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
-            let matchesem_resist = em_resistValue == 0 || item.em_resist == em_resistValue;
             let matchesmarkFilter = markFilterValue == 0 || item.mark == markFilterValue;
 
             let matchesEnemyDmgUp;
@@ -210,8 +214,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(3);
                     break;
             }
-
-            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesem_resist && matchesmarkFilter && matchesEnemyDmgUp;
+            let matchesElementDmgUp;
+            if (elementDmgUpFilterValue === 0) {
+                matchesElementDmgUp = true;
+            } else if (item.em_resist === 6) {
+                matchesElementDmgUp = true;
+            } else {
+                matchesElementDmgUp = item.em_resist === elementDmgUpFilterValue;
+            }
+            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesEnemyDmgUp && matchesElementDmgUp;
         });
         renderTable(filteredData);
         document.querySelectorAll('.description-column').forEach((cell, index) => {

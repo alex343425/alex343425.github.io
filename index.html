@@ -152,17 +152,14 @@
 			<option value="3">全部</option>
         </select>
     </div>
-	<div>
-        <label for="em_resist">屬性弱體: </label>
-        <select id="em_resist">
-            <option value="0" selected>無</option>
-            <option value="1">火</option>
-            <option value="2">水</option>
-			<option value="3">樹</option>
-			<option value="4">光</option>
-			<option value="5">闇</option>
-			<option value="6">全</option>			
-        </select>
+    <div>
+        <label>屬性弱點包含:</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="0" checked> 無篩選</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="1"> 火</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="2"> 水</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="3"> 樹</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="4"> 光</label>
+		<label><input type="radio" name="elementDmgUpFilter" value="5"> 暗</label>
     </div>
     <div>
         <label>敵被傷:</label>
@@ -172,6 +169,7 @@
         <label><input type="radio" name="enemyDmgUpFilter" value="contains2"> 武器種類被傷</label>
         <label><input type="radio" name="enemyDmgUpFilter" value="contains3"> 技能種類被傷</label>
     </div>
+	
 <div>
     <label for="markFilter">刻印等效倍率:</label>
     <select id="markFilter">
