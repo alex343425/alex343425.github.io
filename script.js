@@ -27,6 +27,9 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll('.stat_down_filter').forEach(checkbox => {
                 checkbox.addEventListener('change', () => filterData(data));
             });
+			document.querySelectorAll('.char_source_filter').forEach(checkbox => {
+                checkbox.addEventListener('change', () => filterData(data));
+            });
             document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
                 checkbox.addEventListener('change', () => filterData(data));
             });
@@ -162,6 +165,10 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll('.stat_down_filter:checked').forEach(checkbox => {
             selectedStatDown.push(parseInt(checkbox.value));
         });
+		let selectedCharSource = [];
+		document.querySelectorAll('.char_source_filter:checked').forEach(checkbox => {
+            selectedCharSource.push(parseInt(checkbox.value));
+        });
         let selectedSkillState = [];
         document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
             selectedSkillState.push(...checkbox.value.split(','));
@@ -193,6 +200,9 @@ document.addEventListener("DOMContentLoaded", function () {
             let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
             let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
             let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(stat => item.stat_down.includes(stat)));
+			
+			let matchesCharSource = selectedCharSource.length === 0 || selectedCharSource.includes(item.sp_sort_for_search);
+			
             let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
             let matchesmarkFilter = markFilterValue == 0 || item.mark >= markFilterValue;
 
@@ -222,7 +232,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 matchesElementDmgUp = item.em_resist === elementDmgUpFilterValue;
             }
-            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesEnemyDmgUp && matchesElementDmgUp;
+            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource;
         });
         renderTable(filteredData);
         document.querySelectorAll('.description-column').forEach((cell, index) => {
