@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
             document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
             document.getElementById('markFilter').addEventListener('change', () => filterData(data));
+			document.getElementById('status_condition_downFilter').addEventListener('change', () => filterData(data));
             document.getElementById('img_show').addEventListener('change', () => filterData(data));
             document.getElementById('searchButton').addEventListener('click', () => filterData(data));
             document.querySelectorAll('.char-em-filter').forEach(checkbox => {
@@ -147,6 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
         let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
         let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
+		let status_condition_downFilterValue = parseInt(document.getElementById('status_condition_downFilter').value);
         let descriptionKeyword = document.getElementById('descriptionFilter').value;
         let keywords = descriptionKeyword.split(' ');
         let selectedCharEm = [];
@@ -205,6 +207,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			
             let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
             let matchesmarkFilter = markFilterValue == 0 || item.mark >= markFilterValue;
+			let matchesstatus_condition_downFilter = status_condition_downFilterValue == 0 || item.status_condition_down >= status_condition_downFilterValue;
 
             let matchesEnemyDmgUp;
             switch (enemyDmgUpFilterValue) {
@@ -232,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 matchesElementDmgUp = item.em_resist === elementDmgUpFilterValue;
             }
-            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource;
+            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource;
         });
         renderTable(filteredData);
         document.querySelectorAll('.description-column').forEach((cell, index) => {
