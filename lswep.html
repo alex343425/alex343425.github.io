@@ -150,7 +150,7 @@ function renderTable(data) {
         let tr = document.createElement('tr');
         let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
 		let img_show_data = img_showValue ? `<a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
-                <img src="img/${item.img_name}" alt="${item.skill_char}" width="70" height="70" onerror="this.src='img/0.png';">
+                <img src="img/${item.img_name}" alt="${item.skill_char}" height="70" onerror="this.src='img/0.png';">
             </a><br>` : '';
         
         let imgCellContent;
