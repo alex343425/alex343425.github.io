@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     matchesDescription = regex2.test(item.description);
                     break;
             }
-            let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+            let matchesCharEm =  item.char_em === '全' || selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
             let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
             let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
             let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(stat => item.stat_down.includes(stat)));
