@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>裝備資料表格</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            cursor: pointer;
+        }
+        th.sortable:hover {
+            background-color: #ddd;
+        }
+        img {
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        #filterContainer {
+            margin-bottom: 10px;
+        }
+    </style>
+    <script src="script_acc.js" defer></script>
+</head>
+<body>
+    <h1>裝備資料表格</h1>
+
+    <!-- 🔹 過濾 pass 的 Radio Button -->
+    <div id="filterContainer">
+        <label><input type="radio" name="passFilter" value="all" checked> 顯示全部</label>
+        <label><input type="radio" name="passFilter" value="0"> 只顯示 `pass = 0`</label>
+        <label><input type="radio" name="passFilter" value="1"> 只顯示 `pass = 1`</label>
+    </div>
+
+    <!-- 🔹 過濾 acc_source 的多選 checkbox -->
+    <div id="accSourceFilterContainer">
+        <label><input type="checkbox" class="accSourceFilter" value="0"> 無角色特效 </label>
+        <label><input type="checkbox" class="accSourceFilter" value="1"> 專屬飾品(只能裝備) </label>
+		<label><input type="checkbox" class="accSourceFilter" value="3"> 專屬飾品(特定角色有特效) </label>
+        
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>名稱</th>
+                <th class="sortable" data-key="Hp">HP</th>
+                <th class="sortable" data-key="Offence">攻擊</th>
+                <th class="sortable" data-key="Defence">防禦</th>
+                <th class="sortable" data-key="Magic">魔力</th>
+                <th class="sortable" data-key="Heal">治療</th>
+                <th class="sortable" data-key="Speed">速度</th>
+                <th>描述</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- 資料將在此插入 -->
+        </tbody>
+    </table>
+</body>
+</html>
