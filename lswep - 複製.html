@@ -7,30 +7,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：隊長技+專武</title>
-        <style>
+    <style>
         table {
             width: 100%;
-            border-collapse: collapse;
         }
-        td, th {
-            border: 1px solid black;
-            padding: 5px;
-            text-align: center;
+
+        td {
+            word-wrap: break-word;
         }
-        .highlight1 {
-            background-color: AliceBlue;
-        }
-        .highlight2 {
-            background-color: MistyRose;
-        }
+		.fixed-width {
+    width: 3em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+		.fixed-width2 {
+    width: 4em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+.highlight1 {
+    background-color: yellow;
+}
+
+.highlight2 {
+    background-color: lightblue;
+}
+
+.highlight3 {
+    background-color: lightgreen;
+}
     </style>
      <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            document.getElementById("img_show").addEventListener("change", function () {
-                renderTable(window.currentData);
-            });
-        });
-		
+
     document.addEventListener("DOMContentLoaded", function () {
         let searchMode = 'original'; // 這是默認的搜索模式
         function loadData() {
@@ -60,9 +66,7 @@
                     searchMode = 'original';
 
                 });
-				document.querySelectorAll('.char_source_filter').forEach(checkbox => {
-					checkbox.addEventListener('change', () => filterData(data));
-				});
+
                 document.getElementById('modeSequential').addEventListener('click', function () {
                     searchMode = 'sequential';
 
@@ -138,43 +142,39 @@
             });
             return text;
         }
- function renderTable(data) {
-            let tableBody = document.getElementById('tableBody');
-            let img_showValue = document.getElementById('img_show').checked ? 1 : 0;
-            window.currentData = data; // 存儲數據以便重新渲染
-            tableBody.innerHTML = '';
-            for (let item of data) {
-                let tr = document.createElement('tr');
-                
-                // 根據 item.type 設定背景顏色
-                if (item.type === "專武技能") {
-                    tr.classList.add("highlight1");
-                } else if (item.type === "角色飾品") {
-                    tr.classList.add("highlight2");
-                }
-                
-                let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
-                let img_show_data = img_showValue ? `<a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
-                        <img src="img/${item.img_name}" alt="${item.skill_char}" height="70" onerror="this.src='img/0.png';">
-                    </a><br>` : '';
-                
-                let imgCellContent = item.img_name ? `
-                    ${img_show_data}
-                    <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
-                    ${additionalInfo}` : '--';
-                
-                tr.innerHTML = `
-                    <td>${item.skill_name}</td>
-                    <td>${item.type}</td>
-                    <td>${imgCellContent}</td>
-                    <td>${item.char_em}</td>
-                    <td>${item.char_wep}</td>
-                    <td>${item.description}</td>
-                `;
-                
-                tableBody.appendChild(tr);
-            }
+function renderTable(data) {
+    let tableBody = document.getElementById('tableBody');
+	let img_showValue = parseInt(document.getElementById('img_show').value);
+    tableBody.innerHTML = '';
+    for (let item of data) {
+        let tr = document.createElement('tr');
+        let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+		let img_show_data = img_showValue ? `<a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
+                <img src="img/${item.img_name}" alt="${item.skill_char}" height="70" onerror="this.src='img/0.png';">
+            </a><br>` : '';
+        
+        let imgCellContent;
+        if (item.img_name) {
+            imgCellContent = `
+            ${img_show_data}
+            <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
+            ${additionalInfo}`;
+        } else {
+            imgCellContent = '--';
         }
+
+        tr.innerHTML = `
+            <td>${item.skill_name}</td>
+            <td>${item.type}</td>
+            <td>${imgCellContent}</td>
+            <td>${item.char_em}</td>
+            <td>${item.char_wep}</td>
+            <td>${item.description}</td>
+        `;
+
+        tableBody.appendChild(tr);
+    }
+}
 
         function filterData(data) {
             let ctValue = parseInt(document.getElementById('ctFilter').value);
@@ -204,10 +204,7 @@
                 // Since a checkbox might represent multiple filter values, we split them and add to the array
                 selectedSkillState.push(...checkbox.value.split(','));
             });
-			let selectedCharSource = [];
-			document.querySelectorAll('.char_source_filter:checked').forEach(checkbox => {
-				selectedCharSource.push(parseInt(checkbox.value));
-			});
+
             let filteredData = data.filter(item => {
                 let keywords = descriptionKeyword.split(' ');
                 switch (searchMode) {
@@ -230,12 +227,11 @@
                 }
 				let matchesCt = ctValue == 0 || item.permanent_skill_up >= ctValue;
 				let matchesdebuff = buff_cancel_rateValue == 0 || item.debuff >= buff_cancel_rateValue;
-				let matchesCharSource = selectedCharSource.length === 0 || selectedCharSource.includes(item.sp_sort_for_search);
 				let matchesem_resist = em_resistValue == 0 || item.enchant >= em_resistValue;
                 let matchesCharEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
                 let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
                 let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.type);
-                return matchesCt && matchesdebuff && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType&& matchesCharSource;
+                return matchesCt && matchesdebuff && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType;
             });
 
             renderTable(filteredData);
@@ -386,8 +382,11 @@
     <label><input type="checkbox" value="特殊" class="char-wep-filter">特殊</label>
 </div>
 	<div>
-    <label for="img_show">顯示圖片：</label>
-    <input type="checkbox" id="img_show">
+        <label for="img_show">顯示圖片: </label>
+        <select id="img_show">
+            <option value="0" selected>關</option>
+            <option value="1">開</option>
+        </select>
 		　※若未篩選時，直接顯示圖片，可能導致載入過慢
     </div>
 
