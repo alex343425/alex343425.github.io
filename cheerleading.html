@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cheerleading 篩選表格</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th,
+    td {
+      padding: 5px;
+      border: 1px solid #ccc;
+      text-align: center;
+      word-wrap: break-word;
+    }
+    
+    .fixed-width {
+      width: 3em;
+    }
+    
+    .fixed-width2 {
+      width: 4em;
+    }
+    
+    .filter-section {
+      margin: 10px 0;
+    }
+    
+    .filter-group {
+      margin-bottom: 5px;
+    }
+  </style>
+  <script src="cheerleading.js"></script>
+</head>
+
+<body>
+  <div>
+    <button id="resetButton">重置</button>
+  </div>
+  <div class="filter-section">
+    <!-- 原有篩選：屬性、武器、角色分類 -->
+    <div class="filter-group">
+      <label>屬性篩選:</label>
+      <label><input type="checkbox" value="火" class="char-em-filter">火</label>
+      <label><input type="checkbox" value="水" class="char-em-filter">水</label>
+      <label><input type="checkbox" value="樹" class="char-em-filter">樹</label>
+      <label><input type="checkbox" value="光" class="char-em-filter">光</label>
+      <label><input type="checkbox" value="闇" class="char-em-filter">闇</label>
+    </div>
+    <div class="filter-group">
+      <label>武器篩選:</label>
+      <label><input type="checkbox" value="劍" class="char-wep-filter">劍</label>
+      <label><input type="checkbox" value="斧" class="char-wep-filter">斧</label>
+      <label><input type="checkbox" value="槍" class="char-wep-filter">槍</label>
+      <label><input type="checkbox" value="本" class="char-wep-filter">本</label>
+      <label><input type="checkbox" value="短劍" class="char-wep-filter">短劍</label>
+      <label><input type="checkbox" value="杖" class="char-wep-filter">杖</label>
+      <label><input type="checkbox" value="弓" class="char-wep-filter">弓</label>
+      <label><input type="checkbox" value="特殊" class="char-wep-filter">特殊</label>
+    </div>
+    <div class="filter-group">
+      <label>角色分類篩選:</label>
+      <label><input type="checkbox" value="1" class="char_source_filter">普池角</label>
+      <label><input type="checkbox" value="4" class="char_source_filter">一般限定角</label>
+      <label><input type="checkbox" value="2" class="char_source_filter">合作角</label>
+      <label><input type="checkbox" value="3" class="char_source_filter">活動角</label>
+      <label><input type="checkbox" value="5" class="char_source_filter">未分類/三星四星</label>
+    </div>
+    <!-- 新增篩選：固有顏色 -->
+    <div class="filter-group">
+      <label>固有顏色:</label>
+      <label><input type="checkbox" value="橘" class="skill_color_filter">橘</label>
+      <label><input type="checkbox" value="藍" class="skill_color_filter">藍</label>
+      <label><input type="checkbox" value="紫" class="skill_color_filter">紫</label>
+      <label><input type="checkbox" value="粉" class="skill_color_filter">粉</label>
+      <label><input type="checkbox" value="綠" class="skill_color_filter">綠</label>
+    </div>
+    <!-- 新增篩選：拆技格子 -->
+    <div class="filter-group">
+      <label>拆技格子：</label>
+      <div>
+        <label><input type="checkbox" class="skill-break-filter" data-field="orange" data-threshold="1">橘技1</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="orange" data-threshold="2">橘技2以上</label>
+      </div>
+      <div>
+        <label><input type="checkbox" class="skill-break-filter" data-field="blue" data-threshold="1">藍技1</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="blue" data-threshold="2">藍技2以上</label>
+      </div>
+      <div>
+        <label><input type="checkbox" class="skill-break-filter" data-field="purple" data-threshold="1">紫技1</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="purple" data-threshold="2">紫技2以上</label>
+      </div>
+      <div>
+        <label><input type="checkbox" class="skill-break-filter" data-field="pink" data-threshold="1">粉技1</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="pink" data-threshold="2">粉技2以上</label>
+      </div>
+      <div>
+        <label><input type="checkbox" class="skill-break-filter" data-field="green_ss_up" data-threshold="1">SS綠技1</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="green_ss_up" data-threshold="2">SS綠技2</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="green_ss_up" data-threshold="3">SS綠技3以上</label>
+      </div>
+      <div>
+        <label><input type="checkbox" class="skill-break-filter" data-field="green_s3" data-threshold="1">S3綠技1</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="green_s3" data-threshold="2">S3綠技2</label>
+        <label><input type="checkbox" class="skill-break-filter" data-field="green_s3" data-threshold="3">S3綠技3以上</label>
+      </div>
+    </div>
+    <!-- 新增篩選：永續昇華 -->
+    <div class="filter-group">
+      <label>永續昇華：</label>
+      <label><input type="radio" name="permanent_filter" value="0" checked>無</label>
+      <label><input type="radio" name="permanent_filter" value="1">有</label>
+    </div>
+    <!-- 新增排序功能 -->
+    <div class="filter-group">
+      <label>排序：</label>
+      <label><input type="radio" name="sort_option" value="default" checked>預設</label>
+      <label><input type="radio" name="sort_option" value="hp">HP降順</label>
+      <label><input type="radio" name="sort_option" value="def">DEF降順</label>
+    </div>
+  </div>
+  <br>
+  <table>
+    <thead>
+      <tr>
+        <th>角色名</th>
+        <th>屬性</th>
+        <th>武器</th>
+        <th>HP</th>
+        <th>DEF</th>
+        <th>固有種類</th>
+        <th>slot1</th>
+        <th>slot2</th>
+        <th>slot3</th>
+        <th>永續昇華</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <!-- 資料列將由 JavaScript 填入 -->
+    </tbody>
+  </table>
+</body>
+
+</html>
