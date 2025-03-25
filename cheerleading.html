@@ -40,7 +40,7 @@
 
 <body>
   <div>
-    <button id="resetButton">重置</button>
+    <button id="resetButton">重置</button> <a href="./index.html" target="_blank">前往一般技能搜尋</a> <a href="./lswep.html" target="_blank">前往隊長技/專武搜尋</a> 
   </div>
   <div class="filter-section">
     <!-- 原有篩選：屬性、武器、角色分類 -->
@@ -65,7 +65,7 @@
     </div>
     <div class="filter-group">
       <label>角色分類篩選:</label>
-      <label><input type="checkbox" value="1" class="char_source_filter">普池角</label>
+      <label><input type="checkbox" value="1" class="char_source_filter">普池五星角</label>
       <label><input type="checkbox" value="4" class="char_source_filter">一般限定角</label>
       <label><input type="checkbox" value="2" class="char_source_filter">合作角</label>
       <label><input type="checkbox" value="3" class="char_source_filter">活動角</label>
@@ -73,7 +73,7 @@
     </div>
     <!-- 新增篩選：固有顏色 -->
     <div class="filter-group">
-      <label>固有顏色:</label>
+      <label>固有技種類:</label>
       <label><input type="checkbox" value="橘" class="skill_color_filter">橘</label>
       <label><input type="checkbox" value="藍" class="skill_color_filter">藍</label>
       <label><input type="checkbox" value="紫" class="skill_color_filter">紫</label>
@@ -112,13 +112,21 @@
     </div>
     <!-- 新增篩選：永續昇華 -->
     <div class="filter-group">
-      <label>永續昇華：</label>
+      ------降血殺輔助------<br>
+	  <label>永續昇華：</label>
       <label><input type="radio" name="permanent_filter" value="0" checked>無</label>
       <label><input type="radio" name="permanent_filter" value="1">有</label>
     </div>
+	<div class="filter-group">
+  <label>隊長技昇華：</label>
+  <label><input type="radio" name="awake_filter" value="0" checked>無篩選</label>
+  <label><input type="radio" name="awake_filter" value="1">全覺醒</label>
+  <label><input type="radio" name="awake_filter" value="2">超覺醒</label>
+</div>
+------排序------<br>
     <!-- 新增排序功能 -->
     <div class="filter-group">
-      <label>排序：</label>
+      <label></label>
       <label><input type="radio" name="sort_option" value="default" checked>預設</label>
       <label><input type="radio" name="sort_option" value="hp">HP降順</label>
       <label><input type="radio" name="sort_option" value="def">DEF降順</label>

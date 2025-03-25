@@ -84,12 +84,13 @@ document.addEventListener("DOMContentLoaded", function () {
     
     // 新增篩選：永續昇華
     const permanentFilter = document.querySelector('input[name="permanent_filter"]:checked').value;
-    
+    // 新增篩選：隊長技昇華
+    const awakeFilter = document.querySelector('input[name="awake_filter"]:checked').value;
     // 新增排序：排序條件
     const sortOption = document.querySelector('input[name="sort_option"]:checked').value;
     
     let filteredData = dataCache.filter(item => {
-      const matchEm = selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+      const matchEm =   item.char_em === '全' || selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);	  
       const matchWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
       const matchRoleSource = selectedCharSource.length === 0 || selectedCharSource.includes(item.sp_sort_for_search);
       const matchSkillColor = selectedSkillColor.length === 0 || selectedSkillColor.includes(item.source_skill);
@@ -104,14 +105,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
       
-      // 永續昇華篩選
-      let matchPermanent = true;
-      if (permanentFilter === "1") {
-        matchPermanent = item.permanent_skill_up >= 1;
-      }
-      
-      return matchEm && matchWep && matchRoleSource && matchSkillColor && matchSkillBreak && matchPermanent;
-    });
+			// 永續昇華篩選
+	  let matchPermanent = true;
+	  if (permanentFilter === "1") {
+		matchPermanent = item.permanent_skill_up >= 1;
+	  }
+
+	  // 隊長技昇華篩選
+	  let matchAwake = true;
+	  if (awakeFilter === "1") {
+		matchAwake = item.awake !== undefined && item.awake >= 1;
+	  } else if (awakeFilter === "2") {
+		matchAwake = item.awake !== undefined && item.awake >= 2;
+	  }
+
+	  return matchEm && matchWep && matchRoleSource && matchSkillColor && matchSkillBreak && matchPermanent && matchAwake;
+	});
     
     // 排序：根據所選條件進行排序
     if (sortOption === "hp") {
@@ -140,6 +149,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll('.skill-break-filter').forEach(checkbox => {
       checkbox.addEventListener('change', filterAndRender);
     });
+	document.querySelectorAll('input[name="awake_filter"]').forEach(radio => {
+	  radio.addEventListener('change', filterAndRender);
+	});
     document.querySelectorAll('input[name="permanent_filter"]').forEach(radio => {
       radio.addEventListener('change', filterAndRender);
     });
