@@ -54,7 +54,11 @@ function displaySkills(skillsToDisplay) {
         const imgCell = row.insertCell();
         imgCell.innerHTML = `<img src="img/${skill.No}.png" style="height:70px; width:auto;">`;
         
-        row.insertCell().textContent = skill.char || ''; // 第三欄：名前
+        // 第三欄：名前，轉成超連結，顯示文字不變，連結到 https://twinklestarknights.wikiru.jp/?<名前>
+        const nameCell = row.insertCell();
+        const name = skill.char || '';
+        nameCell.innerHTML = `<a href="https://twinklestarknights.wikiru.jp/?${name}" target="_blank">${name}</a>`;
+        
         row.insertCell().textContent = skill.em || '';   // 第四欄：属性
         row.insertCell().textContent = skill.camp || ''; // 第五欄：陣営
         row.insertCell().textContent = skill.EX || '';   // 第六欄：スキル
@@ -63,6 +67,7 @@ function displaySkills(skillsToDisplay) {
         row.insertCell().textContent = skill.skill || '';   // 第九欄：効果全文(Lv1)
     });
 }
+
 
 // --- Function to filter skills based on selected checkboxes ---
 function filterAndDisplaySkills() {
