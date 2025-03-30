@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊戲技能篩選器</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .filter-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .filter-section h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .filter-section label,
+        .filter-section .radio-label { /* Style for radio button labels */
+            margin-right: 10px;
+            margin-bottom: 5px;
+            display: inline-block;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        .filter-section input[type="checkbox"],
+        .filter-section input[type="radio"] { /* Style both checkbox and radio */
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+        .sub-filter-group { /* Added class for sub-sections */
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+        }
+         .sub-filter-group h4 {
+             margin-top: 0;
+             margin-bottom: 8px;
+             font-size: 1em;
+         }
+         .inline-checkbox { /* Style for the max value checkbox */
+             margin-left: 15px;
+             font-size: 0.9em;
+         }
+    </style>
+</head>
+<body>
+
+    <h1>遊戲技能篩選器</h1>
+
+    <div class="filter-section">
+        <h3>属性篩選 (OR)</h3>
+        <label><input type="checkbox" name="em" value="炎"> 炎</label>
+        <label><input type="checkbox" name="em" value="水"> 水</label>
+        <label><input type="checkbox" name="em" value="雷"> 雷</label>
+        <label><input type="checkbox" name="em" value="光"> 光</label>
+        <label><input type="checkbox" name="em" value="闇"> 闇</label>
+    </div>
+
+    <div class="filter-section">
+        <h3>陣営篩選 (OR)</h3>
+        <label><input type="checkbox" name="camp" value="人間"> 人間</label>
+        <label><input type="checkbox" name="camp" value="神族"> 神族</label>
+        <label><input type="checkbox" name="camp" value="魔族"> 魔族</label>
+    </div>
+
+    <div class="filter-section">
+        <h3>Note移動篩選</h3>
+        <div>
+             <label><input type="checkbox" id="filterAnyNote" name="any_note"> 包含任何Note移動效果</label>
+        </div>
+
+        <div class="sub-filter-group">
+            <h4>篩選效果值 (note_effect)
+                <label class="inline-checkbox">
+                    <input type="checkbox" id="useNoteEffectMax"> 使用最大值 (若存在)
+                </label>
+            </h4>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="" checked> 不過濾</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="1"> 1</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="2"> 2</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="3"> 3</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="4"> 4</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="5"> 5</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="6"> 6</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="7"> 7</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="8"> 8</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="9"> 9+</label>
+             <label class="radio-label"><input type="radio" name="note_effect_filter" value="special"> 特殊(非數值)</label>
+        </div>
+
+        <div class="sub-filter-group">
+            <h4>篩選目標 (note_move) (OR)</h4>
+            <label><input type="checkbox" name="note_move_filter" value="味方全体"> 味方全体</label>
+            <label><input type="checkbox" name="note_move_filter" value="人間"> 人間</label>
+            <label><input type="checkbox" name="note_move_filter" value="神族"> 神族</label>
+            <label><input type="checkbox" name="note_move_filter" value="魔族"> 魔族</label>
+            <label><input type="checkbox" name="note_move_filter" value="炎属性"> 炎属性</label>
+            <label><input type="checkbox" name="note_move_filter" value="水属性"> 水属性</label>
+            <label><input type="checkbox" name="note_move_filter" value="雷属性"> 雷属性</label>
+            <label><input type="checkbox" name="note_move_filter" value="光属性"> 光属性</label>
+            <label><input type="checkbox" name="note_move_filter" value="闇属性"> 闇属性</label>
+            <br>
+            <label><input type="checkbox" name="note_move_filter" value="自身"> 自身</label>
+            <label><input type="checkbox" name="note_move_filter" value="自身の右1レーン"> 自身右1</label>
+            <label><input type="checkbox" name="note_move_filter" value="自身の左1レーン"> 自身左1</label>
+            <label><input type="checkbox" name="note_move_filter" value="前から2番目"> CT線第2</label>
+            <label><input type="checkbox" name="note_move_filter" value="前から3番目"> CT線第3</label>
+            <label><input type="checkbox" name="note_move_filter" value="一番後方"> 最後方</label>
+            <br>
+            <label><input type="checkbox" name="note_move_filter" value="ステルス状態"> ステルス状態</label>
+            <label><input type="checkbox" name="note_move_filter" value="流星学園附属"> 流星学園附属</label>
+            <label><input type="checkbox" name="note_move_filter" value="アタックタイプ"> アタックタイプ</label>
+            <label><input type="checkbox" name="note_move_filter" value="スピードタイプ"> スピードタイプ</label>
+            <label><input type="checkbox" name="note_move_filter" value="ATKが一番低い"> ATKが一番低い</label>
+        </div>
+    </div>
+<div class="filter-section">
+    <h3>CT加速篩選</h3>
+    <div>
+        <label><input type="checkbox" id="filterAnyCTSpeed" name="any_ctspeed"> 包含任何CT加速延遲</label>
+    </div>
+    <div class="sub-filter-group">
+        <h4>特定條件</h4>
+        <label><input type="checkbox" name="ctspeed_special" value="enemy_delay"> 對敵方延遲</label>
+        <label><input type="checkbox" name="ctspeed_special" value="self_shorten"> 對自己縮短</label>
+        <label><input type="checkbox" name="ctspeed_special" value="self_delay"> 對自己延遲</label>
+    </div>
+    <div class="sub-filter-group">
+        <h4>篩選目標 (CTspeed_target) (OR)</h4>
+		<label><input type="checkbox" name="ctspeed_target_filter" value="味方全体"> 味方全体</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="人間"> 人間</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="神族"> 神族</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="魔族"> 魔族</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="炎属性"> 炎属性</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="水属性"> 水属性</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="雷属性"> 雷属性</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="光属性"> 光属性</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="闇属性"> 闇属性</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="自身の右1レーン"> 自身右方</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="自身の左1レーン"> 自身左方</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="一番後方"> 一番後方</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="アタックタイプ"> アタックタイプ</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="ATKが一番高い味方"> ATKが一番高い味方</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="守護天使"> 守護天使</label>
+        <label><input type="checkbox" name="ctspeed_target_filter" value="流星学園附属"> 流星学園附属</label>
+    </div>
+    <div class="sub-filter-group">
+        <h4>篩選效果值 (CTspeed_effect)
+            <label class="inline-checkbox">
+                <input type="checkbox" id="useCTSpeedEffectMax"> 使用最大值 (若存在)
+            </label>
+        </h4>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="" checked> 不過濾</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="negative"> 負數</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="5"> 5以上</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="10"> 10以上</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="15"> 15以上</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="20"> 20以上</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="25"> 25以上</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_effect_filter" value="30"> 30以上</label>
+    </div>
+    <div class="sub-filter-group">
+        <h4>篩選持續時間 (CTspeed_duration)</h4>
+        <label class="radio-label"><input type="radio" name="ctspeed_duration_filter" value="" checked> 不過濾</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_duration_filter" value="1"> 1</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_duration_filter" value="2-4"> 2~4</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_duration_filter" value="5+"> 5+</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_duration_filter" value="10+"> 10+</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_duration_filter" value="20+"> 20+</label>
+        <label class="radio-label"><input type="radio" name="ctspeed_duration_filter" value="30+"> 30+</label>
+    </div>
+</div>
+    <table>
+       <thead>
+    <tr>
+        <th>★</th>
+        <th>圖片</th>
+        <th>名前</th>
+        <th>属性</th>
+        <th>陣営</th>
+        <th>スキル</th>
+        <th>消費EX</th>
+        <th>攻撃範囲</th>
+        <th>効果全文(Lv1)</th>
+    </tr>
+</thead>
+        <tbody id="skillTableBody">
+            <tr>
+                <td colspan="8">載入中...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script src="script.js"></script>
+</body>
+</html>
