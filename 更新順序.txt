@@ -7,7 +7,7 @@ p1 更新變化技能
 1. 執行 wiki.py(更新ULT技能) 和 weapon.py 和 飾品測試1
 2. 執行更新角色名.py，順便更新
 3. 執行 技能搜尋.py
-4. 複製檔案「data_leader_wep.json」「data.json」 
+4. 複製檔案「data_leader_wep.json」「data.json」 「data_cheerleading.json」
 5. 下載 https://az-otogi-web-assets.azureedge.net/prodassets//GeneralWebGL/Assets/chara_icon
 6. 執行 AssetStudio.net6.v0.16.47
 7. 執行 bot圖片處理.py 並複製圖片
