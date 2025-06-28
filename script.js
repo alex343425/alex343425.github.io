@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderTable(data) {
         let tableBody = document.getElementById('tableBody');
-        let img_showValue = parseInt(document.getElementById('img_show').value);
+		let img_showValue = document.getElementById('img_show').checked ? 1 : 0;
         tableBody.innerHTML = '';
         for (let item of data) {
             let tr = document.createElement('tr');
