@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>ID 比對工具</title>
+<style>
+    body { font-family: sans-serif; padding: 20px; }
+    .img-grid { display: flex; flex-wrap: wrap; gap: 10px; max-width: 600px; }
+    .img-grid img { width: 100px; height: 100px; object-fit: contain; border: 1px solid #ccc; }
+    .radio-box { margin: 10px 0; }
+    table { border-collapse: collapse; margin-top: 10px; }
+    td { padding: 5px; }
+</style>
+</head>
+<body>
+
+<h2>ID 比對工具</h2>
+
+<label>請輸入 ID 列表：</label><br>
+<textarea id="inputData" rows="1" style="width: 500px;" placeholder="[10011,10031,...]"></textarea>
+
+<div class="radio-box">
+    <label><input type="radio" name="compareList" value="A" checked> 比對全普池</label>
+    &emsp;
+    <label><input type="radio" name="compareList" value="B"> 比對課限普池(2019後)，不保證每次都一樣，請抽卡前點開lineup確認</label>
+</div>
+
+<button id="compareBtn">開始比對</button>
+
+<h3>比對結果：</h3>
+<div id="result"></div>
+
+<script>
+// ✅ 強制只保留單行
+document.getElementById("inputData").addEventListener("input", function () {
+    this.value = this.value.replace(/[\r\n]+/g, " ");
+});
+
+// ✅ 點擊按鈕事件
+document.getElementById("compareBtn").addEventListener("click", async function() {
+    const input = document.getElementById("inputData").value.trim();
+    const listPick = document.querySelector('input[name="compareList"]:checked').value;
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = "讀取資料中...";
+
+    if (!input) {
+        resultDiv.innerHTML = "請輸入資料！";
+        return;
+    }
+
+    // ✅ 抽取數字陣列
+    const userIds = input.match(/\d+/g)?.map(Number) || [];
+
+    // ✅ 讀取 TXT 檔
+    const filename = listPick === "A" ? "data/listA.txt" : "data/listB.txt";
+    const res = await fetch(filename);
+    const txt = await res.text();
+
+    const listIds = txt.match(/\d+/g)?.map(Number) || [];
+
+    // ✅ 比對 list 有但使用者沒有的
+    const diff = listIds.filter(id => !userIds.includes(id));
+
+    if (diff.length === 0) {
+        resultDiv.innerHTML = `<strong>列表內已全部持有 ✅</strong>`;
+        return;
+    }
+
+    // ✅ 建立圖片 grid
+    let html = `<table>`;
+    for (let i = 0; i < diff.length; i++) {
+        if (i % 5 === 0) html += "<tr>";
+        html += `<td><img src="img/${diff[i]}.png" alt="${diff[i]}"></td>`;
+        if (i % 5 === 4) html += "</tr>";
+    }
+    if (diff.length % 5 !== 0) html += "</tr>";
+    html += "</table>";
+
+    resultDiv.innerHTML = html;
+});
+</script>
+
+</body>
+</html>
