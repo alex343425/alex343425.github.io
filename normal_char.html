@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>ID 比對工具</title>
+<title>普池持有比對工具</title>
 <style>
     body { font-family: sans-serif; padding: 20px; }
     .img-grid { display: flex; flex-wrap: wrap; gap: 10px; max-width: 600px; }
@@ -17,7 +17,12 @@
 <h2>ID 比對工具</h2>
 
 <label>請輸入 ID 列表：</label><br>
+<label>網頁按F12打開開發人員選項，切換到Network(網路)，在此狀態進入圖鑑，找到MMonsters的資料</label><br>
+<label>點開回應(Response)，將結果(中括號開頭，數字和逗點的組合)複製到下面框框</label><br>
 <textarea id="inputData" rows="1" style="width: 500px;" placeholder="[10011,10031,...]"></textarea>
+<br><br>
+<img src="howtouse.png">
+
 
 <div class="radio-box">
     <label><input type="radio" name="compareList" value="A" checked> 比對全普池</label>
