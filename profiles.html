@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profiles Viewer</title>
+  <style>
+    body{font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans CJK TC", "Microsoft JhengHei", Arial; margin:20px; background:#f5f7fb}
+    .controls{display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+    .group{background:#fff;padding:10px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    label{margin-right:8px}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+    th,td{padding:10px;text-align:left;border-bottom:1px solid #eee}
+    th{background:#fafafa;font-weight:600}
+    tr:hover{background:#fcfcff;cursor:pointer}
+    img.thumb{width:auto;height:auto;object-fit:cover;border-radius:6px}
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:20px}
+    .modal{background:#fff;border-radius:8px;max-width:900px;width:100%;max-height:90vh;overflow:auto;padding:18px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
+    .modal .modal-head{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+    .modal .modal-head img{width:auto;height:auto;object-fit:cover;border-radius:8px}
+    .modal .lang-toggle{margin-left:auto}
+    .modal table{width:100%;margin-top:8px}
+    .modal h3{margin:8px 0}
+    .empty{color:#888;font-style:italic}
+    @media (max-width:640px){.controls{flex-direction:column;align-items:stretch}}
+  </style>
+</head>
+<body>
+  <h2>Profiles Viewer</h2>
+  <div class="controls">
+    <div class="group">
+      <input id="search" placeholder="搜尋名稱或文字（例如：シンデレラ、飲酒）" />
+    </div>
+
+    <div class="group">
+      <div>屬性 (a)</div>
+      <label><input type="radio" name="attr" value="" checked> 無篩選</label>
+      <label><input type="radio" name="attr" value="火"> 火</label>
+      <label><input type="radio" name="attr" value="水"> 水</label>
+      <label><input type="radio" name="attr" value="樹"> 樹</label>
+      <label><input type="radio" name="attr" value="光"> 光</label>
+      <label><input type="radio" name="attr" value="闇"> 闇</label>
+    </div>
+
+    <div class="group">
+      <div>武器 (wc)</div>
+      <label><input type="radio" name="wc" value="" checked> 無篩選</label>
+      <label><input type="radio" name="wc" value="劍"> 劍</label>
+      <label><input type="radio" name="wc" value="斧"> 斧</label>
+      <label><input type="radio" name="wc" value="槍"> 槍</label>
+      <label><input type="radio" name="wc" value="本"> 本</label>
+      <label><input type="radio" name="wc" value="杖"> 杖</label>
+      <label><input type="radio" name="wc" value="短劍"> 短劍</label>
+      <label><input type="radio" name="wc" value="弓"> 弓</label>
+      <label><input type="radio" name="wc" value="特殊"> 特殊</label>
+    </div>
+  </div>
+
+  <table id="mainTable">
+    <thead>
+      <tr>
+        <th>圖片 / 角色名</th>
+        <th>屬性</th>
+        <th>武器</th>
+        <th>身長・体重</th>
+        <th>BWH</th>
+        <th>誕生日</th>
+        <th>趣味</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <img id="modalImg" src="" alt="" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\'><rect width=\'100%\' height=\'100%\' fill=\'%23ddd\'/><text x=\'50%\' y=\'50%\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-size=\'14\' fill=\'%23666\'>no image</text></svg>'" />
+        <div>
+          <h3 id="modalName">角色名</h3>
+          <div id="modalMeta"></div>
+        </div>
+        <div class="lang-toggle">
+          語言：
+          <label><input type="radio" name="lang" value="chs" checked> 中文</label>
+          <label><input type="radio" name="lang" value="jp"> 日文</label>
+          <label><input type="radio" name="lang" value="both"> 中日雙語</label>
+        </div>
+      </div>
+
+      <div id="modalContent">
+        <!-- dynamic -->
+      </div>
+
+      <div style="text-align:right;margin-top:12px">
+        <button id="closeModal">關閉</button>
+      </div>
+    </div>
+  </div>
+
+ <script>
+  // utility: safely get field with language fallback
+  function langField(obj, keyBase, lang){
+    if(!obj) return '';
+    if(lang==='jp') return obj[keyBase] || '';
+    if(lang==='chs') return obj[keyBase + '_chs'] || obj[keyBase] || '';
+
+    // both — add <br> between CHS & JP
+    const jp = obj[keyBase] || '';
+    const ch = obj[keyBase + '_chs'] || obj[keyBase] || '';
+    if (jp && ch && jp !== ch) return ch + '<br>' + jp;
+    return ch || jp;
+  }
+
+  let data = [];
+  const tbody = document.querySelector('#mainTable tbody');
+  const searchInput = document.getElementById('search');
+
+  async function load(){
+    try{
+      const res = await fetch('profiles.json');
+      if(!res.ok) throw new Error('profiles.json 載入失敗: ' + res.status);
+      data = await res.json();
+    }catch(e){
+      console.error(e);
+      data = [];
+    }
+    renderTable();
+  }
+
+  function currentFilters(){
+    const a = document.querySelector('input[name="attr"]:checked').value;
+    const wc = document.querySelector('input[name="wc"]:checked').value;
+    const q = (searchInput.value||'').trim().toLowerCase();
+    return {a,wc,q};
+  }
+
+  function renderTable(){
+    const {a,wc,q} = currentFilters();
+    tbody.innerHTML = '';
+    data.forEach(x=>{
+      const showA = !a || (x.a===a);
+      const showW = !wc || (x.wc===wc);
+      if(!showA || !showW) return;
+
+      // search
+      let hay = '';
+      hay += (x.n||'') + ' ' + (x.filename||'') + ' ' + (x.a||'') + ' ' + (x.wc||'');
+      if(x.HasProfiles && Array.isArray(x.Profiles)){
+        x.Profiles.forEach(p=>{
+          hay += ' ' + (p.Content||'') + ' ' + (p.Content_chs||'') + ' ' + (p.Title||'') + ' ' + (p.Title_chs||'');
+        });
+      }
+      if(q && !hay.toLowerCase().includes(q)) return;
+
+      const tr = document.createElement('tr');
+      tr.dataset.filename = x.filename || '';
+      tr.dataset.index = JSON.stringify(x);
+
+      // image + name
+      const imgTd = document.createElement('td');
+      const img = document.createElement('img');
+      img.className='thumb';
+      img.src = './img/' + (x.filename||'') + '.png';
+      img.alt = x.n||'';
+      imgTd.appendChild(img);
+
+      const span = document.createElement('div');
+      span.innerHTML = (x.n?escapeHtml(x.n):'') +
+        '<br/><small style="color:#666">' + escapeHtml(x.filename||'') + '</small>';
+      imgTd.appendChild(span);
+
+      tr.appendChild(imgTd);
+
+      tr.appendChild(cell(x.a));
+      tr.appendChild(cell(x.wc));
+
+      if(x.HasProfiles && Array.isArray(x.Profiles)){
+        tr.appendChild(cell(x.Profiles[0] ? x.Profiles[0].Content || '' : ''));
+        tr.appendChild(cell(x.Profiles[1] ? x.Profiles[1].Content || '' : ''));
+        tr.appendChild(cell(x.Profiles[2] ? x.Profiles[2].Content || '' : ''));
+        tr.appendChild(cell(x.Profiles[3] ? (x.Profiles[3].Content_chs || x.Profiles[3].Content || '') : ''));
+      }else{
+        tr.appendChild(cell(''));
+        tr.appendChild(cell(''));
+        tr.appendChild(cell(''));
+        tr.appendChild(cell(''));
+      }
+
+      tr.addEventListener('click',()=>openModal(x));
+      tbody.appendChild(tr);
+    });
+  }
+
+  // updated: innerHTML to support <br>
+  function cell(text){
+    const td = document.createElement('td');
+    td.innerHTML = text || '';
+    return td;
+  }
+
+  function openModal(x){
+    const backdrop = document.getElementById('modalBackdrop');
+    document.getElementById('modalImg').src = './img/' + (x.filename||'') + '.png';
+    document.getElementById('modalName').textContent = x.n || '';
+    document.getElementById('modalMeta').textContent =
+      (x.a?('屬性: '+x.a+'  '):'') + (x.wc?('武器: '+x.wc):'');
+
+    const cont = document.getElementById('modalContent');
+    cont.innerHTML = '';
+    const lang = document.querySelector('input[name="lang"]:checked').value || 'chs';
+
+    if(!x.HasProfiles){
+      const p = document.createElement('div');
+      p.className='empty';
+      p.textContent='此角色無 Profiles 資料。';
+      cont.appendChild(p);
+      backdrop.style.display='flex';
+      return;
+    }
+
+    // Profiles table
+    const tbl = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML='<tr><th>Order</th><th>Title</th><th>Content</th></tr>';
+    tbl.appendChild(thead);
+
+    const tb = document.createElement('tbody');
+    (x.Profiles||[]).forEach(p=>{
+      const tr = document.createElement('tr');
+      tr.appendChild(cell(p.Order || ''));
+      tr.appendChild(cell(langField(p,'Title',lang)));
+      tr.appendChild(cell(langField(p,'Content',lang)));
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    cont.appendChild(tbl);
+
+    // BackgroundMessage
+    const bg = document.createElement('div');
+    bg.style.marginTop='10px';
+
+    const bgTitle = document.createElement('h3');
+    bgTitle.textContent='背景故事：';
+    bg.appendChild(bgTitle);
+
+    const bgText = document.createElement('div');
+    bgText.innerHTML = langField(x,'BackgroundMessage',lang) || '';
+    if(!bgText.innerHTML) bgText.className='empty';
+    bg.appendChild(bgText);
+
+    cont.appendChild(bg);
+
+    // ValentineMessages
+    if(Array.isArray(x.ValentineMessages) && x.ValentineMessages.length>0){
+      const v = document.createElement('div'); v.style.marginTop='10px';
+      const t = document.createElement('h3'); t.textContent='巧克力：'; v.appendChild(t);
+
+      const vtext = document.createElement('div');
+      vtext.innerHTML = langField(x.ValentineMessages[0],'Content',lang) || '';
+      if(!vtext.innerHTML) vtext.className='empty';
+      v.appendChild(vtext);
+
+      cont.appendChild(v);
+    }
+
+    // Interviews
+    if(Array.isArray(x.Interviews) && x.Interviews.length>0){
+      const iv = document.createElement('div'); iv.style.marginTop='10px';
+      const t = document.createElement('h3'); t.textContent='採訪：'; iv.appendChild(t);
+
+      x.Interviews.forEach((it, idx)=>{
+        const q = document.createElement('div'); q.style.marginTop='6px';
+
+        const qt = document.createElement('strong');
+		if (idx === 0) qt.innerHTML = '喜歡的東西或最近的興趣是什麼？';
+		else if (idx === 1) qt.innerHTML = '討厭的東西或不擅長的東西是什麼？';
+        else qt.innerHTML = langField(it,'Title',lang) || ('問題 ' + (idx+1));
+        q.appendChild(qt);
+
+        const qa = document.createElement('div');
+        qa.innerHTML = langField(it,'Content',lang) || '';
+        if(!qa.innerHTML) qa.className='empty';
+        q.appendChild(qa);
+
+        iv.appendChild(q);
+      });
+
+      cont.appendChild(iv);
+    }
+
+    // ForHumanMessage
+    if(x.ForHumanMessage || x.ForHumanMessage_chs){
+      const fm = document.createElement('div'); fm.style.marginTop='10px';
+      const t = document.createElement('h3'); t.textContent='對人類要說的話：'; fm.appendChild(t);
+
+      const txt = document.createElement('div');
+      txt.innerHTML = langField(x,'ForHumanMessage',lang) || '';
+      if(!txt.innerHTML) txt.className='empty';
+      fm.appendChild(txt);
+
+      cont.appendChild(fm);
+    }
+
+    backdrop.style.display='flex';
+  }
+
+  document.getElementById('closeModal')
+    .addEventListener('click',()=>{ document.getElementById('modalBackdrop').style.display='none'; });
+
+  document.getElementById('modalBackdrop')
+    .addEventListener('click',(e)=>{ if(e.target.id==='modalBackdrop') e.currentTarget.style.display='none'; });
+
+  // language change — re-open modal for same item
+  document.querySelectorAll('input[name="lang"]').forEach(r=>r.addEventListener('change',()=>{
+    const name = document.getElementById('modalName').textContent;
+    if(!name) return;
+
+    const fname = document.getElementById('modalImg').src.split('/').pop().replace('.png','');
+    const x = data.find(it=> (it.filename||'') === fname);
+    if(x) openModal(x);
+  }));
+
+  // filters
+  document.querySelectorAll('input[name="attr"], input[name="wc"]')
+    .forEach(el=>el.addEventListener('change',renderTable));
+  searchInput.addEventListener('input',renderTable);
+
+  // escapeHtml helper
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>\"]/g,
+      c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c])
+    );
+  }
+
+  // init
+  load();
+</script>
+
+</body>
+</html>
