@@ -1,3 +1,6 @@
+let currentPage = 1;
+const pageSize = 300;
+let currentFilteredData = [];
 document.addEventListener("DOMContentLoaded", function () {
     let searchMode = 'original'; // 這是默認的搜索模式
     let enemyDmgUpFilterValue = 'noFilter'; // 這是新的篩選條件
@@ -6,8 +9,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function loadData() {
         fetch('data.json')
         .then(response => response.json())
-        .then(data => {
-            renderTable(data);
+		.then(data => {
+			currentFilteredData = data;    // ★ 重要：首次載入建立預設資料
+			renderTable(data);
+			currentPage = 1; 
             document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
             document.getElementById('spirit_gauge').addEventListener('change', () => filterData(data));
             document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
@@ -110,37 +115,98 @@ document.addEventListener("DOMContentLoaded", function () {
         return text;
     }
 
-    function renderTable(data) {
-        let tableBody = document.getElementById('tableBody');
-		let img_showValue = document.getElementById('img_show').checked ? 1 : 0;
-        tableBody.innerHTML = '';
-        for (let item of data) {
-            let tr = document.createElement('tr');
-            let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
-            let img_show_data = img_showValue ? `<a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
-                    <img src="img/${item.img_name}" alt="${item.skill_char}" height="70" onerror="this.src='img/0.png';">
-                </a><br>` : '';
-            let imgCellContent;
-            if (item.img_name) {
-                imgCellContent = `
-                ${img_show_data}
-                <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
-                ${additionalInfo}`;
+function renderTable(data, page = 1) {
+    let tableBody = document.getElementById('tableBody');
+    let img_showValue = document.getElementById('img_show').checked ? 1 : 0;
+    tableBody.innerHTML = '';
+
+    // 分頁處理
+    let start = (page - 1) * pageSize;
+    let end = start + pageSize;
+    let pageData = data.slice(start, end);
+
+    for (let item of pageData) {
+        let tr = document.createElement('tr');
+        let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
+        let img_show_data = img_showValue ? `<a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">
+                <img src="img/${item.img_name}" alt="${item.skill_char}" height="70" onerror="this.src='img/0.png';">
+            </a><br>` : '';
+        let imgCellContent;
+        if (item.img_name) {
+            imgCellContent = `
+            ${img_show_data}
+            <a href="https://otogi.wikiru.jp/index.php?${item.skill_char}" target="_blank">${item.skill_char}</a>
+            ${additionalInfo}`;
+        } else {
+            imgCellContent = '--';
+        }
+
+        tr.innerHTML = `
+            <td>${item.skill_name}</td>
+            <td>${item.skill_type}</td>
+            <td>${item.skill_state}</td>
+            <td>${imgCellContent}</td>
+            <td>${item.char_em}</td>
+            <td>${item.char_wep}</td>
+            <td>${item.description}</td>
+        `;
+        tableBody.appendChild(tr);
+    }
+
+    renderPagination(data.length, page);
+}
+function renderPagination(totalItems, currentPage) {
+    const paginationTop = document.getElementById('paginationTop');
+    const paginationBottom = document.getElementById('pagination');
+    
+    paginationTop.innerHTML = '';
+    paginationBottom.innerHTML = '';
+
+    if (totalItems <= pageSize) {
+        return; // 小於200不顯示
+    }
+
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    function createPaginationButtons(container) {
+        // 上一頁
+        if (currentPage > 1) {
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '上一頁';
+            prevBtn.onclick = () => pageChange(currentPage - 1);
+            container.appendChild(prevBtn);
+        }
+
+        // 頁碼
+        for (let i = 1; i <= totalPages; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.textContent = i;
+            if (i === currentPage) {
+                pageBtn.disabled = true;
             } else {
-                imgCellContent = '--';
+                pageBtn.onclick = () => pageChange(i);
             }
-            tr.innerHTML = `
-                <td>${item.skill_name}</td>
-                <td>${item.skill_type}</td>
-                <td>${item.skill_state}</td>
-                <td>${imgCellContent}</td>
-                <td>${item.char_em}</td>
-                <td>${item.char_wep}</td>
-                <td>${item.description}</td>
-            `;
-            tableBody.appendChild(tr);
+            container.appendChild(pageBtn);
+        }
+
+        // 下一頁
+        if (currentPage < totalPages) {
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = '下一頁';
+            nextBtn.onclick = () => pageChange(currentPage + 1);
+            container.appendChild(nextBtn);
         }
     }
+
+    createPaginationButtons(paginationTop);
+    createPaginationButtons(paginationBottom);
+}
+
+
+function pageChange(page) {
+    currentPage = page;
+    renderTable(currentFilteredData, currentPage);
+}
 
     function filterData(data) {
         let ctValue = parseInt(document.getElementById('ctFilter').value);
@@ -237,7 +303,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource;
         });
-        renderTable(filteredData);
+        currentPage = 1;
+currentFilteredData = filteredData;
+renderTable(currentFilteredData, currentPage);
         document.querySelectorAll('.description-column').forEach((cell, index) => {
             let highlightedText = highlightKeywords(filteredData[index].description, keywords);
             cell.innerHTML = highlightedText;
