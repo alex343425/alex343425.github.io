@@ -141,15 +141,14 @@ function renderTable(data, page = 1) {
             imgCellContent = '--';
         }
 
-        tr.innerHTML = `
-            <td>${item.skill_name}</td>
-            <td>${item.skill_type}</td>
-            <td>${item.skill_state}</td>
-            <td>${imgCellContent}</td>
-            <td>${item.char_em}</td>
-            <td>${item.char_wep}</td>
-            <td>${item.description}</td>
-        `;
+		tr.innerHTML = `
+			<td>${item.skill_name}</td>
+			<td>${item.skill_type}</td>
+			<td>${item.skill_state}</td>
+			<td>${imgCellContent}</td>
+			<td>${item.char_em}</td>
+			<td>${item.char_wep}</td>
+			<td class="description-column">${item.description}</td>  `;
         tableBody.appendChild(tr);
     }
 
