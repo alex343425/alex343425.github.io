@@ -203,10 +203,6 @@
 
   function openModal(x){
     const backdrop = document.getElementById('modalBackdrop');
-
-    // [FIX] 將 filename 存起來，避免圖片 error 時 src 變更導致抓不到 ID
-    backdrop.dataset.currentFilename = x.filename || '';
-
     document.getElementById('modalImg').src = './img/' + (x.filename||'') + '.png';
     document.getElementById('modalName').textContent = x.n || '';
     document.getElementById('modalMeta').textContent =
@@ -215,29 +211,101 @@
     const cont = document.getElementById('modalContent');
     cont.innerHTML = '';
     const lang = document.querySelector('input[name="lang"]:checked').value || 'chs';
-    
-    // ... (中間渲染內容的程式碼不變，省略以節省篇幅) ...
-    
+
+    if(!x.HasProfiles){
+      const p = document.createElement('div');
+      p.className='empty';
+      p.textContent='此角色無 Profiles 資料。';
+      cont.appendChild(p);
+      backdrop.style.display='flex';
+      return;
+    }
+
+    // Profiles table
+    const tbl = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML='<tr><th>Order</th><th>Title</th><th>Content</th></tr>';
+    tbl.appendChild(thead);
+
+    const tb = document.createElement('tbody');
+    (x.Profiles||[]).forEach(p=>{
+      const tr = document.createElement('tr');
+      tr.appendChild(cell(p.Order || ''));
+      tr.appendChild(cell(langField(p,'Title',lang)));
+      tr.appendChild(cell(langField(p,'Content',lang)));
+      tb.appendChild(tr);
+    });
+    tbl.appendChild(tb);
+    cont.appendChild(tbl);
+
+    // BackgroundMessage
+    const bg = document.createElement('div');
+    bg.style.marginTop='10px';
+
+    const bgTitle = document.createElement('h3');
+    bgTitle.textContent='背景故事：';
+    bg.appendChild(bgTitle);
+
+    const bgText = document.createElement('div');
+    bgText.innerHTML = langField(x,'BackgroundMessage',lang) || '';
+    if(!bgText.innerHTML) bgText.className='empty';
+    bg.appendChild(bgText);
+
+    cont.appendChild(bg);
+
+    // ValentineMessages
+    if(Array.isArray(x.ValentineMessages) && x.ValentineMessages.length>0){
+      const v = document.createElement('div'); v.style.marginTop='10px';
+      const t = document.createElement('h3'); t.textContent='巧克力：'; v.appendChild(t);
+
+      const vtext = document.createElement('div');
+      vtext.innerHTML = langField(x.ValentineMessages[0],'Content',lang) || '';
+      if(!vtext.innerHTML) vtext.className='empty';
+      v.appendChild(vtext);
+
+      cont.appendChild(v);
+    }
+
+    // Interviews
+    if(Array.isArray(x.Interviews) && x.Interviews.length>0){
+      const iv = document.createElement('div'); iv.style.marginTop='10px';
+      const t = document.createElement('h3'); t.textContent='採訪：'; iv.appendChild(t);
+
+      x.Interviews.forEach((it, idx)=>{
+        const q = document.createElement('div'); q.style.marginTop='6px';
+
+        const qt = document.createElement('strong');
+		if (idx === 0) qt.innerHTML = '喜歡的東西或最近的興趣是什麼？';
+		else if (idx === 1) qt.innerHTML = '討厭的東西或不擅長的東西是什麼？';
+        else qt.innerHTML = langField(it,'Title',lang) || ('問題 ' + (idx+1));
+        q.appendChild(qt);
+
+        const qa = document.createElement('div');
+        qa.innerHTML = langField(it,'Content',lang) || '';
+        if(!qa.innerHTML) qa.className='empty';
+        q.appendChild(qa);
+
+        iv.appendChild(q);
+      });
+
+      cont.appendChild(iv);
+    }
+
+    // ForHumanMessage
+    if(x.ForHumanMessage || x.ForHumanMessage_chs){
+      const fm = document.createElement('div'); fm.style.marginTop='10px';
+      const t = document.createElement('h3'); t.textContent='對人類要說的話：'; fm.appendChild(t);
+
+      const txt = document.createElement('div');
+      txt.innerHTML = langField(x,'ForHumanMessage',lang) || '';
+      if(!txt.innerHTML) txt.className='empty';
+      fm.appendChild(txt);
+
+      cont.appendChild(fm);
+    }
+
     backdrop.style.display='flex';
   }
-
-  document.getElementById('closeModal')
-    .addEventListener('click',()=>{ document.getElementById('modalBackdrop').style.display='none'; });
-
-  document.getElementById('modalBackdrop')
-    .addEventListener('click',(e)=>{ if(e.target.id==='modalBackdrop') e.currentTarget.style.display='none'; });
-
-  // language change — re-open modal for same item
-  document.querySelectorAll('input[name="lang"]').forEach(r=>r.addEventListener('change',()=>{
-    const name = document.getElementById('modalName').textContent;
-    if(!name) return;
-
-    // [FIX] 從 dataset 讀取，確保即使無圖片也能正確切換語言
-    const fname = document.getElementById('modalBackdrop').dataset.currentFilename;
-    
-    const x = data.find(it=> (it.filename||'') === fname);
-    if(x) openModal(x);
-  }));
 
   document.getElementById('closeModal')
     .addEventListener('click',()=>{ document.getElementById('modalBackdrop').style.display='none'; });
