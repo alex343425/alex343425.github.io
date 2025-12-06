@@ -216,6 +216,28 @@
         span.highlight2 { background-color: #87ceeb; color: black; }
         span.highlight3 { background-color: #90ee90; color: black; }
 
+        /* 分頁按鈕樣式 */
+        #pagination, #paginationTop {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        #pagination button, #paginationTop button {
+            background-color: white;
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+        }
+
+        #pagination button:disabled, #paginationTop button:disabled {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            cursor: default;
+        }
+
         /* 圖片 */
         td img {
             max-width: 100%;
@@ -224,19 +246,26 @@
         }
     </style>
     <script>
+        let currentPage = 1;
+        const pageSize = 50; // 每頁顯示數量，可自行調整
+        let currentFilteredData = [];
+
         document.addEventListener("DOMContentLoaded", function () {
-            let searchMode = 'original'; // 這是默認的搜索模式
+            let searchMode = 'original';
+
             function loadData() {
                 fetch('data_leader_wep.json')
                 .then(response => response.json())
                 .then(data => {
-                    renderTable(data);
+                    currentFilteredData = data; // 初始化數據
+                    renderTable(data, 1);
+                    
                     document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
                     document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
-                    
                     document.getElementById('em_resist').addEventListener('change', () => filterData(data));
                     document.getElementById('img_show').addEventListener('change', () => filterData(data));
                     document.getElementById('searchButton').addEventListener('click', () => filterData(data));
+                    
                     document.querySelectorAll('.char-em-filter').forEach(checkbox => {
                         checkbox.addEventListener('change', () => filterData(data));
                     });
@@ -249,30 +278,21 @@
                     document.querySelectorAll('.skill-state-filter').forEach(checkbox => {
                         checkbox.addEventListener('change', () => filterData(data));
                     });
-                    document.getElementById('modeOriginal').addEventListener('click', function () {
-                        searchMode = 'original';
-
-                    });
                     document.querySelectorAll('.char_source_filter').forEach(checkbox => {
                         checkbox.addEventListener('change', () => filterData(data));
                     });
-                    document.getElementById('modeSequential').addEventListener('click', function () {
-                        searchMode = 'sequential';
 
-                    });
+                    document.getElementById('modeOriginal').addEventListener('click', function () { searchMode = 'original'; });
+                    document.getElementById('modeSequential').addEventListener('click', function () { searchMode = 'sequential'; });
+                    document.getElementById('modeStrictSequential').addEventListener('click', function () { searchMode = 'strictSequential'; });
 
-                    document.getElementById('modeStrictSequential').addEventListener('click', function () {
-                        searchMode = 'strictSequential';
-
-                    });
                     document.querySelector("#descriptionFilter").addEventListener("keyup", function(event) {
-                        // 如果按下的是Enter鍵
                         if (event.keyCode === 13) {
                             event.preventDefault();
-                            // 觸發搜尋
                             filterData(data);
                         }
                     });
+
                     document.querySelector("#toggleKeywordButtons").addEventListener("click", function() {
                         const keywordArea = document.querySelector("#keywordButtonsArea");
                         if (keywordArea.style.display === "none") {
@@ -283,12 +303,11 @@
                             this.innerText = "展開常用關鍵字";
                         }
                     });
-                    // 當按下常用關鍵字按鈕時，將其關聍的關鍵字添加到descriptionFilter輸入框
+
                     document.querySelectorAll(".keywordBtn").forEach(button => {
                         button.addEventListener("click", function() {
                             const keyword = this.getAttribute("data-keyword");
                             const currentInput = document.querySelector("#descriptionFilter").value.trim();
-
                             if (currentInput && !currentInput.endsWith(keyword)) {
                                 document.querySelector("#descriptionFilter").value = currentInput + " " + keyword;
                             } else if (!currentInput) {
@@ -296,7 +315,6 @@
                             }
                         });
                     });
-                    
                     
                     document.querySelectorAll('input[name="searchMode"]').forEach(radio => {
                         radio.addEventListener('change', function () {
@@ -306,40 +324,123 @@
                 })
                 .catch(error => console.error('Error fetching data:', error));
             }
+
             document.getElementById('resetButton').addEventListener('click', function () {
-                // Reset checkboxes
                 document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
                     checkbox.checked = false;
                 });
-
-                // Reset select elements to their first option
                 document.querySelectorAll('select').forEach(select => {
                     select.selectedIndex = 0;
                 });
-                
-                // Clear descriptionFilter
                 document.getElementById('descriptionFilter').value = '';
-                // Finally, reload the data
                 loadData();
             });
+
             function highlightKeywords(text, keywords) {
+                if (!keywords || keywords.length === 0 || keywords[0] === "") return text;
                 keywords.forEach((keyword, index) => {
-                    // 創建一個正則表達式來匹配當前的關鍵字
                     let regex = new RegExp(keyword, "gi");
-                    // 使用帶有藍定背景色的<span>替換該關鍵字
                     text = text.replace(regex, `<span class="highlight${index + 1}">$&</span>`);
                 });
                 return text;
             }
-            function renderTable(data) {
+
+            // 暴露給全域以便按鈕調用
+            window.pageChange = function(page) {
+                currentPage = page;
+                renderTable(currentFilteredData, currentPage);
+            }
+
+            function renderPagination(totalItems, currentPage) {
+                const paginationTop = document.getElementById('paginationTop');
+                const paginationBottom = document.getElementById('pagination');
+                
+                paginationTop.innerHTML = '';
+                paginationBottom.innerHTML = '';
+
+                if (totalItems <= pageSize) {
+                    return; 
+                }
+
+                const totalPages = Math.ceil(totalItems / pageSize);
+
+                function createPaginationButtons(container) {
+                    // 上一頁
+                    if (currentPage > 1) {
+                        const prevBtn = document.createElement('button');
+                        prevBtn.textContent = '上一頁';
+                        prevBtn.onclick = () => window.pageChange(currentPage - 1);
+                        container.appendChild(prevBtn);
+                    }
+
+                    // 頁碼 (簡單版：顯示所有頁碼，如果頁數太多可能需要優化)
+                    // 為了避免頁碼過多，這裡做一個簡單的限制顯示（例如只顯示前後幾頁）
+                    let startPage = Math.max(1, currentPage - 3);
+                    let endPage = Math.min(totalPages, currentPage + 3);
+                    
+                    if (startPage > 1) {
+                         const firstBtn = document.createElement('button');
+                         firstBtn.textContent = '1';
+                         firstBtn.onclick = () => window.pageChange(1);
+                         container.appendChild(firstBtn);
+                         if (startPage > 2) {
+                             const dots = document.createElement('span');
+                             dots.textContent = '...';
+                             dots.style.padding = '5px';
+                             container.appendChild(dots);
+                         }
+                    }
+
+                    for (let i = startPage; i <= endPage; i++) {
+                        const pageBtn = document.createElement('button');
+                        pageBtn.textContent = i;
+                        if (i === currentPage) {
+                            pageBtn.disabled = true;
+                        } else {
+                            pageBtn.onclick = () => window.pageChange(i);
+                        }
+                        container.appendChild(pageBtn);
+                    }
+                    
+                    if (endPage < totalPages) {
+                        if (endPage < totalPages - 1) {
+                             const dots = document.createElement('span');
+                             dots.textContent = '...';
+                             dots.style.padding = '5px';
+                             container.appendChild(dots);
+                        }
+                        const lastBtn = document.createElement('button');
+                        lastBtn.textContent = totalPages;
+                        lastBtn.onclick = () => window.pageChange(totalPages);
+                        container.appendChild(lastBtn);
+                    }
+
+                    // 下一頁
+                    if (currentPage < totalPages) {
+                        const nextBtn = document.createElement('button');
+                        nextBtn.textContent = '下一頁';
+                        nextBtn.onclick = () => window.pageChange(currentPage + 1);
+                        container.appendChild(nextBtn);
+                    }
+                }
+
+                createPaginationButtons(paginationTop);
+                createPaginationButtons(paginationBottom);
+            }
+
+            function renderTable(data, page = 1) {
                 let tableBody = document.getElementById('tableBody');
                 let img_showValue = document.getElementById('img_show').checked ? 1 : 0;
-                window.currentData = data; // 存儲數據以便重新渲染
                 tableBody.innerHTML = '';
-                for (let item of data) {
+
+                // 分頁計算
+                let start = (page - 1) * pageSize;
+                let end = start + pageSize;
+                let pageData = data.slice(start, end);
+
+                for (let item of pageData) {
                     let tr = document.createElement('tr');
                     
-                    // 根據 item.type 設定背景顏色
                     if (item.type === "專武技能") {
                         tr.classList.add("highlight1");
                     } else if (item.type === "角色飾品") {
@@ -362,10 +463,23 @@
                         <td>${imgCellContent}</td>
                         <td class="fixed-width">${item.char_em}</td>
                         <td class="fixed-width">${item.char_wep}</td>
-                        <td>${item.description}</td>
+                        <td class="description-column">${item.description}</td>
                     `;
                     
                     tableBody.appendChild(tr);
+                }
+
+                // 渲染分頁按鈕
+                renderPagination(data.length, page);
+
+                // 處理關鍵字高亮 (針對當前頁面)
+                let descriptionKeyword = document.getElementById('descriptionFilter').value;
+                if (descriptionKeyword) {
+                    let keywords = descriptionKeyword.split(' ');
+                    let descCells = tableBody.querySelectorAll('.description-column');
+                    descCells.forEach(cell => {
+                        cell.innerHTML = highlightKeywords(cell.innerHTML, keywords);
+                    });
                 }
             }
 
@@ -374,54 +488,42 @@
                 let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);            
                 let em_resistValue = parseInt(document.getElementById('em_resist').value);
                 let descriptionKeyword = document.getElementById('descriptionFilter').value;
-                let keywords = descriptionKeyword.split(' ');
-                // Get selected char_em values
-                let selectedCharEm = [];
-                document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
-                    selectedCharEm.push(checkbox.value);
-                });
-                // Get selected char_wep values
-                let selectedCharWep = [];
-                document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
-                    selectedCharWep.push(checkbox.value);
-                });
-                // Get selected skill_type values
+                
+                // Get selected checkboxes
+                let selectedCharEm = Array.from(document.querySelectorAll('.char-em-filter:checked')).map(cb => cb.value);
+                let selectedCharWep = Array.from(document.querySelectorAll('.char-wep-filter:checked')).map(cb => cb.value);
                 let selectedSkillType = [];
                 document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
-                    // Since a checkbox might represent multiple filter values, we split them and add to the array
                     selectedSkillType.push(...checkbox.value.split(','));
                 });
-                // Get selected skill_state values
-                let selectedSkillState = [];
-                document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
-                    // Since a checkbox might represent multiple filter values, we split them and add to the array
-                    selectedSkillState.push(...checkbox.value.split(','));
-                });
-                let selectedCharSource = [];
-                document.querySelectorAll('.char_source_filter:checked').forEach(checkbox => {
-                    selectedCharSource.push(parseInt(checkbox.value));
-                });
+                let selectedCharSource = Array.from(document.querySelectorAll('.char_source_filter:checked')).map(cb => parseInt(cb.value));
+
                 let filteredData = data.filter(item => {
                     let keywords = descriptionKeyword.split(' ');
                     let matchesDescription = false;
-                    switch (searchMode) {
-                    case 'original':
-                        matchesDescription = keywords.every(keyword =>
-                                item.description.includes(keyword) || item.skill_name.includes(keyword));
-                        break;
-
-                    case 'sequential':
-                        let combinedKeywords = keywords.join('.*'); // 連接關鍵字，使它們可以按順序匹配，但允許它們之間有其他字符
-                        let regex = new RegExp(combinedKeywords);
-                        matchesDescription = regex.test(item.description);
-                        break;
-
-                    case 'strictSequential':
-                        let combinedKeywords2 = keywords.join('[^、。・]*'); // 連接關鍵字，允許它們之間沒有指定的字符
-                        let regex2 = new RegExp(combinedKeywords2);
-                        matchesDescription = regex2.test(item.description);
-                        break;
+                    
+                    // 描述搜尋邏輯
+                    if (!descriptionKeyword) {
+                        matchesDescription = true;
+                    } else {
+                        switch (searchMode) {
+                        case 'original':
+                            matchesDescription = keywords.every(keyword =>
+                                    item.description.includes(keyword) || item.skill_name.includes(keyword));
+                            break;
+                        case 'sequential':
+                            let combinedKeywords = keywords.join('.*');
+                            let regex = new RegExp(combinedKeywords);
+                            matchesDescription = regex.test(item.description);
+                            break;
+                        case 'strictSequential':
+                            let combinedKeywords2 = keywords.join('[^、。・]*');
+                            let regex2 = new RegExp(combinedKeywords2);
+                            matchesDescription = regex2.test(item.description);
+                            break;
+                        }
                     }
+
                     let matchesCt = ctValue == 0 || item.permanent_skill_up >= ctValue;
                     let matchesdebuff = buff_cancel_rateValue == 0 || item.debuff >= buff_cancel_rateValue;
                     let matchesCharSource = selectedCharSource.length === 0 || selectedCharSource.includes(item.sp_sort_for_search);
@@ -429,22 +531,14 @@
                     let matchesCharEm =  item.char_em === '全' || selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
                     let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
                     let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.type);
-                    return matchesCt && matchesdebuff && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType&& matchesCharSource;
+                    
+                    return matchesCt && matchesdebuff && matchesem_resist && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesCharSource;
                 });
 
-                renderTable(filteredData);
-                
-                // Highlight keywords after render
-                if (descriptionKeyword) {
-                    let tableBody = document.getElementById('tableBody');
-                    let rows = tableBody.getElementsByTagName('tr');
-                    for (let i = 0; i < rows.length; i++) {
-                        let descCell = rows[i].cells[5]; // Description is the 6th column (index 5)
-                        if (descCell) {
-                            descCell.innerHTML = highlightKeywords(descCell.innerHTML, keywords);
-                        }
-                    }
-                }
+                // 更新全域數據並重置頁碼
+                currentFilteredData = filteredData;
+                currentPage = 1;
+                renderTable(currentFilteredData, currentPage);
             }
 
             loadData();
@@ -633,6 +727,8 @@
 
     </div>
 
+    <div id="paginationTop"></div>
+
     <div class="table-wrapper">
         <table border="0">
             <thead>
@@ -649,6 +745,8 @@
                 </tbody>
         </table>
     </div>
+
+    <div id="pagination"></div>
 
 </body>
 </html>
