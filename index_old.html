@@ -1,0 +1,284 @@
+<!-- python -m http.server 8080 -->
+<!-- http://localhost:8080/Desktop/ -->
+<!-- http://localhost:8080/Documents/GitHub/alex343425.github.io/ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>篩選表格：固有技能</title>
+    <style>
+        table {
+            width: 100%;
+        }
+
+        td {
+            word-wrap: break-word;
+        }
+		.fixed-width {
+    width: 3em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+		.fixed-width2 {
+    width: 4em;
+    text-align: center;  /* 將內容置中對齊 */
+}
+.highlight1 {
+    background-color: yellow;
+}
+
+.highlight2 {
+    background-color: lightblue;
+}
+
+.highlight3 {
+    background-color: lightgreen;
+}
+    </style>
+    <script src="script.js"></script>
+</head>
+
+<body>
+    <div>
+<a href="./index.html" target="_blank">技能搜尋</a> <a href="./lswep.html" target="_blank">隊長技/專武搜尋</a> <a href="./cheerleading.html" target="_blank">啦啦隊搜尋</a> <a href="./normal_char.html" target="_blank">普池收集檢查</a> <a href="./profiles.html" target="_blank">親愛度文本</a> 
+<br><button id="resetButton">重置</button> 
+    </div>
+	<div>
+<div>
+    <label>描述搜尋模式:</label>
+    <input type="radio" name="searchMode" value="original" id="modeOriginal" checked> 原始
+    <input type="radio" name="searchMode" value="sequential" id="modeSequential"> 前到後
+    <input type="radio" name="searchMode" value="strictSequential" id="modeStrictSequential"> 前到後且不分句
+</div>
+<div>
+    <label for="descriptionFilter">描述過濾:</label>
+    <input type="text" id="descriptionFilter" placeholder="輸入過濾關鍵字...">
+    <button id="searchButton">搜尋</button>
+</div>
+<div>
+<button id="toggleKeywordButtons">展開常用關鍵字</button>
+
+<div id="keywordButtonsArea" style="display: none;">
+---------------------------------------------<br>
+    <button class="keywordBtn" data-keyword="デバフムーブ">debuff move</button>　
+    <button class="keywordBtn" data-keyword="ディスペルバリア">藍果凍(防打消盾)</button>　
+	<button class="keywordBtn" data-keyword="バフドレイン">偷Buff</button>　
+	<button class="keywordBtn" data-keyword="不利">不利效果解除</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="スティール">偷竊(主動技)</button>　
+	<button class="keywordBtn" data-keyword="ドロップ率">打寶力</button>　
+	<button class="keywordBtn" data-keyword="クエスト アイテム">掉落複製</button>　
+	<button class="keywordBtn" data-keyword="プレイヤー">玩家經驗</button>　
+	<br> 
+	<br>異常賦予<br>
+	<button class="keywordBtn" data-keyword="毒">毒(5%)</button>　
+	<button class="keywordBtn" data-keyword="猛毒">猛毒(10%)</button>　
+	<button class="keywordBtn" data-keyword="劇毒">劇毒(15%)</button>　
+	<button class="keywordBtn" data-keyword="爆毒">爆毒(20%)</button>　
+	<button class="keywordBtn" data-keyword="どくりんご">蘋果毒(30% 3回合)</button>　
+	<button class="keywordBtn" data-keyword="どくりんご改">蘋果毒改(35% 3回合)</button>　
+	<button class="keywordBtn" data-keyword="ピュルテバウンド">看板毒(30% 5回合)(技能名)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="麻痺">麻痺</button>　
+	<button class="keywordBtn" data-keyword="金縛り">金縛(80%不能行動)</button>　
+	<button class="keywordBtn" data-keyword="びびりんご">麻蘋果(85%)</button>　
+	<button class="keywordBtn" data-keyword="びびりんご改">麻蘋果改(88%)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="幻惑">幻惑</button>　
+	<button class="keywordBtn" data-keyword="幻覚">幻覚</button>　
+	<button class="keywordBtn" data-keyword="悩殺">悩殺(5回合60%物理MISS)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="スタン">暈眩(1回無法行動)</button>　
+	<button class="keywordBtn" data-keyword="失神">失神(2回無法行動)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="眠り">睡眠</button>　
+	<button class="keywordBtn" data-keyword="昏睡">昏睡</button>　
+	<button class="keywordBtn" data-keyword="ねむりんご">睡蘋果(被打10次才會醒)</button>　
+	<button class="keywordBtn" data-keyword="超昏睡">超昏睡(被打15次才會醒)</button>　
+	<button class="keywordBtn" data-keyword="ねむりんご改">睡蘋果改(被打15次才會醒)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="混乱">混亂</button>　
+	<button class="keywordBtn" data-keyword="呪い">詛咒</button>　
+	<button class="keywordBtn" data-keyword="封印">封印</button>　
+	<br>
+	<br>星宮解預兆用：(將搜尋模式調整成 前到後且同句)<br>
+	<button class="keywordBtn" data-keyword="攻撃 回 アップ">攻擊多回UP</button>　
+	<button class="keywordBtn" data-keyword="防御 回 アップ">防禦多回UP</button>　
+	<button class="keywordBtn" data-keyword="攻撃魔力 回 アップ">攻魔多回UP</button>　
+	<button class="keywordBtn" data-keyword="すばやさ 回 アップ">速度(すばやさ)多回UP</button>　
+	<button class="keywordBtn" data-keyword="HP 回 アップ">HP多回UP</button>　
+	<button class="keywordBtn" data-keyword="全パラ 回 アップ">全能力多回UP (可能不含HP)</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="攻撃 回 ダウン">攻擊多回下降</button>　
+	<button class="keywordBtn" data-keyword="防御 回 ダウン">防禦多回下降</button>　
+	<button class="keywordBtn" data-keyword="攻撃魔力 回 ダウン">攻魔多回下降</button>　
+	<button class="keywordBtn" data-keyword="すばやさ 回 ダウン">速度(すばやさ)多回下降</button>　
+	<br>
+	<button class="keywordBtn" data-keyword="状態異常耐性 回 アップ">異常耐性多回UP</button>　
+	<button class="keywordBtn" data-keyword="状態異常耐性 回 ダウン">異常耐性多回下降</button>　
+	<br>---------------------------------------------
+</div>
+</div>
+    <div>
+        <label for="ctFilter"><img src="icon/drainbarrier.png" />防偷盾(=紅果凍=ドレインバリア):</label>
+        <select id="ctFilter">
+            <option value="0" selected>無</option>
+            <option value="1">有</option>
+        </select>
+    </div>
+    <div>
+        <label for="spirit_gauge">精靈砲充能(可能包含消耗):</label>
+        <select id="spirit_gauge">
+            <option value="0" selected>無</option>
+            <option value="1">有</option>
+        </select>
+    </div>
+	<div>
+        <label for="buff_cancel_rate">有利打消: </label>
+        <select id="buff_cancel_rate">
+            <option value="0" selected>無</option>
+            <option value="1">ごく稀</option>
+            <option value="2">稀</option>
+			<option value="3">低確率</option>
+			<option value="4">確率</option>
+			<option value="5">高確率</option>
+			<option value="6">確率50％</option>
+			<option value="7">確実</option>
+        </select>
+		<label for="buff_cancel_count">數量: </label>
+        <select id="buff_cancel_count">
+            <option value="0" selected>無</option>
+            <option value="1">1</option>
+            <option value="2">有2以上</option>
+			<option value="3">全部</option>
+        </select>
+    </div>
+    <div>
+        <label>屬性弱點包含:</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="0" checked> 無篩選</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="1"><img src="icon/blight_fire.png" />火</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="2"><img src="icon/blight_water.png" />水</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="3"><img src="icon/blight_tree.png" />樹</label>
+        <label><input type="radio" name="elementDmgUpFilter" value="4"><img src="icon/blight_light.png" />光</label>
+		<label><input type="radio" name="elementDmgUpFilter" value="5"><img src="icon/blight_dark.png" />暗</label>
+    </div>
+    <div>
+        <label>敵被傷:</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="noFilter" checked> 無篩選</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="anyValue"> 任意值</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="contains1"><img src="icon/25_2.png" />通用被傷</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="contains2"><img src="icon/damageup_weaponsword.png" />武器種類被傷</label>
+        <label><input type="radio" name="enemyDmgUpFilter" value="contains3"><img src="icon/damageup_attack.png" />技能種類被傷</label>
+    </div>
+	
+<div>
+    <label for="markFilter"><img src="icon/kokuin_weaponsword.png" />刻印等效倍率:</label>
+    <select id="markFilter">
+        <option value="0" selected>0</option>
+        <option value="15">15</option>
+		<option value="25">25</option>
+        <option value="30">30</option>
+        <option value="40">40</option>
+		<option value="49">49</option>
+		<option value="60">60</option>
+    </select>
+</div>
+<div>
+    <label for="status_condition_downFilter"><img src="icon/19_4.png" />狀態異常耐性降低:</label>
+    <select id="status_condition_downFilter">
+        <option value="0" selected>0</option>
+        <option value="15">15</option>
+		<option value="30">30</option>
+        <option value="50">50</option>
+        <option value="70">70</option>
+		<option value="100">100</option>
+    </select>
+</div>
+<div>
+    <label>無視耐性降能力:</label>
+    <label><input type="checkbox" value="1" class="stat_down_filter">降攻擊</label>
+	<label><input type="checkbox" value="2" class="stat_down_filter">降防禦</label>
+	<label><input type="checkbox" value="3" class="stat_down_filter">降攻擊魔力</label>
+	<label><input type="checkbox" value="4" class="stat_down_filter">降回魔</label>
+	<label><input type="checkbox" value="5" class="stat_down_filter">降速度</label>
+	<label><input type="checkbox" value="6" class="stat_down_filter">機率零防</label>	
+</div>
+<br>
+<div>
+    <label>僅顯示特定角色分類:</label>
+    <label><input type="checkbox" value="1" class="char_source_filter">普池角</label>
+	<label><input type="checkbox" value="4" class="char_source_filter">一般限定角</label>
+	<label><input type="checkbox" value="2" class="char_source_filter">合作角</label>	
+	<label><input type="checkbox" value="3" class="char_source_filter">活動角</label>	
+	<label><input type="checkbox" value="5" class="char_source_filter">未分類/三星四星</label>
+</div>
+    <!-- Checkbox for char_em filtering -->
+	
+    <label>skill_state篩選:</label>
+    <label><input type="checkbox" value="拆技" class="skill-state-filter">転生</label>
+    <label><input type="checkbox" value="昇華" class="skill-state-filter">昇華</label>
+    <label><input type="checkbox" value="昇華變化" class="skill-state-filter">昇華変化</label>
+    <label><input type="checkbox" value="昇華超變化" class="skill-state-filter">昇華超変</label>
+    <label><input type="checkbox" value="限突" class="skill-state-filter">限突</label>
+    <label><input type="checkbox" value="限突變化" class="skill-state-filter">限突変化</label>
+    <label><input type="checkbox" value="限突超變化" class="skill-state-filter">限突超変</label>
+    <label><input type="checkbox" value="Another skill" class="skill-state-filter">Another Skill</label>
+	<label><input type="checkbox" value="ULT" class="skill-state-filter">ULT Skill</label>
+
+<div>
+    <label>skill_type篩選:</label>
+    <label><input type="checkbox" value="橘D,橘C,橘B,橘A" class="skill-type-filter">攻擊(橘)</label>
+    <label><input type="checkbox" value="紫D,紫C,紫B,紫A" class="skill-type-filter">魔法(紫)</label>
+    <label><input type="checkbox" value="藍D,藍C,藍B,藍A" class="skill-type-filter">特殊(藍)</label>
+    <label><input type="checkbox" value="粉D,粉C,粉B,粉A" class="skill-type-filter">輔助(粉)</label>
+    <label><input type="checkbox" value="綠D,綠C,綠B,綠A" class="skill-type-filter">被動(綠)-A以下</label>
+    <label><input type="checkbox" value="綠S" class="skill-type-filter">被動(綠)-S</label>
+    <label><input type="checkbox" value="綠SS" class="skill-type-filter">被動(綠)-SS</label>
+    <label><input type="checkbox" value="綠S3" class="skill-type-filter">被動(綠)-S3</label>
+</div>
+
+    <div>
+        <label>char_em篩選:</label>
+        <label><input type="checkbox" value="火" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_f.png" width="30" />火</label>
+        <label><input type="checkbox" value="水" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_w.png" width="30" />水</label>
+        <label><input type="checkbox" value="樹" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_r.png" width="30" />樹</label>
+        <label><input type="checkbox" value="光" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_l.png" width="30" />光</label>
+        <label><input type="checkbox" value="闇" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_d.png" width="30" />闇</label>
+    <div>
+    <label>char_wep篩選:</label>
+    <label><input type="checkbox" value="劍" class="char-wep-filter"><img src="icon/kokuin_weaponsword.png" />劍</label>
+    <label><input type="checkbox" value="斧" class="char-wep-filter"><img src="icon/kokuin_weaponaxe.png" />斧</label>
+    <label><input type="checkbox" value="槍" class="char-wep-filter"><img src="icon/kokuin_weaponspear.png" />槍</label>
+    <label><input type="checkbox" value="本" class="char-wep-filter"><img src="icon/kokuin_weaponbook.png" />本</label>
+    <label><input type="checkbox" value="短劍" class="char-wep-filter"><img src="icon/kokuin_weaponshortsword.png" />短劍</label>
+    <label><input type="checkbox" value="杖" class="char-wep-filter"><img src="icon/kokuin_weaponthue.png" />杖</label>
+    <label><input type="checkbox" value="弓" class="char-wep-filter"><img src="icon/kokuin_weaponbow.png" />弓</label>
+    <label><input type="checkbox" value="特殊" class="char-wep-filter"><img src="icon/kokuin_weapontokushu.png" />特殊</label>
+</div>
+	<div>
+    <label for="img_show">顯示圖片：</label>
+    <input type="checkbox" id="img_show" checked>
+    </div>
+	<div id="paginationTop" style="margin: 10px 0;"></div>    
+	</div>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>技能名</th>
+                <th class="fixed-width">種類</th>
+                <th class="fixed-width2">狀態</th>
+                <th>角色</th>
+                <th class="fixed-width">屬性</th>
+                <th class="fixed-width">武器</th>
+                <th>技能描述</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- Data will be populated here -->
+        </tbody>
+    </table>
+	<div id="pagination" style="margin-top: 10px;"></div>
+</body>
+
+</html>
