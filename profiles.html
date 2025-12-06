@@ -201,8 +201,12 @@
     return td;
   }
 
-  function openModal(x){
+function openModal(x){
     const backdrop = document.getElementById('modalBackdrop');
+
+    // [FIX] 將 filename 存起來，避免圖片 error 時 src 變更導致抓不到 ID
+    backdrop.dataset.currentFilename = x.filename || '';
+
     document.getElementById('modalImg').src = './img/' + (x.filename||'') + '.png';
     document.getElementById('modalName').textContent = x.n || '';
     document.getElementById('modalMeta').textContent =
@@ -318,7 +322,8 @@
     const name = document.getElementById('modalName').textContent;
     if(!name) return;
 
-    const fname = document.getElementById('modalImg').src.split('/').pop().replace('.png','');
+	const fname = document.getElementById('modalBackdrop').dataset.currentFilename;
+    
     const x = data.find(it=> (it.filename||'') === fname);
     if(x) openModal(x);
   }));
