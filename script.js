@@ -109,8 +109,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function highlightKeywords(text, keywords) {
         keywords.forEach((keyword, index) => {
-            let regex = new RegExp(keyword, "gi");
-            text = text.replace(regex, `<span class="highlight${index + 1}">$&</span>`);
+            // 再次確保不會對空字串建立 RegExp
+            if (keyword && keyword.trim() !== '') {
+                let regex = new RegExp(keyword, "gi");
+                text = text.replace(regex, `<span class="highlight${index + 1}">$&</span>`);
+            }
         });
         return text;
     }
@@ -215,7 +218,10 @@ function pageChange(page) {
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
 		let status_condition_downFilterValue = parseInt(document.getElementById('status_condition_downFilter').value);
         let descriptionKeyword = document.getElementById('descriptionFilter').value;
-        let keywords = descriptionKeyword.split(' ');
+        
+        // 【修改1】 這裡加上 .filter(k => k.trim() !== '') 來移除空字串
+        let keywords = descriptionKeyword.split(' ').filter(k => k.trim() !== '');
+
         let selectedCharEm = [];
         document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
             selectedCharEm.push(checkbox.value);
@@ -303,12 +309,16 @@ function pageChange(page) {
             return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource;
         });
         currentPage = 1;
-currentFilteredData = filteredData;
-renderTable(currentFilteredData, currentPage);
-        document.querySelectorAll('.description-column').forEach((cell, index) => {
-            let highlightedText = highlightKeywords(filteredData[index].description, keywords);
-            cell.innerHTML = highlightedText;
-        });
+        currentFilteredData = filteredData;
+        renderTable(currentFilteredData, currentPage);
+        
+        // 【修改2】 只有在 keywords 有內容時才執行高亮
+        if (keywords.length > 0) {
+            document.querySelectorAll('.description-column').forEach((cell, index) => {
+                let highlightedText = highlightKeywords(filteredData[index].description, keywords);
+                cell.innerHTML = highlightedText;
+            });
+        }
     }
 
     loadData();
