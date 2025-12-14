@@ -30,7 +30,8 @@
 <a href="./index.html" target="_blank">技能搜尋</a> <a href="./lswep.html" target="_blank">隊長技/專武搜尋</a> <a href="./cheerleading.html" target="_blank">啦啦隊搜尋</a> <a href="./normal_char.html" target="_blank">普池收集檢查</a> <a href="./profiles.html" target="_blank">親愛度文本</a> 
 <br>
   <h2>親愛度文本</h2>
-  <div class="controls">
+<div id="lastUpdate" style="margin-bottom: 12px; font-size: 0.9em; color: #666;"></div>
+<div class="controls">
     <div class="group">
       <input id="search" placeholder="搜尋名稱或文字（例如：シンデレラ、飲酒）" />
     </div>
@@ -118,14 +119,28 @@
   const tbody = document.querySelector('#mainTable tbody');
   const searchInput = document.getElementById('search');
 
-  async function load(){
+async function load(){
     try{
       const res = await fetch('profiles.json');
       if(!res.ok) throw new Error('profiles.json 載入失敗: ' + res.status);
+      
+      // --- 新增開始：讀取最後修改日期 ---
+      const lastModHeader = res.headers.get('Last-Modified');
+      if (lastModHeader) {
+        const date = new Date(lastModHeader);
+        // 格式化為 YYYY/MM/DD
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        document.getElementById('lastUpdate').textContent = `最終更新：${year}/${month}/${day}`;
+      }
+      // --- 新增結束 ---
+
       data = await res.json();
     }catch(e){
       console.error(e);
       data = [];
+      document.getElementById('lastUpdate').textContent = '無法讀取更新日期';
     }
     renderTable();
   }
