@@ -121,7 +121,7 @@
 
 async function load(){
     try{
-      const res = await fetch('profiles.json');
+      const res = await fetch('profiles.json', { cache: 'no-cache' });
       if(!res.ok) throw new Error('profiles.json 載入失敗: ' + res.status);
       
       // --- 新增開始：讀取最後修改日期 ---
