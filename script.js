@@ -121,6 +121,11 @@ document.addEventListener("DOMContentLoaded", function () {
 function renderTable(data, page = 1) {
     let tableBody = document.getElementById('tableBody');
     let img_showValue = document.getElementById('img_show').checked ? 1 : 0;
+    
+    // 【修改A】在此處取得關鍵字，以便在渲染每一行時直接高亮
+    let descriptionKeyword = document.getElementById('descriptionFilter').value;
+    let keywords = descriptionKeyword.split(' ').filter(k => k.trim() !== '');
+
     tableBody.innerHTML = '';
 
     // 分頁處理
@@ -144,14 +149,20 @@ function renderTable(data, page = 1) {
             imgCellContent = '--';
         }
 
-		tr.innerHTML = `
-			<td>${item.skill_name}</td>
-			<td>${item.skill_type}</td>
-			<td>${item.skill_state}</td>
-			<td>${imgCellContent}</td>
-			<td>${item.char_em}</td>
-			<td>${item.char_wep}</td>
-			<td class="description-column">${item.description}</td>  `;
+        // 【修改B】處理描述文字的高亮
+        let displayDescription = item.description;
+        if (keywords.length > 0) {
+            displayDescription = highlightKeywords(displayDescription, keywords);
+        }
+
+        tr.innerHTML = `
+            <td>${item.skill_name}</td>
+            <td>${item.skill_type}</td>
+            <td>${item.skill_state}</td>
+            <td>${imgCellContent}</td>
+            <td>${item.char_em}</td>
+            <td>${item.char_wep}</td>
+            <td class="description-column">${displayDescription}</td>`; // 【修改C】這裡使用處理過的變數
         tableBody.appendChild(tr);
     }
 
@@ -211,115 +222,108 @@ function pageChange(page) {
 }
 
     function filterData(data) {
-        let ctValue = parseInt(document.getElementById('ctFilter').value);
-        let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
-        let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
-        let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
-        let markFilterValue = parseInt(document.getElementById('markFilter').value);
-		let status_condition_downFilterValue = parseInt(document.getElementById('status_condition_downFilter').value);
-        let descriptionKeyword = document.getElementById('descriptionFilter').value;
-        
-        // 【修改1】 這裡加上 .filter(k => k.trim() !== '') 來移除空字串
-        let keywords = descriptionKeyword.split(' ').filter(k => k.trim() !== '');
+    let ctValue = parseInt(document.getElementById('ctFilter').value);
+    let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
+    let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
+    let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
+    let markFilterValue = parseInt(document.getElementById('markFilter').value);
+    let status_condition_downFilterValue = parseInt(document.getElementById('status_condition_downFilter').value);
+    let descriptionKeyword = document.getElementById('descriptionFilter').value;
+    
+    let keywords = descriptionKeyword.split(' ').filter(k => k.trim() !== '');
 
-        let selectedCharEm = [];
-        document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
-            selectedCharEm.push(checkbox.value);
-        });
-        let selectedCharWep = [];
-        document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
-            selectedCharWep.push(checkbox.value);
-        });
-        let selectedSkillType = [];
-        document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
-            selectedSkillType.push(...checkbox.value.split(','));
-        });
-        let selectedStatDown = [];
-        document.querySelectorAll('.stat_down_filter:checked').forEach(checkbox => {
-            selectedStatDown.push(parseInt(checkbox.value));
-        });
-		let selectedCharSource = [];
-		document.querySelectorAll('.char_source_filter:checked').forEach(checkbox => {
-            selectedCharSource.push(parseInt(checkbox.value));
-        });
-        let selectedSkillState = [];
-        document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
-            selectedSkillState.push(...checkbox.value.split(','));
-        });
+    let selectedCharEm = [];
+    document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
+        selectedCharEm.push(checkbox.value);
+    });
+    let selectedCharWep = [];
+    document.querySelectorAll('.char-wep-filter:checked').forEach(checkbox => {
+        selectedCharWep.push(checkbox.value);
+    });
+    let selectedSkillType = [];
+    document.querySelectorAll('.skill-type-filter:checked').forEach(checkbox => {
+        selectedSkillType.push(...checkbox.value.split(','));
+    });
+    let selectedStatDown = [];
+    document.querySelectorAll('.stat_down_filter:checked').forEach(checkbox => {
+        selectedStatDown.push(parseInt(checkbox.value));
+    });
+    let selectedCharSource = [];
+    document.querySelectorAll('.char_source_filter:checked').forEach(checkbox => {
+        selectedCharSource.push(parseInt(checkbox.value));
+    });
+    let selectedSkillState = [];
+    document.querySelectorAll('.skill-state-filter:checked').forEach(checkbox => {
+        selectedSkillState.push(...checkbox.value.split(','));
+    });
 
-        let filteredData = data.filter(item => {
-            let matchesCt = ctValue == 0 || item.drain_baria >= ctValue;
-            let matchesspirit_gauge = spirit_gaugeValue == 0 || item.spirit_gauge >= spirit_gaugeValue;
-            let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
-            let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
-            let matchesDescription;
-            switch (searchMode) {
-                case 'original':
-                    matchesDescription = keywords.every(keyword =>
-                        item.description.includes(keyword) || item.skill_name.includes(keyword));
-                    break;
-                case 'sequential':
-                    let combinedKeywords = keywords.join('.*');
-                    let regex = new RegExp(combinedKeywords);
-                    matchesDescription = regex.test(item.description);
-                    break;
-                case 'strictSequential':
-                    let combinedKeywords2 = keywords.join('[^、。・]*');
-                    let regex2 = new RegExp(combinedKeywords2);
-                    matchesDescription = regex2.test(item.description);
-                    break;
-            }
-            let matchesCharEm =  item.char_em === '全' || selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
-            let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
-            let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
-            let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(stat => item.stat_down.includes(stat)));
-			
-			let matchesCharSource = selectedCharSource.length === 0 || selectedCharSource.includes(item.sp_sort_for_search);
-			
-            let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
-            let matchesmarkFilter = markFilterValue == 0 || item.mark >= markFilterValue;
-			let matchesstatus_condition_downFilter = status_condition_downFilterValue == 0 || item.status_condition_down >= status_condition_downFilterValue;
-
-            let matchesEnemyDmgUp;
-            switch (enemyDmgUpFilterValue) {
-                case 'noFilter':
-                    matchesEnemyDmgUp = true;
-                    break;
-                case 'anyValue':
-                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.length > 0;
-                    break;
-                case 'contains1':
-                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(1);
-                    break;
-                case 'contains2':
-                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(2);
-                    break;
-                case 'contains3':
-                    matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(3);
-                    break;
-            }
-            let matchesElementDmgUp;
-            if (elementDmgUpFilterValue === 0) {
-                matchesElementDmgUp = true;
-            } else if (item.em_resist === 6) {
-                matchesElementDmgUp = true;
-            } else {
-                matchesElementDmgUp = item.em_resist === elementDmgUpFilterValue;
-            }
-            return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource;
-        });
-        currentPage = 1;
-        currentFilteredData = filteredData;
-        renderTable(currentFilteredData, currentPage);
-        
-        // 【修改2】 只有在 keywords 有內容時才執行高亮
-        if (keywords.length > 0) {
-            document.querySelectorAll('.description-column').forEach((cell, index) => {
-                let highlightedText = highlightKeywords(filteredData[index].description, keywords);
-                cell.innerHTML = highlightedText;
-            });
+    let filteredData = data.filter(item => {
+        let matchesCt = ctValue == 0 || item.drain_baria >= ctValue;
+        let matchesspirit_gauge = spirit_gaugeValue == 0 || item.spirit_gauge >= spirit_gaugeValue;
+        let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
+        let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
+        let matchesDescription;
+        switch (searchMode) {
+            case 'original':
+                matchesDescription = keywords.every(keyword =>
+                    item.description.includes(keyword) || item.skill_name.includes(keyword));
+                break;
+            case 'sequential':
+                let combinedKeywords = keywords.join('.*');
+                let regex = new RegExp(combinedKeywords);
+                matchesDescription = regex.test(item.description);
+                break;
+            case 'strictSequential':
+                let combinedKeywords2 = keywords.join('[^、。・]*');
+                let regex2 = new RegExp(combinedKeywords2);
+                matchesDescription = regex2.test(item.description);
+                break;
         }
-    }
+        let matchesCharEm =  item.char_em === '全' || selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
+        let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
+        let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
+        let matchesStatDown = selectedStatDown.length === 0 || (Array.isArray(item.stat_down) && selectedStatDown.some(stat => item.stat_down.includes(stat)));
+        
+        let matchesCharSource = selectedCharSource.length === 0 || selectedCharSource.includes(item.sp_sort_for_search);
+        
+        let matchesSkillState = selectedSkillState.length === 0 || selectedSkillState.includes(item.skill_state);
+        let matchesmarkFilter = markFilterValue == 0 || item.mark >= markFilterValue;
+        let matchesstatus_condition_downFilter = status_condition_downFilterValue == 0 || item.status_condition_down >= status_condition_downFilterValue;
+
+        let matchesEnemyDmgUp;
+        switch (enemyDmgUpFilterValue) {
+            case 'noFilter':
+                matchesEnemyDmgUp = true;
+                break;
+            case 'anyValue':
+                matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.length > 0;
+                break;
+            case 'contains1':
+                matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(1);
+                break;
+            case 'contains2':
+                matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(2);
+                break;
+            case 'contains3':
+                matchesEnemyDmgUp = Array.isArray(item.enemy_dmg_up) && item.enemy_dmg_up.includes(3);
+                break;
+        }
+        let matchesElementDmgUp;
+        if (elementDmgUpFilterValue === 0) {
+            matchesElementDmgUp = true;
+        } else if (item.em_resist === 6) {
+            matchesElementDmgUp = true;
+        } else {
+            matchesElementDmgUp = item.em_resist === elementDmgUpFilterValue;
+        }
+        return matchesCt && matchesspirit_gauge && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource;
+    });
+    currentPage = 1;
+    currentFilteredData = filteredData;
+    renderTable(currentFilteredData, currentPage);
+    
+    // 【移除】原本這裡的 highlightKeywords 程式碼區塊已經被刪除了，因為移到了 renderTable 內
+}
 
     loadData();
 });
