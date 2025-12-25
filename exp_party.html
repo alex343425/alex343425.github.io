@@ -181,6 +181,7 @@
             </div>
             
             <button onclick="calculateBestTeam()" id="calcBtn">開始計算最高分組合</button>
+			<p>備註：不包含人魂(最多17%x5格)、不包含食物</p>
             <span id="statusMsg" class="loading"></span>
         </div>
 
@@ -425,6 +426,11 @@ function renderCharacters() {
     const list = document.getElementById('charList');
     const showOld = document.getElementById('showOldChars').checked;
     const showWeak = document.getElementById('showWeakChars').checked;
+    
+    // 定義屬性與武器的對照表 (Mapping)
+    const attrMap = { 1: '火', 2: '水', 3: '樹', 4: '光', 5: '闇' };
+    const wepMap = { 1: '劍', 2: '斧', 3: '槍', 4: '本', 5: '杖', 6: '短', 7: '弓', 8: '特' };
+
     list.innerHTML = '';
     
     characters.forEach(c => {
@@ -438,8 +444,8 @@ function renderCharacters() {
                 <img src="./img/${c.id}.png" class="icon-70" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RkZCIvPjwvc3ZnPg=='">
                 ${c.name}
             </td>
-            <td><span class="stat-tag bg-red">Attr ${c.a}</span></td>
-            <td><span class="stat-tag bg-blue">Wep ${c.wc}</span></td>
+            <td><span class="stat-tag bg-red">${attrMap[c.a] || ''}</span></td>
+            <td><span class="stat-tag bg-blue">${wepMap[c.wc] || ''}</span></td>
             <td>
                 <span class="slot-tag">${formatSlot(c.sc1)}</span>
                 <span class="slot-tag">${formatSlot(c.sc2)}</span>
