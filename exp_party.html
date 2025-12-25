@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action Taimanin 組隊模擬器 (v6.2 - UI Updated)</title>
+    <style>
+        body { font-family: "Microsoft JhengHei", "Segoe UI", sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; color: #333; }
+        h1, h2, h3 { color: #2c3e50; margin-bottom: 10px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex: 1; min-width: 300px; }
+        .full-width { width: 100%; flex: 100%; }
+        
+        /* Input Tables */
+        table.input-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .input-table th, .input-table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: middle; }
+        .input-table th { background-color: #f8f9fa; position: sticky; top: 0; z-index: 10; }
+        .input-table tr:hover { background-color: #f1f1f1; }
+        
+        /* Inputs & Controls */
+        input[type="number"] { width: 50px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; vertical-align: middle; }
+        label { cursor: pointer; user-select: none; }
+        button { background-color: #3498db; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        /* Images */
+        .icon-70 { height: 70px; width: auto; object-fit: contain; vertical-align: middle; border-radius: 4px; border: 1px solid #eee; background: #fff; }
+        .icon-40 { height: 40px; width: auto; object-fit: contain; vertical-align: middle; }
+
+        /* Grid UI */
+        .grid-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .grid-card { 
+            border: 2px solid transparent; border-radius: 6px; padding: 8px; text-align: center; width: 110px; transition: all 0.2s; background: #fafafa;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+        }
+        .grid-card:hover { background: #eee; }
+        
+        .spirit-card { cursor: pointer; }
+        .spirit-card.active { border-color: #27ae60; background-color: #eafaf1; box-shadow: 0 2px 5px rgba(39, 174, 96, 0.3); }
+
+        .grid-card img { display: block; margin-bottom: 5px; }
+        .grid-card .name { font-size: 12px; display: block; white-space: normal; word-wrap: break-word; line-height: 1.3; margin-bottom: 4px; min-height: 32px; }
+        .grid-card .score { font-weight: bold; color: #27ae60; font-size: 12px; margin-bottom: 4px; }
+
+        /* Tags */
+        .stat-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; color: white; vertical-align: middle; }
+        .bg-red { background-color: #e74c3c; } 
+        .bg-blue { background-color: #3498db; } 
+        .slot-tag { font-family: monospace; font-weight: bold; color: #555; }
+        .loading { color: #e67e22; font-weight: bold; margin-left: 10px; }
+
+        /* ================= RESULT TABLE STYLES ================= */
+        .result-summary-box {
+            background-color: #fff;
+            border: 2px solid #2c3e50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .summary-score { font-size: 32px; font-weight: bold; color: #e74c3c; }
+        .summary-details { text-align: right; font-size: 14px; color: #555; }
+        .spirit-badge { display: inline-flex; align-items: center; background: #f0f8ff; padding: 5px 10px; border-radius: 20px; border: 1px solid #bde0fe; margin-bottom: 5px;}
+
+        .res-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-family: "Microsoft JhengHei", sans-serif; 
+            border: 2px solid #000;
+        }
+        .res-table th, .res-table td { 
+            border: 1px solid #000; 
+            padding: 10px; 
+            vertical-align: middle; 
+            text-align: center;
+        }
+        
+        /* Columns Widths */
+        .res-col-role { width: 80px; }
+        .res-col-img { width: 120px; } /* Increased width slightly for names */
+        .res-col-wep { width: 100px; }
+        .res-col-acc { width: 120px; }
+
+        /* Header */
+        .res-table thead th { 
+            background-color: #fff; 
+            font-size: 16px; 
+            font-weight: normal; 
+        }
+
+        /* Row Colors */
+        .res-bg-green { background-color: #d0e9c6; } /* Light Green for Leader/Friend */
+        .res-bg-beige { background-color: #fcf8e3; } /* Beige for Members */
+
+        /* Content Styles */
+        .res-role-text { font-size: 24px; font-weight: normal; color: #333; }
+        .res-wep-text { font-size: 24px; color: #333; }
+        .res-acc-text { font-size: 24px; font-weight: normal; display: block; margin-top: 5px;}
+        
+        /* Name under image */
+        .res-char-name { font-size: 12px; color: #444; margin-top: 6px; line-height: 1.3; font-weight: bold; }
+
+        .res-skill-list { 
+            text-align: left; 
+            list-style: none; 
+            margin: 0; 
+            padding: 0 10px; 
+            font-size: 20px; 
+        }
+        .res-skill-item { margin-bottom: 4px; }
+        .res-skill-val { float: right; }
+    </style>
+</head>
+<body>
+
+    <h1>Action Taimanin 組隊模擬器 v6.2</h1>
+    <p>勾選持有內容 (角色、技能、精靈、飾品)，系統將計算最高收益組合。</p>
+
+    <div class="container">
+        
+        <div class="section full-width">
+            <h2>設定與計算</h2>
+            
+            <div style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 6px;">
+                <label style="font-size: 16px; font-weight: bold; color: #d35400;">
+                    <input type="checkbox" id="useFriend"> 啟用好友支援 (只選 4 人 + 固定好友)
+                </label>
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                    好友固定為「ミニコゼハロウィン2022ver.」，被動固定 +600，飾品固定裝備「ボーナスRUSHリング」(+670)。
+                </p>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="margin-right: 15px;">
+                    <input type="checkbox" id="showOldChars"> 顯示較舊角色 (無 S3 槽位)
+                </label>
+                <label>
+                    <input type="checkbox" id="showWeakChars"> 顯示功能型角色 (僅 1 個 S3 + 武器35)
+                </label>
+            </div>
+            
+            <button onclick="calculateBestTeam()" id="calcBtn">開始計算最高分組合</button>
+            <span id="statusMsg" class="loading"></span>
+        </div>
+
+        <div class="section full-width" id="resultSection" style="display:none;">
+            <h2>計算結果</h2>
+            <div id="resultOutput" class="result-box"></div>
+        </div>
+
+        <div class="section full-width">
+            <h2>1. 精靈選擇 (點擊圖片選擇)</h2>
+            <div id="spiritContainer"></div>
+        </div>
+
+        <div class="section full-width">
+            <h2>2. 飾品持有數 (請輸入數量)</h2>
+            <div id="accContainer" class="grid-container"></div>
+        </div>
+
+        <div class="section">
+            <h2>3. 選擇持有角色</h2>
+            <p id="charSelectHint">請勾選至少 5 名角色</p>
+            <div style="max-height: 800px; overflow-y: auto;">
+                <table id="charTable" class="input-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"><input type="checkbox" onchange="toggleAllChars(this)"></th>
+                            <th>角色</th>
+                            <th>屬性</th>
+                            <th>武器</th>
+                            <th>槽位</th>
+                        </tr>
+                    </thead>
+                    <tbody id="charList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. 被動技能持有數</h2>
+            <div style="max-height: 800px; overflow-y: auto;">
+                <table id="passiveTable" class="input-table">
+                    <thead>
+                        <tr>
+                            <th>技能名稱</th>
+                            <th>等級</th>
+                            <th>數值</th>
+                            <th>持有</th>
+                        </tr>
+                    </thead>
+                    <tbody id="passiveList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ================= DATA =================
+const characters = [
+  { "name": "金蘭", "id": 11061, "a": 1, "wc": 2, "sc1": 0, "sc2": 0, "sc3": 5, "ls1": 30, "ls2": 30, "wep1": 35, "wep2": 35 },
+  { "name": "ペトラパン", "id": 11471, "a": 3, "wc": 1, "sc1": 0, "sc2": 0, "sc3": 5, "ls1": 50, "ls2": 50, "wep1": 35, "wep2": 35 },
+  { "name": "三羽", "id": 11911, "a": 4, "wc": 1, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 50, "ls2": 50, "wep1": 35, "wep2": 35 },
+  { "name": "チルチル", "id": 12361, "a": 3, "wc": 4, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 30, "ls2": 30, "wep1": 35, "wep2": 35 },
+  { "name": "ミチル", "id": 12481, "a": 1, "wc": 5, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 30, "ls2": 30, "wep1": 35, "wep2": 35 },
+  { "name": "ラクーン", "id": 12631, "a": 4, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 30, "ls2": 30, "wep1": 35, "wep2": 35 },
+  { "name": "メリー", "id": 12811, "a": 2, "wc": 7, "sc1": 0, "sc2": 5, "sc3": 6, "ls1": 70, "ls2": 70, "wep1": 35, "wep2": 35 },
+  { "name": "メグ", "id": 12881, "a": 1, "wc": 5, "sc1": 0, "sc2": 5, "sc3": 6, "ls1": 70, "ls2": 70, "wep1": 35, "wep2": 35 },
+  { "name": "三羽ひな祭りver.", "id": 13381, "a": 5, "wc": 1, "sc1": 0, "sc2": 0, "sc3": 4, "ls1": 30, "ls2": 30, "wep1": 35, "wep2": 35 },
+  { "name": "メルクリウス", "id": 14471, "a": 2, "wc": 6, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 50, "ls2": 50, "wep1": 35, "wep2": 35 },
+  { "name": "ヴィーナス", "id": 14481, "a": 1, "wc": 2, "sc1": 0, "sc2": 7, "sc3": 7, "ls1": 200, "ls2": 200, "wep1": 35, "wep2": 35 },
+  { "name": "かぐや", "id": 14791, "a": 4, "wc": 5, "sc1": 0, "sc2": 0, "sc3": 5, "ls1": 50, "ls2": 50, "wep1": 35, "wep2": 35 },
+  { "name": "トリア", "id": 14851, "a": 5, "wc": 3, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 50, "ls2": 50, "wep1": 35, "wep2": 35 },
+  { "name": "ウーヌム", "id": 14861, "a": 4, "wc": 6, "sc1": 0, "sc2": 7, "sc3": 7, "ls1": 200, "ls2": 200, "wep1": 40, "wep2": 40 },
+  { "name": "諸葛亮", "id": 15301, "a": 1, "wc": 5, "sc1": 0, "sc2": 7, "sc3": 7, "ls1": 250, "ls2": 300, "wep1": 50, "wep2": 50, "ls_condition": "{['a']=1} >= 3" },
+  { "name": "ベク・ヴェーム", "id": 15401, "a": 4, "wc": 7, "sc1": 0, "sc2": 7, "sc3": 7, "ls1": 0, "ls2": 0, "wep1": 70, "wep2": 100, "wep_condition": "{['wc']=5} >= 1 and {['wc']=8} >= 1" },
+  { "name": "山南ともの", "id": 15641, "a": 2, "wc": 1, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 100, "ls2": 100, "wep1": 35, "wep2": 35 },
+  { "name": "土方とよ", "id": 15651, "a": 2, "wc": 1, "sc1": 0, "sc2": 7, "sc3": 7, "ls1": 270, "ls2": 270, "wep1": 70, "wep2": 70 },
+  { "name": "亀姫", "id": 15941, "a": 5, "wc": 4, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 100, "ls2": 100, "wep1": 35, "wep2": 35 },
+  { "name": "ファーデン", "id": 16041, "a": 1, "wc": 8, "sc1": 0, "sc2": 7, "sc3": 7, "ls1": 0, "ls2": 0, "wep1": 50, "wep2": 50 },
+  { "name": "コルデー", "id": 16411, "a": 5, "wc": 6, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 100, "ls2": 100, "wep1": 35, "wep2": 35 },
+  { "name": "リッパー", "id": 16421, "a": 3, "wc": 6, "sc1": 0, "sc2": 7, "sc3": 8, "ls1": 350, "ls2": 400, "wep1": 80, "wep2": 80, "ls_condition": "error" },
+  { "name": "ナイトゴーント", "id": 16851, "a": 1, "wc": 2, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 100, "ls2": 100, "wep1": 40, "wep2": 40 },
+  { "name": "ニャルラト", "id": 16861, "a": 4, "wc": 8, "sc1": 0, "sc2": 7, "sc3": 8, "ls1": 400, "ls2": 450, "wep1": 100, "wep2": 100, "ls_condition": "{['a']=4} >= 3" },
+  { "name": "(限)アルター・シンデレラ", "id": 17171, "a": 1, "wc": 4, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 300, "ls2": 300, "wep1": 35, "wep2": 35 },
+  { "name": "金蘭(第2部)", "id": 17361, "a": 1, "wc": 2, "sc1": 0, "sc2": 0, "sc3": 6, "ls1": 100, "ls2": 100, "wep1": 35, "wep2": 35 },
+  { "name": "ベク・ヴェーム イースターver.", "id": 17561, "a": 5, "wc": 7, "sc1": 0, "sc2": 8, "sc3": 8, "ls1": 0, "ls2": 0, "wep1": 80, "wep2": 100, "wep_condition": "{['wc']=7} >= 2" },
+  { "name": "ペトラパン(第2部)", "id": 17941, "a": 1, "wc": 1, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 500, "ls2": 550, "wep1": 130, "wep2": 130, "ls_condition": "{['a']=1} >= 3" },
+  { "name": "エンテ", "id": 18031, "a": 5, "wc": 4, "sc1": 0, "sc2": 8, "sc3": 8, "ls1": 350, "ls2": 400, "wep1": 80, "wep2": 130, "ls_condition": "{['a']=5} >= 3", "wep_condition": "{['wc']=1} >= 1" },
+  { "name": "シャペロン", "id": 18411, "a": 5, "wc": 5, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 0, "ls2": 0, "wep1": 80, "wep2": 100, "wep_condition": "{['wc']=2} >= 1 and {['wc']=7} >= 1" },
+  { "name": "ウーヌム猫カフェ2022ver.", "id": 19021, "a": 5, "wc": 6, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 600, "ls2": 675, "wep1": 150, "wep2": 150, "ls_condition": "{['a']=5} >= 4" },
+  { "name": "ミニコゼハロウィン2022ver.", "id": 19971, "a": 5, "wc": 3, "sc1": 8, "sc2": 8, "sc3": 8, "ls1": 0, "ls2": 0, "wep1": 35, "wep2": 35 },
+  { "name": "(合)井河 アサギ パーティードレスver.", "id": 20301, "a": 5, "wc": 6, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 400, "ls2": 400, "wep1": 35, "wep2": 35 },
+  { "name": "(合)水城 ゆきかぜ パーティードレスver.", "id": 20311, "a": 4, "wc": 7, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 400, "ls2": 400, "wep1": 35, "wep2": 35 },
+  { "name": "(合)鬼崎 きらら パーティードレスver.", "id": 20321, "a": 2, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 400, "ls2": 400, "wep1": 35, "wep2": 35 },
+  { "name": "(合)高坂 静流 パーティードレスver.", "id": 20331, "a": 3, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 400, "ls2": 400, "wep1": 35, "wep2": 35 },
+  { "name": "ベク・ヴェーム水着2023ver.", "id": 20851, "a": 2, "wc": 7, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 0, "ls2": 0, "wep1": 180, "wep2": 200, "wep_condition": "{['a']=2} >= 2" },
+  { "name": "紫式部水着2023ver.", "id": 20911, "a": 2, "wc": 6, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 750, "ls2": 750, "wep1": 180, "wep2": 180 },
+  { "name": "(合)タチバナ", "id": 20951, "a": 1, "wc": 6, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 450, "ls2": 450, "wep1": 35, "wep2": 35 },
+  { "name": "(合)クロカワ", "id": 20961, "a": 5, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 450, "ls2": 450, "wep1": 35, "wep2": 35 },
+  { "name": "(合)モチヅキ", "id": 20981, "a": 3, "wc": 3, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 450, "ls2": 450, "wep1": 35, "wep2": 35 },
+  { "name": "(合)テンドウ・ミア", "id": 20991, "a": 4, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 450, "ls2": 450, "wep1": 35, "wep2": 35 },
+  { "name": "アルター・ティンカXmas2023ver.", "id": 21361, "a": 5, "wc": 2, "sc1": 0, "sc2": 8, "sc3": 8, "ls1": 750, "ls2": 750, "wep1": 230, "wep2": 230 },
+  { "name": "(合)小日向やよい", "id": 22251, "a": 1, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 500, "ls2": 500, "wep1": 35, "wep2": 35 },
+  { "name": "(合)藤原未央", "id": 22261, "a": 4, "wc": 6, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 500, "ls2": 500, "wep1": 35, "wep2": 35 },
+  { "name": "(限)ティアマトXmas2024ver.", "id": 22371, "a": 5, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 900, "ls2": 900, "wep1": 350, "wep2": 350 },
+  { "name": "(合)アンネリーゼ", "id": 23031, "a": 5, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 600, "ls2": 600, "wep1": 35, "wep2": 35 },
+  { "name": "(合)アンネリーゼ(分析モードver.)", "id": 23041, "a": 4, "wc": 8, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 600, "ls2": 600, "wep1": 35, "wep2": 35 },
+  { "name": "(限)雨依正月2026ver.", "id": 23261, "a": 3, "wc": 3, "sc1": 0, "sc2": 0, "sc3": 8, "ls1": 1050, "ls2": 1050, "wep1": 500, "wep2": 500 }  
+];
+
+const passives = [
+  { "rank": "S3", "value": 250, "name": "超学習装置" },
+  { "rank": "S3", "value": 200, "name": "学習装置" },
+  { "rank": "S3", "value": 94, "name": "7周年の感謝" },
+  { "rank": "S3", "value": 84, "name": "6周年の感謝" },
+  { "rank": "S3", "value": 74, "name": "4周年の感謝" },
+  { "rank": "S3", "value": 54, "name": "3周年の感謝" },
+  { "rank": "S3", "value": 54, "name": "2021年の感謝" },
+  { "rank": "S3", "value": 50, "name": "オーディションヴェーレン" },
+  { "rank": "S3", "value": 46, "name": "ドロシーちゃんの一番弟子" },
+  { "rank": "SS", "value": 64, "name": "4周年の感謝(仮)" },
+  { "rank": "SS", "value": 44, "name": "リリース1000日の感謝" },
+  { "rank": "SS", "value": 44, "name": "3周年の感謝(仮)" },
+  { "rank": "SS", "value": 35, "name": "聖夜の世界征服" },
+  { "rank": "SS", "value": 34, "name": "2周年の感謝" },
+  { "rank": "SS", "value": 34, "name": "そわそわ・・・" },
+  { "rank": "SS", "value": 34, "name": "2020年の感謝" },
+  { "rank": "SS", "value": 34, "name": "10日目の感謝" },
+  { "rank": "SS", "value": 34, "name": "超経験値だよ…虹" },
+  { "rank": "SS", "value": 29, "name": "花嫁修行" },
+  { "rank": "S", "value": 24, "name": "2周年の感謝(仮)" },
+  { "rank": "S", "value": 24, "name": "ガタガタ・・・" },
+  { "rank": "S", "value": 23, "name": "万夫不当の気迫" },
+  { "rank": "S", "value": 21, "name": "雪花の誓い" },
+  { "rank": "A", "value": 19, "name": "グロウアップ" },
+  { "rank": "A", "value": 16, "name": "超経験値だよ…W金" },
+  { "rank": "A", "value": 14, "name": "1周年の感謝" },
+  { "rank": "A", "value": 14, "name": "超経験値だよ…金" },
+  { "rank": "A", "value": 12, "name": "頑張り屋" }
+];
+
+const spirits = [
+  {"id": 80251, "name": "なぎ", "a": 3, "score": 30},
+  {"id": 80281, "name": "ジュー", "a": 4, "score": 30},
+  {"id": 80351, "name": "ヨーロチカ", "a": 1, "score": 30},
+  {"id": 80391, "name": "ルビー", "a": 2, "score": 35},
+  {"id": 80411, "name": "しげつ&さくら", "a": 3, "score": 35},
+  {"id": 80511, "name": "亀姫", "a": 4, "score": 35},
+  {"id": 80641, "name": "ユグドラシル", "a": 4, "score": 150},
+  {"id": 80731, "name": "ブラウト", "a": 1, "score": 200},
+  {"id": 80741, "name": "フェム・エンモー", "a": 4, "score": 200},
+  {"id": 80751, "name": "ミルキー", "a": 2, "score": 200},
+  {"id": 80761, "name": "ヤーナ・ウパラ", "a": 5, "score": 200},
+  {"id": 80781, "name": "ダークマター", "a": 3, "score": 200},
+  {"id": 80901, "name": "カプーズ", "a": 1, "score": 300},
+  {"id": 80921, "name": "カカオ", "a": 5, "score": 300},
+  {"id": 80931, "name": "キャス", "a": 4, "score": 300},
+  {"id": 80951, "name": "ハナモモ", "a": 3, "score": 300},
+  {"id": 80971, "name": "スウォール", "a": 2, "score": 500},
+  {"id": 81151, "name": "アストロラーベ", "a": 5, "score": 500},
+  {"id": 81301, "name": "アウレア", "a": 4, "score": 500},
+  {"id": 81351, "name": "トリアイナ", "a": 2, "score": 650},
+  {"id": 81401, "name": "けきてゃ", "a": 5, "score": 700},
+  {"id": 81471, "name": "アーク", "a": 4, "score": 750},
+  {"id": 81521, "name": "ラピス", "a": 2, "score": 800}
+];
+
+const accessories = [
+  {"id": 20373, "name": "王道BLカプの同人誌(非課金)", "score": 10},
+  {"id": 20612, "name": "いくたま(非課金)", "score": 28},
+  {"id": 20232, "name": "ガン太の太鼓", "score": 50},
+  {"id": 20255, "name": "花婿ネコのマリッジリング", "score": 50},
+  {"id": 20360, "name": "音楽家ねこのタクト", "score": 75},
+  {"id": 20384, "name": "王子ねこの王冠", "score": 75},
+  {"id": 20426, "name": "ドレス猫のリボン", "score": 100},
+  {"id": 20463, "name": "女将ねこの手ぬぐい", "score": 100},
+  {"id": 20521, "name": "カッパ猫のバッジ ", "score": 125},
+  {"id": 20555, "name": "猫の鏡餅", "score": 125},
+  {"id": 20571, "name": "犬専用ティーポット", "score": 150},
+  {"id": 20598, "name": "アンテナネコの首飾り", "score": 160},
+  {"id": 20629, "name": "カラフルスカーフ", "score": 200},
+  {"id": 20656, "name": "4周年バニースーツ", "score": 100},
+  {"id": 20721, "name": "雪だるマフラー", "score": 200},
+  {"id": 20737, "name": "鷹の爪", "score": 225},
+  {"id": 20765, "name": "ネコ映画祭のネコー像", "score": 250},
+  {"id": 20809, "name": "魔女ネコのホウキ", "score": 300},
+  {"id": 20876, "name": "レイヴンナイトアミュレットB", "score": 325},
+  {"id": 20877, "name": "レイヴンナイトアミュレットW", "score": 325},
+  {"id": 20910, "name": "機関アミュレット：零五式【閃煌】B", "score": 350},
+  {"id": 20937, "name": "ヴェルメリオの羽子板セット", "score": 200},
+  {"id": 20948, "name": "機関アミュレット：零五式【溟海】R", "score": 350},
+  {"id": 20949, "name": "機関アミュレット：零五式【溟海】G", "score": 350},
+  {"id": 20966, "name": "機関アミュレット：零五式【深淵】W", "score": 350},
+  {"id": 21068, "name": "繚乱ノ御守【紅】R", "score": 375},
+  {"id": 21069, "name": "繚乱ノ御守【紅】G", "score": 375},
+  {"id": 21135, "name": "超闇エンジェルアミュレットR", "score": 400},
+  {"id": 21165, "name": "光永劫之牙B", "score": 400},
+  {"id": 21203, "name": "魔導船頭の水晶", "score": 200},
+  {"id": 21213, "name": "氷永劫之牙R", "score": 400},
+  {"id": 21292, "name": "ボーナスRUSHリング", "score": 670},
+  {"id": 21310, "name": "未央のシュシュ", "score": 250},
+  {"id": 21334, "name": "火永劫之牙R", "score": 425},
+  {"id": 21337, "name": "火永劫之牙W", "score": 425},
+  {"id": 21533, "name": "メイドエプロン", "score": 250}
+];
+
+const FRIEND_CHAR = { 
+    name: "ミニコゼハロウィン2022ver.", id: 19971, a: 5, wc: 3, sc1: 8, sc2: 8, sc3: 8, 
+    ls1: 0, ls2: 0, wep1: 35, wep2: 35, isFriend: true 
+};
+const FRIEND_PASSIVE_SCORE = 600; 
+const FRIEND_ACC = { id: 21292, name: "ボーナスRUSHリング", score: 670 };
+
+// ================= GLOBAL STATE =================
+let selectedSpirits = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+let selectedSpiritInfos = { 1: null, 2: null, 3: null, 4: null, 5: null };
+
+// ================= INIT & RENDER =================
+
+function init() {
+    renderSpiritSelectors();
+    renderAccSelectors();
+    renderCharacters();
+    renderPassives();
+    
+    document.getElementById('showOldChars').addEventListener('change', renderCharacters);
+    document.getElementById('showWeakChars').addEventListener('change', renderCharacters);
+    document.getElementById('useFriend').addEventListener('change', updateFriendState);
+}
+
+function isOldChar(char) {
+    return (char.sc1 !== 8 && char.sc2 !== 8 && char.sc3 !== 8);
+}
+
+function isWeakS3Char(char) {
+    const s3Count = (char.sc1 === 8 ? 1 : 0) + (char.sc2 === 8 ? 1 : 0) + (char.sc3 === 8 ? 1 : 0);
+    return (s3Count === 1 && char.wep1 === 35);
+}
+
+function renderCharacters() {
+    const list = document.getElementById('charList');
+    const showOld = document.getElementById('showOldChars').checked;
+    const showWeak = document.getElementById('showWeakChars').checked;
+    list.innerHTML = '';
+    
+    characters.forEach(c => {
+        if (!showOld && isOldChar(c)) return;
+        if (!showWeak && isWeakS3Char(c)) return;
+        
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="checkbox" class="char-checkbox" value="${c.id}"></td>
+            <td>
+                <img src="./img/${c.id}.png" class="icon-70" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RkZCIvPjwvc3ZnPg=='">
+                ${c.name}
+            </td>
+            <td><span class="stat-tag bg-red">Attr ${c.a}</span></td>
+            <td><span class="stat-tag bg-blue">Wep ${c.wc}</span></td>
+            <td>
+                <span class="slot-tag">${formatSlot(c.sc1)}</span>
+                <span class="slot-tag">${formatSlot(c.sc2)}</span>
+                <span class="slot-tag">${formatSlot(c.sc3)}</span>
+            </td>
+        `;
+        list.appendChild(row);
+    });
+}
+
+function renderSpiritSelectors() {
+    const container = document.getElementById('spiritContainer');
+    container.innerHTML = '';
+    const attrNames = { 1: "火", 2: "水", 3: "樹", 4: "光", 5: "闇" };
+    
+    for(let i=1; i<=5; i++) {
+        const filtered = spirits.filter(s => s.a === i);
+        const groupDiv = document.createElement('div');
+        groupDiv.innerHTML = `<h4 style="margin: 5px 0;">屬性 ${i} (${attrNames[i]})</h4>`;
+        
+        const cardContainer = document.createElement('div');
+        cardContainer.className = 'grid-container';
+        
+        const noneCard = document.createElement('div');
+        noneCard.className = 'grid-card spirit-card active';
+        noneCard.id = `spirit-${i}-0`;
+        noneCard.innerHTML = `<div style="height:70px; line-height:70px; color:#999;">無</div><span class="name">不選擇</span>`;
+        noneCard.onclick = () => selectSpirit(i, 0, null);
+        cardContainer.appendChild(noneCard);
+        
+        filtered.forEach(s => {
+            const card = document.createElement('div');
+            card.className = 'grid-card spirit-card';
+            card.id = `spirit-${i}-${s.id}`;
+            card.innerHTML = `
+                <img src="./img/${s.id}.png" class="icon-70" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RkZCIvPjwvc3ZnPg=='">
+                <span class="name" title="${s.name}">${s.name}</span>
+                <span class="score">+${s.score}</span>
+            `;
+            card.onclick = () => selectSpirit(i, s.score, s);
+            cardContainer.appendChild(card);
+        });
+        
+        groupDiv.appendChild(cardContainer);
+        container.appendChild(groupDiv);
+    }
+}
+
+function renderAccSelectors() {
+    const container = document.getElementById('accContainer');
+    container.innerHTML = '';
+    
+    accessories.sort((a,b) => b.score - a.score);
+
+    accessories.forEach(acc => {
+        const card = document.createElement('div');
+        card.className = 'grid-card';
+        card.innerHTML = `
+            <img src="./acc_icon/${acc.id}.png" class="icon-70" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI3MCIgaGVpZ2h0PSI3MCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2RkZCIvPjwvc3ZnPg=='">
+            <span class="name">${acc.name}</span>
+            <span class="score">+${acc.score}</span>
+            <input type="number" min="0" value="0" class="acc-input" data-id="${acc.id}">
+        `;
+        container.appendChild(card);
+    });
+}
+
+function selectSpirit(attr, score, spiritObj) {
+    selectedSpirits[attr] = score;
+    selectedSpiritInfos[attr] = spiritObj;
+    
+    const container = document.getElementById('spiritContainer').children[attr-1].querySelector('.grid-container');
+    Array.from(container.children).forEach(card => card.classList.remove('active'));
+    
+    if (spiritObj) {
+        document.getElementById(`spirit-${attr}-${spiritObj.id}`).classList.add('active');
+    } else {
+        document.getElementById(`spirit-${attr}-0`).classList.add('active');
+    }
+}
+
+function updateFriendState() {
+    const useFriend = document.getElementById('useFriend').checked;
+    const hint = document.getElementById('charSelectHint');
+    if (useFriend) {
+        hint.innerText = "請勾選至少 4 名角色 (因為好友佔用 1 席)";
+        hint.style.color = "#d35400";
+        hint.style.fontWeight = "bold";
+    } else {
+        hint.innerText = "請勾選至少 5 名角色";
+        hint.style.color = "";
+        hint.style.fontWeight = "normal";
+    }
+}
+
+function formatSlot(val) {
+    if (val === 8) return "[S3]";
+    if (val === 7) return "[SS]";
+    if (val === 6) return "[S]";
+    if (val === 5) return "[A]";
+    return "-";
+}
+
+function toggleAllChars(source) {
+    document.querySelectorAll('.char-checkbox').forEach(cb => {
+        if(cb.offsetParent !== null) cb.checked = source.checked;
+    });
+}
+
+function renderPassives() {
+    const list = document.getElementById('passiveList');
+    list.innerHTML = '';
+    passives.forEach((p, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${p.name}</td>
+            <td>${p.rank}</td>
+            <td>${p.value}</td>
+            <td><input type="number" min="0" value="0" class="passive-input" data-index="${index}"></td>
+        `;
+        list.appendChild(row);
+    });
+}
+
+// ================= CALCULATION LOGIC =================
+
+const RANK_MAP = { 'S3': 8, 'SS': 7, 'S': 6, 'A': 5 };
+
+function checkCondition(condStr, stats) {
+    if (!condStr || condStr === "error") return false;
+    const parts = condStr.split(" and ");
+    
+    for (let part of parts) {
+        const match = part.match(/\{\['(\w+)'\]=(\d+)\}\s*>=\s*(\d+)/);
+        if (match) {
+            const type = match[1]; 
+            const targetVal = parseInt(match[2]);
+            const threshold = parseInt(match[3]);
+            
+            const count = (type === 'a') 
+                ? (stats.attrCounts[targetVal] || 0)
+                : (stats.wepCounts[targetVal] || 0);
+                
+            if (count < threshold) return false;
+        } else {
+            return false;
+        }
+    }
+    return true;
+}
+
+function getAvailableSkills() {
+    const inputs = document.querySelectorAll('.passive-input');
+    let skillPool = [];
+    inputs.forEach(inp => {
+        const count = parseInt(inp.value) || 0;
+        const idx = inp.dataset.index;
+        const p = passives[idx];
+        const rankNum = RANK_MAP[p.rank];
+        for (let i = 0; i < count; i++) {
+            skillPool.push({ rankReq: rankNum, value: p.value, name: p.name, rankStr: p.rank });
+        }
+    });
+    skillPool.sort((a, b) => b.value - a.value);
+    return skillPool;
+}
+
+function getAvailableAccs() {
+    const inputs = document.querySelectorAll('.acc-input');
+    let pool = [];
+    inputs.forEach(inp => {
+        const count = parseInt(inp.value) || 0;
+        const id = parseInt(inp.dataset.id);
+        const acc = accessories.find(a => a.id === id);
+        for(let i=0; i<count; i++) {
+            pool.push(acc);
+        }
+    });
+    pool.sort((a,b) => b.score - a.score); 
+    return pool;
+}
+
+function* combinations(array, n) {
+    if (n === 0) { yield []; return; }
+    if (array.length === 0) return;
+    const head = array[0];
+    const tail = array.slice(1);
+    for (const c of combinations(tail, n - 1)) {
+        yield [head, ...c];
+    }
+    for (const c of combinations(tail, n)) {
+        yield c;
+    }
+}
+
+async function calculateBestTeam() {
+    const status = document.getElementById('statusMsg');
+    const resultDiv = document.getElementById('resultOutput');
+    const resultSection = document.getElementById('resultSection');
+    const btn = document.getElementById('calcBtn');
+    const useFriend = document.getElementById('useFriend').checked;
+    
+    const selectedCheckboxes = document.querySelectorAll('.char-checkbox:checked');
+    const selectedIds = Array.from(selectedCheckboxes).map(cb => parseInt(cb.value));
+    const targetSize = useFriend ? 4 : 5;
+
+    if (selectedIds.length < targetSize) {
+        alert(`請至少選擇 ${targetSize} 名角色！`);
+        return;
+    }
+
+    const selectedChars = characters.filter(c => selectedIds.includes(c.id));
+    const skillPool = getAvailableSkills();
+    const accPool = getAvailableAccs();
+    
+    btn.disabled = true;
+    status.innerText = "計算中...";
+    resultSection.style.display = 'none';
+
+    await new Promise(r => setTimeout(r, 50));
+
+    let maxScore = -1;
+    let bestTeam = null;
+
+    const gen = combinations(selectedChars, targetSize);
+    
+    for (const baseMembers of gen) {
+        let fullTeam = baseMembers.map(m => ({...m})); 
+        if (useFriend) {
+            fullTeam.push({...FRIEND_CHAR});
+        }
+
+        const stats = { attrCounts: {}, wepCounts: {} };
+        let charSlotsMap = []; 
+        
+        fullTeam.forEach((c, idx) => {
+            stats.attrCounts[c.a] = (stats.attrCounts[c.a] || 0) + 1;
+            stats.wepCounts[c.wc] = (stats.wepCounts[c.wc] || 0) + 1;
+            
+            let slots = [];
+            if (!c.isFriend) {
+                if (c.sc1 > 0) slots.push({cap: c.sc1, filled: null});
+                if (c.sc2 > 0) slots.push({cap: c.sc2, filled: null});
+                if (c.sc3 > 0) slots.push({cap: c.sc3, filled: null});
+            }
+            charSlotsMap[idx] = slots;
+        });
+        
+        let allUserSlots = [];
+        charSlotsMap.forEach((slots, cIdx) => {
+            slots.forEach((s, sIdx) => {
+                allUserSlots.push({ cap: s.cap, cIdx: cIdx, sIdx: sIdx });
+            });
+        });
+
+        let passiveScore = 0;
+        let usedSkills = [];
+        let currentSkillPool = [...skillPool]; 
+        
+        for (let i = 0; i < currentSkillPool.length; i++) {
+            const skill = currentSkillPool[i];
+            let bestSlotRef = null;
+            let minCap = 99;
+            
+            for (let j = 0; j < allUserSlots.length; j++) {
+                const slot = allUserSlots[j];
+                if (slot.cap >= skill.rankReq && slot.cap < minCap) {
+                    minCap = slot.cap;
+                    bestSlotRef = slot; 
+                }
+            }
+
+            if (bestSlotRef) {
+                passiveScore += skill.value;
+                usedSkills.push(skill);
+                charSlotsMap[bestSlotRef.cIdx][bestSlotRef.sIdx].filled = skill;
+                allUserSlots = allUserSlots.filter(s => s !== bestSlotRef);
+            }
+            if (allUserSlots.length === 0) break;
+        }
+
+        if (useFriend) passiveScore += FRIEND_PASSIVE_SCORE;
+        
+        let accScore = 0;
+        let currentAccIndex = 0;
+        
+        fullTeam.forEach(member => {
+            if (member.isFriend) {
+                member.assignedAcc = FRIEND_ACC;
+                accScore += FRIEND_ACC.score;
+            } else {
+                if (currentAccIndex < accPool.length) {
+                    const acc = accPool[currentAccIndex];
+                    member.assignedAcc = acc;
+                    accScore += acc.score;
+                    currentAccIndex++;
+                } else {
+                    member.assignedAcc = null;
+                }
+            }
+        });
+
+        let totalWep = 0;
+        fullTeam.forEach(c => {
+            const useWep2 = checkCondition(c.wep_condition, stats);
+            c.finalWep = useWep2 ? c.wep2 : c.wep1; 
+            totalWep += c.finalWep;
+        });
+        
+        for (let i = 0; i < fullTeam.length; i++) {
+            const leader = fullTeam[i];
+            if (leader.isFriend) continue; 
+
+            const useLs2 = checkCondition(leader.ls_condition, stats);
+            const lsVal = useLs2 ? leader.ls2 : leader.ls1;
+            const spiritVal = selectedSpirits[leader.a] || 0;
+
+            const totalScore = lsVal + totalWep + passiveScore + spiritVal + accScore;
+            
+            if (totalScore > maxScore) {
+                maxScore = totalScore;
+                bestTeam = {
+                    leader: leader,
+                    members: fullTeam, 
+                    memberSlots: JSON.parse(JSON.stringify(charSlotsMap)), 
+                    lsVal: lsVal,
+                    totalWep: totalWep,
+                    passiveScore: passiveScore,
+                    spiritVal: spiritVal,
+                    spiritInfo: selectedSpiritInfos[leader.a],
+                    accScore: accScore
+                };
+            }
+        }
+    }
+    
+    // Display Result
+    if (bestTeam) {
+        let spiritHtml = "<span style='color:#999'>無精靈</span>";
+        if (bestTeam.spiritVal > 0 && bestTeam.spiritInfo) {
+            spiritHtml = `
+                <div class="spirit-badge">
+                    <img src="./img/${bestTeam.spiritInfo.id}.png" class="icon-40" style="margin-right:5px;">
+                    <strong>${bestTeam.spiritInfo.name} (+${bestTeam.spiritVal}%)</strong>
+                </div>
+            `;
+        }
+
+        // Sort members for display: Leader first
+        const sortedIndices = bestTeam.members.map((_, i) => i).sort((a, b) => {
+            const mA = bestTeam.members[a];
+            const mB = bestTeam.members[b];
+            if (mA === bestTeam.leader) return -1;
+            if (mB === bestTeam.leader) return 1;
+            return 0;
+        });
+
+        // Generate Table Rows using sorted indices
+        let tableRowsHtml = sortedIndices.map(idx => {
+            const m = bestTeam.members[idx];
+            const isLeader = m === bestTeam.leader;
+            const isFriend = m.isFriend;
+            
+            // Determine Row Style & Label
+            let rowClass = "res-bg-beige";
+            let roleText = "隊員";
+            if (isLeader) { rowClass = "res-bg-green"; roleText = "隊長"; }
+            if (isFriend) { rowClass = "res-bg-green"; roleText = "好友"; }
+            
+            // Prepare Passive List
+            let skillListHtml = "";
+            if (isFriend) {
+                skillListHtml = `
+                    <li class="res-skill-item">学習装置 <span class="res-skill-val">200%</span></li>
+                    <li class="res-skill-item">学習装置 <span class="res-skill-val">200%</span></li>
+                    <li class="res-skill-item">学習装置 <span class="res-skill-val">200%</span></li>
+                `;
+            } else {
+                const slots = bestTeam.memberSlots[idx];
+                if (slots && slots.length > 0) {
+                    skillListHtml = slots.map(s => {
+                        if (s.filled) {
+                            return `<li class="res-skill-item">${s.filled.name} <span class="res-skill-val">${s.filled.value}%</span></li>`;
+                        } else {
+                            return `<li class="res-skill-item" style="color:#999;">(空)</li>`;
+                        }
+                    }).join('');
+                } else {
+                    skillListHtml = `<li style="color:#999; font-size:14px;">無S3槽位</li>`;
+                }
+            }
+
+            // Prepare Accessory
+            let accHtml = "";
+            if (m.assignedAcc) {
+                accHtml = `
+                    <img src="./acc_icon/${m.assignedAcc.id}.png" class="icon-40">
+                    <span class="res-acc-text">${m.assignedAcc.score}%</span>
+                `;
+            } else {
+                accHtml = `<span style="color:#ccc;">-</span>`;
+            }
+
+            return `
+            <tr class="${rowClass}">
+                <td class="res-col-role"><span class="res-role-text">${roleText}</span></td>
+                <td class="res-col-img">
+                    <img src="./img/${m.id}.png" class="icon-70">
+                    <div class="res-char-name">${m.name}</div>
+                </td>
+                <td class="res-col-wep"><span class="res-wep-text">${m.finalWep}%</span></td>
+                <td><ul class="res-skill-list">${skillListHtml}</ul></td>
+                <td class="res-col-acc">${accHtml}</td>
+            </tr>`;
+        }).join('');
+
+        // Combine into Final HTML
+        resultDiv.innerHTML = `
+            <div class="result-summary-box">
+                <div>
+                    <div style="font-size:16px; color:#555; margin-bottom:5px;">總加成 (Total Score)</div>
+                    <div class="summary-score">${maxScore}%</div>
+                </div>
+                <div class="summary-details">
+                    ${spiritHtml}<br>
+                    Leader Skill: <strong>${bestTeam.lsVal}%</strong> | 
+                    Weapon: <strong>${bestTeam.totalWep}%</strong> | 
+                    Passive: <strong>${bestTeam.passiveScore}%</strong> | 
+                    Acc: <strong>${bestTeam.accScore}%</strong>
+                </div>
+            </div>
+
+            <table class="res-table">
+                <thead>
+                    <tr>
+                        <th>身分</th>
+                        <th>圖片</th>
+                        <th>武器加成</th>
+                        <th>綠技名&加成</th>
+                        <th>課金飾品</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRowsHtml}
+                </tbody>
+            </table>
+        `;
+        
+        resultSection.style.display = 'block';
+    } else {
+        resultDiv.innerHTML = "<p>無法組成有效隊伍。</p>";
+        resultSection.style.display = 'block';
+    }
+
+    status.innerText = "";
+    btn.disabled = false;
+}
+
+// Start
+init();
+</script>
+</body>
+</html>
