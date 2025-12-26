@@ -141,6 +141,43 @@
             background-color: #4a90e2;
             color: white;
         }
+		/* ================= STAGE TABLE STYLES ================= */
+        .stage-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: "Microsoft JhengHei", sans-serif;
+            border: 2px solid #2c3e50;
+            margin-top: 30px; /* 與上方隊伍表格拉開距離 */
+            background-color: white;
+        }
+        .stage-table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            text-align: center;
+            border: 1px solid #2c3e50;
+        }
+        .stage-table td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            text-align: center;
+            color: #333;
+            vertical-align: middle;
+        }
+        .stage-table tr:nth-child(even) { background-color: #f2f2f2; }
+        .stage-table tr:hover { background-color: #eafaf1; transition: 0.2s; }
+        
+        .stage-exp-highlight {
+            font-weight: bold;
+            color: #d35400; /* 橘紅色強調計算結果 */
+            font-size: 1.1em;
+        }
+        .stage-note {
+            font-size: 13px;
+            color: #666;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -167,7 +204,7 @@
                     <input type="checkbox" checked id="useFriend"> 啟用好友支援 (只選 4 人 + 固定好友)
                 </label>
                 <p style="font-size: 12px; color: #666; margin-top: 5px;">
-                    好友固定為「ミニコゼハロウィン2022ver.」，被動固定 +600，飾品固定裝備「ボーナスRUSHリング」(+670)。
+                    好友固定為「ミニコゼハロウィン2022ver.」，被動固定 +750%(超学習装置x3)，飾品固定裝備「ボーナスRUSHリング」(+670%)。
                 </p>
             </div>
 
@@ -176,7 +213,7 @@
                     <input type="checkbox" id="showOldChars"> 顯示較舊角色 (無 S3 槽位)
                 </label>
                 <label>
-                    <input type="checkbox" id="showWeakChars"> 顯示僅隊長加成角色 (僅 1 個 S3 + 武器35%)
+                    <input type="checkbox" id="showWeakChars"> 顯示僅隊長經驗加成角色 (多為合作限定角)
                 </label>
             </div>
             
@@ -197,6 +234,9 @@
 
         <div class="section full-width">
             <h2>2. 飾品持有數 (請輸入數量)</h2>
+			<p>備註1：除了最後兩個外，所有經驗飾品均為課金獲得。目前(2025.12)在商店有常駐販賣「鷹の爪(3.25倍)」</p>
+			<p>「いくたま」為連動的活動飾品，完全絕版；「王道BLカプの同人誌」也是活動絕版，但有可能在骰子的飾品格子獲得</p>
+			<p>備註2：刷取金屬蝸牛關製作的飾品是增加「角色經驗值(キャラ経験値)」而不是「玩家經驗值(プレイヤー経験値)」，故不列出</p>
             <div id="accContainer" class="grid-container"></div>
         </div>
 
@@ -365,8 +405,10 @@ const accessories = [
   {"id": 20656, "name": "4周年バニースーツ", "score": 100},
   {"id": 20721, "name": "雪だるマフラー", "score": 200},
   {"id": 20737, "name": "鷹の爪", "score": 225},
+  {"id": 20754, "name": "ネコカフェメニュー", "score": 250},
   {"id": 20765, "name": "ネコ映画祭のネコー像", "score": 250},
   {"id": 20809, "name": "魔女ネコのホウキ", "score": 300},
+  {"id": 20812, "name": "焚火の薪", "score": 300},
   {"id": 20876, "name": "レイヴンナイトアミュレットB", "score": 325},
   {"id": 20877, "name": "レイヴンナイトアミュレットW", "score": 325},
   {"id": 20910, "name": "機関アミュレット：零五式【閃煌】B", "score": 350},
@@ -386,12 +428,17 @@ const accessories = [
   {"id": 21337, "name": "火永劫之牙W", "score": 425},
   {"id": 21533, "name": "メイドエプロン", "score": 250}
 ];
-
+const STAGE_DATA = [
+    { name: "主線第二部Hard<br>13-15以後任意(無boss動畫)", cost: "18AP", baseExp: 2170, note: "無活動自動周回練級時的選擇<br>可以看關卡小圖示判斷怪物種類，刷打倒怪物的成就" },
+    { name: "主線第三部Hard<br>21-11", cost: "18AP", baseExp: 2350, note: "要看BOSS動畫，自動周回比上面的慢<br>但可以用來SKIP" },
+    { name: "活動金屬蝸牛關", cost: "50AP", baseExp: 10000, note: "除了練玩家等級之外還有很多收益" },
+    { name: "經驗鑰匙關卡(10把)", cost: "1AP+10鑰匙", baseExp: 150000, note: "全遊最快練級方式：刷百人1ST拿大量鑰匙<br>鑰匙數量沒有效率區別，但10把比較省經驗加成食物" }
+];
 const FRIEND_CHAR = { 
     name: "ミニコゼハロウィン2022ver.", id: 19971, a: 5, wc: 3, sc1: 8, sc2: 8, sc3: 8, 
     ls1: 0, ls2: 0, wep1: 35, wep2: 35, isFriend: true 
 };
-const FRIEND_PASSIVE_SCORE = 600; 
+const FRIEND_PASSIVE_SCORE = 750; 
 const FRIEND_ACC = { id: 21292, name: "ボーナスRUSHリング", score: 670 };
 
 // ================= GLOBAL STATE =================
@@ -794,7 +841,6 @@ async function calculateBestTeam() {
             `;
         }
 
-        // Sort members for display: Leader first
         const sortedIndices = bestTeam.members.map((_, i) => i).sort((a, b) => {
             const mA = bestTeam.members[a];
             const mB = bestTeam.members[b];
@@ -803,25 +849,22 @@ async function calculateBestTeam() {
             return 0;
         });
 
-        // Generate Table Rows using sorted indices
         let tableRowsHtml = sortedIndices.map(idx => {
             const m = bestTeam.members[idx];
             const isLeader = m === bestTeam.leader;
             const isFriend = m.isFriend;
             
-            // Determine Row Style & Label
             let rowClass = "res-bg-beige";
             let roleText = "隊員";
             if (isLeader) { rowClass = "res-bg-green"; roleText = "隊長"; }
             if (isFriend) { rowClass = "res-bg-green"; roleText = "好友"; }
             
-            // Prepare Passive List
             let skillListHtml = "";
             if (isFriend) {
                 skillListHtml = `
-                    <li class="res-skill-item">学習装置 <span class="res-skill-val">200%</span></li>
-                    <li class="res-skill-item">学習装置 <span class="res-skill-val">200%</span></li>
-                    <li class="res-skill-item">学習装置 <span class="res-skill-val">200%</span></li>
+                    <li class="res-skill-item">超学習装置 <span class="res-skill-val">250%</span></li>
+                    <li class="res-skill-item">超学習装置 <span class="res-skill-val">250%</span></li>
+                    <li class="res-skill-item">超学習装置 <span class="res-skill-val">250%</span></li>
                 `;
             } else {
                 const slots = bestTeam.memberSlots[idx];
@@ -838,7 +881,6 @@ async function calculateBestTeam() {
                 }
             }
 
-            // Prepare Accessory
             let accHtml = "";
             if (m.assignedAcc) {
                 accHtml = `
@@ -848,15 +890,11 @@ async function calculateBestTeam() {
             } else {
                 accHtml = `<span style="color:#ccc;">-</span>`;
             }
-// ========== [修改開始] ==========
-            // 判斷是否為 35%，如果是則添加提示文字
+
             let wepNote = "";
             if (m.finalWep === 35) {
-                // 使用 div 換行，並設定與角色名 (.res-char-name) 相似的大小與顏色
                 wepNote = '<div style="font-size:12px; color:#444; margin-top:4px; font-weight:bold;">(金屬蝸牛武)</div>';
             }
-            // ========== [修改結束] ==========
-
 
             return `
             <tr class="${rowClass}">
@@ -875,7 +913,46 @@ async function calculateBestTeam() {
             </tr>`;
         }).join('');
 
-        // Combine into Final HTML
+        // ================= STAGE TABLE GENERATION START =================
+        // 計算倍率： 1 + (總分 / 100)
+        const multiplier = 1 + (maxScore / 100);
+        
+        let stageRowsHtml = STAGE_DATA.map(stage => {
+            // 公式：基礎經驗 * 倍率，然後無條件進位
+            const earnedExp = Math.ceil(stage.baseExp * multiplier);
+            
+            return `
+                <tr>
+                    <td style="text-align:left; font-weight:bold;">${stage.name}</td>
+                    <td>${stage.cost}</td>
+                    <td>${stage.baseExp.toLocaleString()}</td>
+                    <td class="stage-exp-highlight">${earnedExp.toLocaleString()}</td>
+                    <td class="stage-note">${stage.note}</td>
+                </tr>
+            `;
+        }).join('');
+
+        const stageTableHtml = `
+            <table class="stage-table">
+                <thead>
+                    <tr>
+                        <th colspan="5" style="font-size:1.2em; border-bottom: 2px solid #fff;">練玩家經驗的常用關卡收益 (本隊伍倍率: ${(multiplier).toFixed(2)}倍)</th>
+                    </tr>
+                    <tr>
+                        <th style="width:25%;">關卡</th>
+                        <th style="width:10%;">入場資源</th>
+                        <th style="width:10%;">基礎經驗</th>
+                        <th style="width:15%;">本隊伍獲得經驗</th>
+                        <th style="width:40%;">備註</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${stageRowsHtml}
+                </tbody>
+            </table>
+        `;
+        // ================= STAGE TABLE GENERATION END =================
+
         resultDiv.innerHTML = `
             <div class="result-summary-box">
                 <div>
@@ -905,6 +982,8 @@ async function calculateBestTeam() {
                     ${tableRowsHtml}
                 </tbody>
             </table>
+            
+            ${stageTableHtml} 
         `;
         
         resultSection.style.display = 'block';
