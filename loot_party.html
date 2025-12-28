@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>遊戲組隊模擬器 (含精靈與好友支援版 + 飾品預覽)</title>
+    <style>
+	/* ================= NAV BAR STYLES ================= */
+        .nav-bar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-bar a {
+            text-decoration: none;
+            color: #4a90e2;
+            padding: 5px 10px;
+            border: 1px solid #4a90e2;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .nav-bar a:hover {
+            background-color: #4a90e2;
+            color: white;
+        }
+        body { font-family: "Microsoft JhengHei", "Segoe UI", sans-serif; max-width: 1400px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; color: #333; }
+        h1, h2, h3 { color: #2c3e50; margin-bottom: 10px; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; }
+        .section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex: 1; min-width: 300px; }
+        .full-width { width: 100%; flex: 100%; }
+        
+        /* Tables */
+        table.input-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .input-table th, .input-table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: middle; }
+        .input-table th { background-color: #f8f9fa; position: sticky; top: 0; z-index: 10; border-bottom: 2px solid #ddd;}
+        .input-table tr:hover { background-color: #f1f1f1; }
+        
+        /* Inputs & Controls */
+        input[type="number"] { width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        input[type="checkbox"], input[type="radio"] { transform: scale(1.2); cursor: pointer; vertical-align: middle; }
+        label { cursor: pointer; user-select: none; margin-right: 15px; }
+        button { background-color: #3498db; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; width: 100%; }
+        button:hover { background-color: #2980b9; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-green { background-color: #27ae60; margin-top: 0; font-size: 14px; padding: 8px 16px; width: auto; }
+        .btn-green:hover { background-color: #219150; }
+
+        /* Status Tags */
+        .stat-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 2px; color: white; vertical-align: middle; font-weight: bold; }
+        .bg-red { background-color: #e74c3c; } 
+        .bg-blue { background-color: #3498db; } 
+        .bg-green { background-color: #27ae60; }
+        .bg-purple { background-color: #9b59b6; }
+        .bg-orange { background-color: #e67e22; }
+        .bg-dark { background-color: #34495e; }
+        .bg-gold { background-color: #f1c40f; color: #333; } /* For Friend tag */
+        
+        .slot-tag { font-family: monospace; font-weight: bold; color: #555; background: #eee; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin: 0 1px; }
+
+        /* Result Styles */
+        .result-box { margin-top: 20px; }
+        .result-summary-box {
+            background-color: #fff; border: 2px solid #2c3e50; border-radius: 8px; padding: 15px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+        }
+        .summary-score { font-size: 36px; font-weight: bold; color: #e74c3c; }
+        .summary-details { text-align: right; font-size: 14px; color: #555; line-height: 1.6; }
+        
+        .res-table { width: 100%; border-collapse: collapse; border: 2px solid #333; }
+        .res-table th { background: #333; color: white; padding: 10px; }
+        .res-table td { border: 1px solid #999; padding: 10px; vertical-align: middle; }
+        .res-bg-green { background-color: #d0e9c6; } /* Leader */
+        .res-bg-gold { background-color: #fff8e1; } /* Friend */
+        .res-bg-white { background-color: #fff; }
+
+        .loading { color: #e67e22; font-weight: bold; margin-left: 10px; display: inline-block; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        .filter-bar { background: #eaf2f8; padding: 10px; border-radius: 5px; margin-bottom: 10px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .search-input { padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
+
+        /* Fixed Leader Section */
+        .fixed-leader-panel {
+            background-color: #fff3e0;
+            border: 1px solid #ffcc80;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: none; /* Hidden by default */
+        }
+        .fixed-leader-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .leader-option {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        .leader-option:hover { background-color: #fdfdfd; border-color: #bbb; }
+        
+        /* New Styles for Double Images */
+        .leader-imgs {
+            display: flex;
+            align-items: center;
+            margin-right: 10px;
+            background: #eee;
+            padding: 2px;
+            border-radius: 4px;
+        }
+        .leader-imgs img { height: 45px; width: auto; display: block; }
+        .leader-plus { font-weight: bold; font-size: 18px; margin: 0 5px; color: #7f8c8d; }
+
+        /* Spirit Section Styles */
+        .spirit-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .spirit-group {
+            flex: 1 1 200px; /* Responsive columns */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+        }
+        .spirit-header {
+            padding: 8px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+        .spirit-list {
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .spirit-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 4px;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+            border-radius: 4px;
+        }
+        .spirit-option:hover { background-color: #f0f0f0; }
+        .spirit-option img {
+            height: 60px; /* Fixed height per requirement */
+            width: auto;
+            margin-right: 10px;
+            object-fit: contain;
+        }
+        .spirit-info { font-size: 13px; }
+        .spirit-score { color: #e74c3c; font-weight: bold; }
+
+        /* 9-Column Layout Styles */
+        .cols-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 10px;
+            border: 1px solid #eee;
+        }
+        .col-group {
+            flex: 0 0 240px; /* Fixed width for columns */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .col-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            position: sticky;
+            top: 0;
+        }
+        .col-list {
+            padding: 5px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        .char-card {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+        .char-card:hover { background-color: #f9f9f9; }
+        .char-card img { width: auto; height: 60px; margin-right: 8px; object-fit: contain; }
+        .char-info { flex: 1; min-width: 0; }
+        .char-name { font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+        .char-meta { color: #666; font-size: 11px; display: flex; align-items: center; flex-wrap: wrap; }
+        .wep-val { color: #d35400; font-weight: bold; margin-right: 5px; }
+        .condition-val { color: #888; font-size: 0.9em; font-weight: normal; }
+
+        /* Accessory Styles (Updated for 6 Cols & Multi-line Text) */
+        .acc-wrapper { display: flex; flex-direction: column; gap: 30px; }
+        .acc-column { width: 100%; }
+        .acc-column h3 { border-bottom: 2px solid #ddd; padding-bottom: 5px; color: #555; }
+        
+        .acc-grid { 
+            display: grid; 
+            /* Changed to 6 columns as requested */
+            grid-template-columns: repeat(6, 1fr); 
+            gap: 8px; 
+        }
+
+        /* Responsive Breakpoints for Grid */
+        @media (max-width: 1200px) { .acc-grid { grid-template-columns: repeat(5, 1fr); } }
+        @media (max-width: 900px) { .acc-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 600px) { .acc-grid { grid-template-columns: repeat(2, 1fr); } } /* Mobile friendly */
+
+        .acc-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            text-align: center;
+            background: #fff; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+            padding: 10px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            height: 100%; 
+            box-sizing: border-box; /* Ensure padding doesn't affect width calc */
+        }
+        .acc-item:hover { box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-color: #bbb; }
+        .acc-item img { 
+            height: 50px; 
+            width: auto; 
+            margin-right: 0; 
+            margin-bottom: 5px; 
+            object-fit: contain; 
+        }
+        .acc-detail { width: 100%; font-size: 12px; }
+        .acc-name { 
+            font-weight: bold; 
+            color: #333; 
+            margin-bottom: 3px; 
+            
+            /* ALLOW LINE BREAKS */
+            white-space: normal; 
+            word-wrap: break-word;
+            line-height: 1.3;
+            
+            font-size: 12px;
+        }
+        .acc-score { font-weight: bold; color: #e74c3c; font-size: 14px; margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="./index.html" target="_blank">技能搜尋</a>
+        <a href="./lswep.html" target="_blank">隊長技/專武搜尋</a>
+        <a href="./cheerleading.html" target="_blank">啦啦隊搜尋</a>
+        <a href="./normal_char.html" target="_blank">普池收集檢查</a>
+        <a href="./profiles.html" target="_blank">親愛度文本</a>
+        <a href="./exp_party.html" target="_blank">最佳經驗隊</a>
+        <a href="./loot_party.html" target="_blank">最佳複製隊</a>
+    </div>
+    <h1>最佳複製隊</h1>
+    <p>請勾選持有角色、填寫被動技能數量與選擇精靈，系統將計算最佳收益組合。</p>
+	
+    <div class="container">
+        
+        <div class="section full-width">
+            <h2>1. 計算設定</h2>
+            
+            <div class="filter-bar">
+                <label style="font-weight: bold; color: #d35400;">
+                    <input type="checkbox" id="enableFixedLeader" onchange="toggleFixedLeaderMode()"> 啟用固定隊長模式
+                </label>
+                <label style="font-weight: bold; color: #8e44ad; margin-left: 15px;" id="lblFriendMode">
+                    <input type="checkbox" id="enableFriend" onchange="renderFixedLeaderOptions()" disabled> 啟用好友支援 (第7人)
+                </label>
+            </div>
+
+            <div id="fixedLeaderPanel" class="fixed-leader-panel">
+                <strong id="leaderSelectTitle">請選擇隊長組合：</strong>
+                <div class="fixed-leader-grid" id="fixedLeaderOptions">
+                    </div>
+            </div>
+
+            <div class="filter-bar">
+                <button class="btn-green" onclick="selectTop4PerWeapon()">一鍵選擇各武器前 4 名 + 短劍、本雙S3</button>
+<button class="btn-green" onclick="selectTop4NonLimited()" style="margin-left: 10px; background-color: #2c3e50;">排除限定/合作，一鍵選擇各武器前 4 名 + 短劍、本雙S3</button>
+                <label style="margin-left: 20px;"><input type="checkbox" id="selectAllChars" onchange="toggleAllChars(this)"> 全選/取消全選所有顯示的角色</label>
+                <span id="selectedCount" style="margin-left: auto; font-weight: bold; color: #2980b9;">已選擇: 0 人</span>
+            </div>
+            
+            <button onclick="calculateBestTeam()" id="calcBtn">開始計算最高分組合</button>
+            <span id="statusMsg" class="loading" style="display:none;">計算中...</span>
+        </div>
+
+        <div class="section full-width" id="resultSection" style="display:none;">
+            <h2>計算結果</h2>
+            <div id="resultOutput" class="result-box"></div>
+        </div>
+
+        <div class="section full-width">
+            <h2>2. 選擇角色</h2>
+            <div class="filter-bar">
+                <input type="text" id="charSearch" class="search-input" placeholder="搜尋角色名稱..." oninput="renderCharacters()">
+                <label><input type="checkbox" id="hideWeakChars" onchange="handleHideWeakToggle()"> 隱藏僅有隊長加成的角色 (wep1,2皆為2.0)</label>
+            </div>
+            <div id="charColumns" class="cols-container">
+                </div>
+        </div>
+
+        <div class="section">
+            <h2>3. 被動技能持有數</h2>
+            <p style="font-size: 12px; color: #666;">請輸入您持有的技能數量</p>
+            <div style="max-height: 600px; overflow-y: auto; border: 1px solid #eee;">
+                <table id="passiveTable" class="input-table">
+                    <thead>
+                        <tr>
+                            <th>階級</th>
+                            <th>技能名稱</th>
+                            <th>數值</th>
+                            <th>持有數</th>
+                        </tr>
+                    </thead>
+                    <tbody id="passiveList"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section full-width">
+            <h2>4. 選擇精靈 (每個屬性限選一種)</h2>
+            <p style="font-size: 12px; color: #666;">若隊長屬性與選擇的精靈屬性相同，將獲得額外加分。</p>
+            <div id="spiritContainer" class="spirit-container">
+                </div>
+        </div>
+
+        <div class="section full-width">
+            <h2>5. 飾品一覽 (預覽)</h2>
+            <p style="font-size: 12px; color: #666;">以下列出目前資料中的飾品數值 (僅供參考，不參與計算)。</p>
+            <div class="acc-wrapper">
+                <div class="acc-column">
+                    <h3 style="color:#27ae60;">免費飾品 (Free)</h3>
+                    <div id="accFreeContainer" class="acc-grid"></div>
+                </div>
+                <div class="acc-column">
+                    <h3 style="color:#e67e22;">課金飾品 (Paid)</h3>
+                    <div id="accPaidContainer" class="acc-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// ================= DATA LOADING =================
+let RAW_CHAR_DATA = [];
+let RAW_PASSIVE_DATA = "";
+let RAW_SPIRIT_DATA = [];
+let RAW_ACC_PAID = [];
+let RAW_ACC_FREE = [];
+
+async function loadExternalData() {
+    try {
+        const response = await fetch('./loot_party_data.txt');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
+        parseExternalData(text);
+        
+        // 資料讀取完畢後，執行初始化
+        init();
+    } catch (e) {
+        console.error("資料讀取失敗:", e);
+        alert("無法讀取資料檔 (loot_party_data.txt)。\n\n原因可能是：\n1. 檔案路徑錯誤\n2. 瀏覽器安全性限制 (CORS)\n\n解決方法：請使用 Local Server (如 python -m http.server) 開啟網頁。");
+    }
+}
+
+function parseExternalData(text) {
+    try {
+        // 使用分隔符號切割區塊
+        const parts1 = text.split('<<<CHAR_DATA>>>');
+        if (parts1.length < 2) throw new Error("找不到 CHAR_DATA");
+        
+        const parts2 = parts1[1].split('<<<PASSIVE_DATA>>>');
+        const charPart = parts2[0].trim();
+        
+        const parts3 = parts2[1].split('<<<SPIRIT_DATA>>>');
+        const passivePart = parts3[0].trim();
+        
+        // 處理後續區塊 (精靈 -> 飾品(付費) -> 飾品(免費))
+        // 為了相容舊資料，使用 safe split
+        let spiritPart = "";
+        let accPaidPart = "";
+        let accFreePart = "";
+
+        const parts4 = parts3[1].split('<<<ACCESSORY_DATA_PAID>>>');
+        spiritPart = parts4[0].trim();
+
+        if (parts4.length > 1) {
+            const parts5 = parts4[1].split('<<<ACCESSORY_DATA_FREE>>>');
+            accPaidPart = parts5[0].trim();
+            if (parts5.length > 1) {
+                accFreePart = parts5[1].trim();
+            }
+        } else {
+            // 如果沒有 ACCESSORY 標籤，假設剩餘全為 SPIRIT (雖然上面 split 已經分開了)
+            // 這裡不需要額外操作
+        }
+
+        RAW_CHAR_DATA = JSON.parse(charPart);
+        RAW_PASSIVE_DATA = passivePart; 
+        RAW_SPIRIT_DATA = JSON.parse(spiritPart);
+
+        // 解析飾品 CSV
+        RAW_ACC_PAID = parseCsv(accPaidPart);
+        RAW_ACC_FREE = parseCsv(accFreePart);
+
+        // 解析被動
+        PASSIVES = parsePassives(); 
+
+    } catch (e) {
+        console.error("解析錯誤:", e);
+        alert("資料格式錯誤，請檢查 loot_party_data.txt 內容。");
+    }
+}
+
+function parseCsv(text) {
+    if (!text) return [];
+    const lines = text.split('\n');
+    const result = [];
+    lines.forEach(line => {
+        const cleanLine = line.trim();
+        if(!cleanLine) return;
+        
+        const parts = cleanLine.split(',');
+        if(parts.length >= 3) {
+            result.push({
+                id: parts[0].trim(),
+                name: parts[1].trim(),
+                value: parseFloat(parts[2].trim())
+            });
+        }
+    });
+    // 預設依數值高低排序
+    return result.sort((a, b) => b.value - a.value);
+}
+
+// ================= CONSTANTS & PARSING =================
+const ATTR_MAP = { 1: '火', 2: '水', 3: '樹', 4: '光', 5: '闇' };
+const ATTR_COLOR = { 1: '#e74c3c', 2: '#3498db', 3: '#27ae60', 4: '#f39c12', 5: '#8e44ad' };
+const WEP_MAP = { 1: '劍', 2: '斧', 3: '槍', 4: '本', 5: '杖', 6: '短', 7: '弓', 8: '特' };
+const RANK_SCORE = { 'S3': 8, 'SS': 7, 'S': 6, 'A': 5, 'B': 4 };
+
+// Fixed Leader IDs (Original Single Mode)
+const FIXED_LEADER_IDS = [20001, 20381, 20751, 21141, 22351, 23271];
+
+// New: Friend Mode Pairs
+// l = Leader ID, f = Friend ID
+const FRIEND_MODE_PAIRS = [
+    { l: 20001, f: 20001 },
+    { l: 20381, f: 20381 },
+    { l: 20751, f: 20751 },
+    { l: 21141, f: 21141 },
+    { l: 22351, f: 22351 },
+    { l: 22351, f: 20751 },
+    { l: 23271, f: 23271 },
+    { l: 23271, f: 20751 }
+];
+
+function parsePassives() {
+    if(!RAW_PASSIVE_DATA) return [];
+    return RAW_PASSIVE_DATA.split('\n').filter(line => line.trim() !== '').map(line => {
+        const parts = line.split(',');
+        return {
+            rank: parts[0].trim(),
+            name: parts[1].trim(),
+            value: parseFloat(parts[2].trim())
+        };
+    });
+}
+
+let PASSIVES = [];
+
+// ================= UI RENDERING =================
+
+function init() {
+    renderCharacters();
+    renderPassives();
+    // renderFixedLeaderOptions will be called by toggle/check
+    renderFixedLeaderOptions(); 
+    renderSpirits();
+    renderAccessories(); // 新增：渲染飾品
+}
+
+function renderAccessories() {
+    const renderList = (data, containerId) => {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div style="color:#999; font-size:12px;">無資料</div>';
+            return;
+        }
+
+        data.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'acc-item';
+            div.innerHTML = `
+                <img src="./acc_icon/${item.id}.png" onerror="this.style.display='none'">
+                <div class="acc-detail">
+                    <div class="acc-name" title="${item.name}">${item.name}</div>
+                    <div class="acc-score">+${item.value}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    };
+
+    renderList(RAW_ACC_PAID, 'accPaidContainer');
+    renderList(RAW_ACC_FREE, 'accFreeContainer');
+}
+
+function renderFixedLeaderOptions() {
+    const container = document.getElementById('fixedLeaderOptions');
+    container.innerHTML = '';
+    
+    const isFriendMode = document.getElementById('enableFriend').checked;
+    const title = document.getElementById('leaderSelectTitle');
+
+    if (isFriendMode) {
+        title.innerText = "請選擇 隊長 + 好友 組合：";
+        
+        // Render Friend Pairs
+        FRIEND_MODE_PAIRS.forEach(pair => {
+            const leader = RAW_CHAR_DATA.find(c => c.id === pair.l);
+            const friend = RAW_CHAR_DATA.find(c => c.id === pair.f);
+            if (!leader || !friend) return;
+
+            // Value format: "LEADER_FRIEND"
+            const valueVal = `${pair.l}_${pair.f}`;
+            const isDifferent = (pair.l !== pair.f);
+
+            const div = document.createElement('div');
+            div.className = 'leader-option';
+            
+            // Build visual html
+            let imgsHtml = '';
+            if (isDifferent) {
+                // Show Leader + Friend
+                imgsHtml = `
+                    <div class="leader-imgs">
+                        <img src="./img/${pair.l}.png" title="隊長: ${leader.name}" onerror="this.style.display='none'">
+                        <span class="leader-plus">+</span>
+                        <img src="./img/${pair.f}.png" title="好友: ${friend.name}" onerror="this.style.display='none'">
+                    </div>
+                `;
+            } else {
+                // Show Single (Implies same)
+                imgsHtml = `
+                    <div class="leader-imgs">
+                        <img src="./img/${pair.l}.png" onerror="this.style.display='none'">
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <input type="radio" name="fixedLeader" value="${valueVal}" id="fl_${valueVal}">
+                <label for="fl_${valueVal}" style="display:flex; align-items:center; margin:0; width:100%; cursor:pointer;">
+                    ${imgsHtml}
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; font-size:12px; line-height:1.2;">
+                            <span style="color:#e67e22;">L:</span> ${leader.name}
+                        </div>
+                        ${isDifferent ? `<div style="font-weight:bold; font-size:12px; line-height:1.2; margin-top:2px;"><span style="color:#f1c40f;">F:</span> ${friend.name}</div>` : '<div style="font-size:11px; color:#888;">(好友同隊長)</div>'}
+                    </div>
+                </label>
+            `;
+            container.appendChild(div);
+        });
+
+    } else {
+        title.innerText = "請選擇一位固定隊長：";
+        // Render Original Single List
+        FIXED_LEADER_IDS.forEach(id => {
+            const char = RAW_CHAR_DATA.find(c => c.id === id);
+            if(!char) return;
+            
+            const div = document.createElement('div');
+            div.className = 'leader-option';
+            div.innerHTML = `
+                <input type="radio" name="fixedLeader" value="${id}" id="fl_${id}">
+                <label for="fl_${id}" style="display:flex; align-items:center; margin:0; width:100%; cursor:pointer;">
+                    <div class="leader-imgs">
+                        <img src="./img/${id}.png" onerror="this.style.display='none'">
+                    </div>
+                    <div>
+                        <div style="font-weight:bold; font-size:13px;">${char.name}</div>
+                        <div style="font-size:11px; color:#666;">LS: ${char.ls}</div>
+                    </div>
+                </label>
+            `;
+            container.appendChild(div);
+        });
+    }
+}
+
+function renderSpirits() {
+    const container = document.getElementById('spiritContainer');
+    container.innerHTML = '';
+
+    const buckets = {1:[], 2:[], 3:[], 4:[], 5:[]};
+    if (RAW_SPIRIT_DATA) {
+        RAW_SPIRIT_DATA.forEach(s => {
+            if(buckets[s.a]) buckets[s.a].push(s);
+        });
+    }
+
+    for(let a=1; a<=5; a++) {
+        const group = document.createElement('div');
+        group.className = 'spirit-group';
+        
+        const header = document.createElement('div');
+        header.className = 'spirit-header';
+        header.style.backgroundColor = ATTR_COLOR[a];
+        header.innerText = ATTR_MAP[a];
+        group.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'spirit-list';
+
+        const noneOption = document.createElement('div');
+        noneOption.className = 'spirit-option';
+        noneOption.innerHTML = `
+            <input type="radio" name="spirit_attr_${a}" value="0" checked>
+            <div style="margin-left:10px; font-size:13px; color:#666;">不選擇</div>
+        `;
+        list.appendChild(noneOption);
+
+        buckets[a].sort((x, y) => y.score - x.score);
+
+        buckets[a].forEach(s => {
+            const item = document.createElement('div');
+            item.className = 'spirit-option';
+            item.innerHTML = `
+                <input type="radio" name="spirit_attr_${a}" value="${s.id}">
+                <img src="./img/${s.id}.png" onerror="this.style.display='none'">
+                <div class="spirit-info">
+                    <div style="font-weight:bold;">${s.name}</div>
+                    <div class="spirit-score">+${s.score}</div>
+                </div>
+            `;
+            list.appendChild(item);
+        });
+
+        group.appendChild(list);
+        container.appendChild(group);
+    }
+}
+
+function toggleFixedLeaderMode() {
+    const isEnabled = document.getElementById('enableFixedLeader').checked;
+    const panel = document.getElementById('fixedLeaderPanel');
+    const friendCb = document.getElementById('enableFriend');
+    const lblFriend = document.getElementById('lblFriendMode');
+
+    panel.style.display = isEnabled ? 'block' : 'none';
+    
+    if (isEnabled) {
+        friendCb.disabled = false;
+        lblFriend.style.opacity = "1";
+    } else {
+        friendCb.checked = false;
+        friendCb.disabled = true;
+        lblFriend.style.opacity = "0.5";
+    }
+    // Re-render based on current state
+    renderFixedLeaderOptions();
+}
+// 新增函式：處理隱藏弱角的切換與取消選擇邏輯
+// 修改後：處理隱藏弱角的切換，但排除 "無打寶特效(雙S3)" 欄位的角色
+function handleHideWeakToggle() {
+    const cb = document.getElementById('hideWeakChars');
+    if (cb.checked) {
+        const selectedCheckboxes = document.querySelectorAll('.char-checkbox:checked');
+        let deselectedCount = 0;
+        
+        selectedCheckboxes.forEach(box => {
+            const id = parseInt(box.value);
+            const charData = RAW_CHAR_DATA.find(c => c.id === id);
+            
+            // 如果找不到資料或是屬於 "無打寶特效(雙S3)" (sort_type為2)，則跳過，不進行取消
+            if (!charData || charData.sort_type === 2) return;
+
+            // 其餘角色若 wep1, wep2 皆為 2.0 則取消勾選
+            if (charData.wep1 === 2.0 && charData.wep2 === 2.0) {
+                box.checked = false;
+                deselectedCount++;
+            }
+        });
+
+        if (deselectedCount > 0) {
+            updateSelectedCount();
+        }
+    }
+    renderCharacters();
+}
+function renderCharacters() {
+    const container = document.getElementById('charColumns');
+    const hideWeak = document.getElementById('hideWeakChars') ? document.getElementById('hideWeakChars').checked : false;
+    const searchText = document.getElementById('charSearch').value.toLowerCase();
+    
+    container.innerHTML = '';
+    if (!RAW_CHAR_DATA) return;
+
+    const buckets = Array.from({length: 10}, () => []);
+
+    RAW_CHAR_DATA.forEach(c => {
+        // 先過濾搜尋關鍵字
+        if (searchText && !c.name.toLowerCase().includes(searchText)) return;
+
+        // 特殊規則：如果是 "無打寶特效(雙S3)" (sort_type === 2)
+        // 直接放入 buckets[9]，忽略隱藏弱角的設定
+        if (c.sort_type === 2) {
+            buckets[9].push(c);
+            return; // 處理完畢，跳出
+        }
+
+        // 一般角色：執行隱藏弱角判斷
+        if (hideWeak) {
+            if (c.wep1 === 2.0 && c.wep2 === 2.0) return;
+        }
+
+        // 一般角色分類放入對應武器籃子
+        if (c.wc >= 1 && c.wc <= 8) {
+            buckets[c.wc].push(c);
+        }
+    });
+
+    for (let i = 1; i <= 8; i++) {
+        renderColumn(container, buckets[i], WEP_MAP[i], i);
+    }
+    // 第 9 欄 (colIndex 9)
+    renderColumn(container, buckets[9], "無打寶特效(雙S3)", 9);
+
+    updateSelectedCount();
+}
+
+function renderColumn(container, chars, title, colIndex) {
+    const colGroup = document.createElement('div');
+    colGroup.className = 'col-group';
+    
+    const header = document.createElement('div');
+    header.className = 'col-header';
+    header.innerText = title;
+    colGroup.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'col-list';
+    
+    // --- 修改排序邏輯開始 ---
+    if (colIndex === 9) {
+        // 第9欄 "無打寶特效(雙S3)" 維持原有的僅比較 wep2
+        chars.sort((a, b) => b.wep2 - a.wep2);
+    } else {
+        // 其他武器欄位套用新規則
+        chars.sort((a, b) => {
+            // 內部函數：計算被動分數 (S3=8 -> 2分, SS=7 -> 1分)
+            const getPassiveScore = (c) => {
+                let s = 0;
+                [c.sc1, c.sc2, c.sc3].forEach(slot => {
+                    if (slot === 8) s += 2.0;
+                    else if (slot === 7) s += 1.0;
+                });
+                return s;
+            };
+
+            const scoreA = a.wep2 + getPassiveScore(a);
+            const scoreB = b.wep2 + getPassiveScore(b);
+
+            // 1. 比較 "wep2 + 被動分數" (高到低)
+            if (scoreB !== scoreA) {
+                return scoreB - scoreA;
+            }
+
+            // 2. 同分時，比較 "wep1" (高到低)
+            if (b.wep1 !== a.wep1) {
+                return b.wep1 - a.wep1;
+            }
+
+            // 3. wep1 也相同時，依照 id 排序 (大到小)
+            return b.id - a.id; 
+        });
+    }
+    // --- 修改排序邏輯結束 ---
+
+    chars.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'char-card';
+        
+        const slots = [c.sc1, c.sc2, c.sc3].map(s => {
+            if (s === 8) return '<span class="slot-tag">S3</span>';
+            if (s === 7) return '<span class="slot-tag">SS</span>';
+            if (s === 0) return '';
+            return `<span class="slot-tag">${s}</span>`;
+        }).join('');
+
+        let wepDisplay = `<span class="wep-val">${c.wep2}</span>`;
+        if (c.wep_condition) {
+            wepDisplay += `<span class="condition-val">(${c.wep1})</span>`;
+        }
+
+        item.innerHTML = `
+            <input type="checkbox" class="char-checkbox ${colIndex <= 8 ? 'wc-char' : ''}" value="${c.id}" data-wep2="${c.wep2}" data-col="${colIndex}">
+            <img src="./img/${c.id}.png" onerror="this.style.display='none'">
+            <div class="char-info">
+                <div class="char-name" title="${c.name}">${c.name}</div>
+                <div class="char-meta">
+                    ${wepDisplay}
+                    ${slots}
+                </div>
+            </div>
+        `;
+        list.appendChild(item);
+    });
+
+    colGroup.appendChild(list);
+    container.appendChild(colGroup);
+}
+
+function renderPassives() {
+    const list = document.getElementById('passiveList');
+    list.innerHTML = '';
+    PASSIVES.forEach((p, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><span class="stat-tag bg-purple">${p.rank}</span></td>
+            <td>${p.name}</td>
+            <td>${p.value}</td>
+            <td><input type="number" min="0" value="0" class="passive-input" data-index="${index}"></td>
+        `;
+        list.appendChild(row);
+    });
+}
+
+function toggleAllChars(source) {
+    document.querySelectorAll('.char-checkbox').forEach(cb => {
+        if(cb.offsetParent !== null) {
+            cb.checked = source.checked;
+        }
+    });
+    updateSelectedCount();
+}
+
+// 修改後的按鈕邏輯
+function selectTop4PerWeapon() {
+    const container = document.getElementById('charColumns');
+    const colGroups = container.querySelectorAll('.col-group');
+    
+    // 原有邏輯：選擇前8組(武器組)的前4名
+    for (let i = 0; i < 8; i++) { 
+        if (colGroups[i]) {
+            const checkboxes = colGroups[i].querySelectorAll('.char-checkbox');
+            for (let j = 0; j < checkboxes.length && j < 4; j++) {
+                checkboxes[j].checked = true;
+            }
+        }
+    }
+    
+    // 新增邏輯：額外選擇短劍、本雙S3的指定角色
+    const extraIds = [21361, 17701];
+    extraIds.forEach(id => {
+        // 使用屬性選擇器找到對應 ID 的 checkbox
+        const cb = document.querySelector(`.char-checkbox[value="${id}"]`);
+        if (cb) {
+            cb.checked = true;
+        }
+    });
+
+    updateSelectedCount();
+}
+// 新增功能：排除限定/合作，順延選擇前4名
+function selectTop4NonLimited() {
+    const container = document.getElementById('charColumns');
+    const colGroups = container.querySelectorAll('.col-group');
+    
+    // 遍歷前 8 個欄位 (武器欄位 1~8)
+    for (let i = 0; i < 8; i++) { 
+        if (colGroups[i]) {
+            const checkboxes = colGroups[i].querySelectorAll('.char-checkbox');
+            let selectedCount = 0;
+
+            checkboxes.forEach(cb => {
+                const id = parseInt(cb.value);
+                const charData = RAW_CHAR_DATA.find(c => c.id === id);
+                
+                if (charData) {
+                    const name = charData.name;
+                    // 檢查名稱是否以 (合) 或 (限) 開頭
+                    const isExcluded = name.startsWith('(合)') || name.startsWith('(限)');
+
+                    if (isExcluded) {
+                        // 如果是限定/合作角色，強制取消勾選 (即使他原本在前4名)
+                        cb.checked = false;
+                    } else {
+                        // 如果是非限定角色，且目前該武器選取數還沒滿 4 人
+                        if (selectedCount < 4) {
+                            cb.checked = true;
+                            selectedCount++;
+                        }
+                        // 若已滿 4 人，則不更動後續角色的狀態 (維持使用者原本的勾選，或維持未勾選)
+                    }
+                }
+            });
+        }
+    }
+    
+    // 處理特殊欄位：無打寶特效(雙S3)
+    // 邏輯維持原狀：只勾選指定的兩個 ID
+    const extraIds = [21361, 17701];
+    extraIds.forEach(id => {
+        // 使用屬性選擇器找到對應 ID 的 checkbox
+        const cb = document.querySelector(`.char-checkbox[value="${id}"]`);
+        if (cb) {
+            cb.checked = true;
+        }
+    });
+
+    updateSelectedCount();
+}
+function updateSelectedCount() {
+    const count = document.querySelectorAll('.char-checkbox:checked').length;
+    document.getElementById('selectedCount').innerText = `已選擇: ${count} 人`;
+    
+    document.querySelectorAll('.char-checkbox').forEach(cb => {
+        cb.onchange = () => {
+             document.getElementById('selectedCount').innerText = `已選擇: ${document.querySelectorAll('.char-checkbox:checked').length} 人`;
+        };
+    });
+}
+
+// ================= CORE LOGIC =================
+
+function checkCondition(condStr, teamStats) {
+    if (!condStr) return false;
+    const parts = condStr.split(',');
+    const firstPart = parts[0].split(':');
+    if (firstPart.length !== 2) return false;
+    
+    const type = firstPart[0];
+    const values = [parseInt(firstPart[1])];
+    for (let i = 1; i < parts.length; i++) {
+        values.push(parseInt(parts[i]));
+    }
+    
+    const requiredCounts = {};
+    values.forEach(v => requiredCounts[v] = (requiredCounts[v] || 0) + 1);
+    
+    const teamCounts = (type === 'wc') ? teamStats.wepCounts : teamStats.attrCounts;
+    
+    for (const [key, reqVal] of Object.entries(requiredCounts)) {
+        if ((teamCounts[key] || 0) < reqVal) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function getCombinations(array, size) {
+    function* doCombo(offset, combo) {
+        if (combo.length === size) {
+            yield combo;
+            return;
+        }
+        for (let i = offset; i < array.length; i++) {
+            yield* doCombo(i + 1, combo.concat(array[i]));
+        }
+    }
+    return doCombo(0, []);
+}
+
+async function calculateBestTeam() {
+    const btn = document.getElementById('calcBtn');
+    const status = document.getElementById('statusMsg');
+    const resultDiv = document.getElementById('resultOutput');
+    const resultSection = document.getElementById('resultSection');
+    
+    const isFixedLeaderMode = document.getElementById('enableFixedLeader').checked;
+    const isFriendMode = isFixedLeaderMode && document.getElementById('enableFriend').checked;
+
+    let fixedLeaderChar = null;
+    let friendChar = null;
+
+    if (isFixedLeaderMode) {
+        const selectedRadio = document.querySelector('input[name="fixedLeader"]:checked');
+        if (!selectedRadio) {
+            alert("請選擇隊長組合！");
+            return;
+        }
+
+        const rawVal = selectedRadio.value;
+        let leaderId, friendId;
+
+        // Parse Leader ID and Friend ID
+        if (rawVal.includes('_')) {
+            const parts = rawVal.split('_');
+            leaderId = parseInt(parts[0]);
+            friendId = parseInt(parts[1]);
+        } else {
+            leaderId = parseInt(rawVal);
+            friendId = leaderId; // Default friend same as leader if not pair mode
+        }
+
+        fixedLeaderChar = RAW_CHAR_DATA.find(c => c.id === leaderId);
+
+        if (isFriendMode) {
+            const friendData = RAW_CHAR_DATA.find(c => c.id === friendId);
+            if (friendData) {
+                friendChar = { ...friendData };
+            }
+        }
+    }
+
+    const userSpirits = {};
+    for(let a=1; a<=5; a++) {
+        const radio = document.querySelector(`input[name="spirit_attr_${a}"]:checked`);
+        if(radio && radio.value !== '0') {
+            const spId = parseInt(radio.value);
+            userSpirits[a] = RAW_SPIRIT_DATA.find(s => s.id === spId);
+        }
+    }
+
+    const selectedIds = Array.from(document.querySelectorAll('.char-checkbox:checked')).map(cb => parseInt(cb.value));
+    let poolChars = RAW_CHAR_DATA.filter(c => selectedIds.includes(c.id));
+    
+    let requiredSubCount = 6;
+    
+    if (isFixedLeaderMode) {
+        poolChars = poolChars.filter(c => c.id !== fixedLeaderChar.id);
+        requiredSubCount = 5;
+        if (poolChars.length < 5) {
+            alert("固定隊長模式下，請至少再選擇 5 名隊員！");
+            return;
+        }
+    } else {
+        if (poolChars.length < 6) {
+            alert("請至少選擇 6 名角色！");
+            return;
+        }
+    }
+
+    let userSkillPool = [];
+    document.querySelectorAll('.passive-input').forEach(inp => {
+        const count = parseInt(inp.value);
+        if (count > 0) {
+            const pData = PASSIVES[inp.dataset.index];
+            for(let i=0; i<count; i++) {
+                userSkillPool.push({ ...pData, rankVal: RANK_SCORE[pData.rank] });
+            }
+        }
+    });
+    userSkillPool.sort((a, b) => b.value - a.value);
+
+    btn.disabled = true;
+    status.style.display = 'inline-block';
+    
+    await new Promise(r => setTimeout(r, 50));
+
+    let effectivePool = poolChars;
+    const POOL_LIMIT = 40; 
+
+    if (poolChars.length > POOL_LIMIT) {
+        status.innerText = "正在篩選菁英角色(保障各武器戰力)...";
+        await new Promise(r => setTimeout(r, 10));
+
+        // [修改 1] S3 技能加分改為 2.0
+        const S3_VAL = 2.0; 
+        const SS_VAL = 1.0; 
+        
+        // 輔助函式：計算被動加分
+        const getPassiveScore = (c) => {
+            return [c.sc1, c.sc2, c.sc3].reduce((acc, sc) => {
+                if (sc === 8) return acc + S3_VAL;
+                if (sc === 7) return acc + SS_VAL;
+                return acc;
+            }, 0);
+        };
+
+        // [修改 2] 找出每個武器(1-8)最強的兩名 (依據 WEP1 + 被動)
+        // 目的是防止特定武器被全數篩掉
+        const mandatoryIds = new Set();
+        for (let w = 1; w <= 8; w++) {
+            // 找出該武器的所有候選人
+            const wChars = poolChars.filter(c => c.wc === w);
+            
+            // 依照 WEP1 + 被動分數 進行降序排列
+            wChars.sort((a, b) => {
+                const scoreA = a.wep1 + getPassiveScore(a);
+                const scoreB = b.wep1 + getPassiveScore(b);
+                return scoreB - scoreA;
+            });
+
+            // 取前 2 名加入保底 ID (不足 2 名則全取)
+            wChars.slice(0, 2).forEach(c => mandatoryIds.add(c.id));
+        }
+
+        // [修改 3] 計算所有人的通用分數 (用來填補剩餘空位)
+        // 通用分數維持：Max(Wep1, Wep2) + 被動分數
+        const scoredChars = poolChars.map(c => {
+            return {
+                char: c,
+                memberScore: Math.max(c.wep1, c.wep2) + getPassiveScore(c)
+            };
+        });
+
+        // 依通用分數由高至低排序
+        scoredChars.sort((a, b) => b.memberScore - a.memberScore);
+
+        // [修改 4] 構建最終名單
+        const finalPool = [];
+        const addedIds = new Set();
+
+        // 4.1 先加入保底名單 (Mandatory)
+        // 注意：這裡重新遍歷 poolChars 是為了確保加入順序或直接用 ID 抓取
+        poolChars.forEach(c => {
+            if (mandatoryIds.has(c.id)) {
+                finalPool.push(c);
+                addedIds.add(c.id);
+            }
+        });
+
+        // 4.2 填補剩餘名額直到 POOL_LIMIT
+        for (const item of scoredChars) {
+            if (finalPool.length >= POOL_LIMIT) break;
+            
+            // 如果該角色尚未被加入(非保底角色)，則加入
+            if (!addedIds.has(item.char.id)) {
+                finalPool.push(item.char);
+                addedIds.add(item.char.id);
+            }
+        }
+
+        effectivePool = finalPool;
+
+        // 同步 UI：將不在 effectivePool 中的角色取消勾選
+        const effectiveIds = new Set(effectivePool.map(c => c.id));
+        document.querySelectorAll('.char-checkbox:checked').forEach(cb => {
+            const id = parseInt(cb.value);
+            if (!effectiveIds.has(id)) {
+                cb.checked = false;
+            }
+        });
+        updateSelectedCount();
+    }
+
+    status.innerText = "計算中...";
+    await new Promise(r => setTimeout(r, 10));
+
+    let maxScore = -1;
+    let bestTeam = null;
+    let combinationsProcessed = 0;
+
+    const generator = getCombinations(effectivePool, requiredSubCount);
+    
+    for (const subTeam of generator) {
+        combinationsProcessed++;
+        
+        let team = subTeam;
+        let friendMember = null;
+
+        if (isFixedLeaderMode) {
+            team = [fixedLeaderChar, ...subTeam];
+        }
+
+        const stats = { attrCounts: {}, wepCounts: {} };
+        
+        team.forEach(c => {
+            stats.attrCounts[c.a] = (stats.attrCounts[c.a] || 0) + 1;
+            stats.wepCounts[c.wc] = (stats.wepCounts[c.wc] || 0) + 1;
+        });
+
+        if (isFriendMode && friendChar) {
+            stats.attrCounts[friendChar.a] = (stats.attrCounts[friendChar.a] || 0) + 1;
+            stats.wepCounts[friendChar.wc] = (stats.wepCounts[friendChar.wc] || 0) + 1;
+        }
+
+        const memberData = team.map(c => {
+            let activeWep = c.wep1;
+            if (c.wep_condition && checkCondition(c.wep_condition, stats)) {
+                activeWep = c.wep2;
+            }
+            return {
+                char: c,
+                wepVal: activeWep,
+                slots: [c.sc1, c.sc2, c.sc3].filter(s => s > 0).sort((a,b) => a - b)
+            };
+        });
+
+        let totalWep = memberData.reduce((sum, m) => sum + m.wepVal, 0);
+
+        let friendWep = 0;
+        let friendPassiveScore = 0;
+        let friendDetails = null;
+
+        if (isFriendMode && friendChar) {
+            let fWep = friendChar.wep1;
+            if (friendChar.wep_condition && checkCondition(friendChar.wep_condition, stats)) {
+                fWep = friendChar.wep2;
+            }
+            friendWep = fWep;
+            totalWep += friendWep;
+
+            const fSlots = [friendChar.sc1, friendChar.sc2, friendChar.sc3].filter(s => s > 0);
+            const ANNIV_8_VAL = 3.3;
+            friendPassiveScore = fSlots.length * ANNIV_8_VAL;
+            
+            friendDetails = {
+                char: friendChar,
+                wepVal: friendWep,
+                slots: fSlots,
+                assignedPassives: fSlots.map(() => ({name: "8周年のドキドキ(Friend)", rank: "S3", value: ANNIV_8_VAL}))
+            };
+        }
+
+        let allSlots = [];
+        memberData.forEach((m, mIdx) => {
+            m.slots.forEach((sRank, sIdx) => {
+                allSlots.push({ rank: sRank, mIdx: mIdx });
+            });
+        });
+        
+        let currentSkillPool = [...userSkillPool]; 
+        let assignedPassivesScore = 0;
+        let assignedDetails = memberData.map(() => []);
+
+        for (const skill of currentSkillPool) {
+            if (allSlots.length === 0) break;
+            
+            let bestSlotIdx = -1;
+            let minRankDiff = 99;
+            
+            for (let i = 0; i < allSlots.length; i++) {
+                const slotRank = allSlots[i].rank;
+                if (slotRank >= skill.rankVal) {
+                    const diff = slotRank - skill.rankVal;
+                    if (diff < minRankDiff) {
+                        minRankDiff = diff;
+                        bestSlotIdx = i;
+                    }
+                    if (diff === 0) break;
+                }
+            }
+            
+            if (bestSlotIdx !== -1) {
+                const slot = allSlots[bestSlotIdx];
+                assignedPassivesScore += skill.value;
+                assignedDetails[slot.mIdx].push(skill);
+                allSlots.splice(bestSlotIdx, 1);
+            }
+        }
+
+        let currentMaxLS = -1;
+        let bestLeaderIdx = 0;
+
+        if (isFixedLeaderMode) {
+            bestLeaderIdx = 0;
+            currentMaxLS = memberData[0].char.ls;
+        } else {
+            for (let i = 0; i < memberData.length; i++) {
+                if (memberData[i].char.ls > currentMaxLS) {
+                    currentMaxLS = memberData[i].char.ls;
+                    bestLeaderIdx = i;
+                }
+            }
+        }
+        
+        const leaderAttr = memberData[bestLeaderIdx].char.a;
+        const activeSpirit = userSpirits[leaderAttr];
+        const spiritScore = activeSpirit ? activeSpirit.score : 0;
+        
+        const totalScore = totalWep + assignedPassivesScore + friendPassiveScore + currentMaxLS + spiritScore;
+        
+        if (totalScore > maxScore) {
+            maxScore = totalScore;
+            bestTeam = {
+                members: memberData,
+                friendMember: friendDetails,
+                leaderIdx: bestLeaderIdx,
+                lsScore: currentMaxLS,
+                wepScore: totalWep,
+                passiveScore: assignedPassivesScore + friendPassiveScore,
+                spiritScore: spiritScore,
+                activeSpirit: activeSpirit,
+                assignedPassives: assignedDetails,
+                stats: JSON.parse(JSON.stringify(stats))
+            };
+        }
+        
+        if (combinationsProcessed > 1000000) break;
+    }
+
+    if (bestTeam) {
+        displayResult(bestTeam, maxScore);
+        resultSection.style.display = 'block';
+    } else {
+        resultDiv.innerHTML = '<p>無法計算，請檢查選擇。</p>';
+    }
+
+    btn.disabled = false;
+    status.style.display = 'none';
+}
+
+function getConditionPreviewHtml(condStr, teamStats) {
+    if (!condStr) return '';
+
+    const parts = condStr.split(',');
+    const firstPart = parts[0].split(':');
+    
+    if (firstPart.length !== 2) return '';
+
+    const type = firstPart[0];
+    const values = [parseInt(firstPart[1])];
+    for (let i = 1; i < parts.length; i++) {
+        values.push(parseInt(parts[i]));
+    }
+
+    const labelMap = (type === 'wc') ? WEP_MAP : ATTR_MAP;
+    const countSource = (type === 'wc') ? teamStats.wepCounts : teamStats.attrCounts;
+    
+    const availableCounts = { ...countSource };
+
+    let html = '<div style="margin-top:4px; line-height:1.4;">';
+
+    values.forEach(val => {
+        const name = labelMap[val] || '?';
+        let isMet = false;
+
+        if ((availableCounts[val] || 0) > 0) {
+            isMet = true;
+            availableCounts[val]--;
+        }
+
+        const style = isMet 
+            ? 'font-weight:bold; color:#333; font-size:11px;' 
+            : 'font-weight:normal; color:#bbb; font-size:11px;';
+        
+        html += `<span style="${style} margin-right:3px;">${name}</span>`;
+    });
+
+    html += '</div>';
+    return html;
+}
+
+function displayResult(teamData, totalScore) {
+    const container = document.getElementById('resultOutput');
+    
+    const leader = teamData.members[teamData.leaderIdx];
+    const others = teamData.members.filter((_, i) => i !== teamData.leaderIdx);
+    const sortedMembers = [leader, ...others];
+    
+    const getPassives = (memObj) => {
+        const idx = teamData.members.indexOf(memObj);
+        if (idx !== -1) {
+            return teamData.assignedPassives[idx] || [];
+        }
+        return [];
+    };
+
+    let rows = sortedMembers.map((m, index) => {
+        const isLeader = (index === 0);
+        const passivesHtml = getPassives(m)
+            .map(p => `<div><span class="stat-tag bg-purple">${p.rank}</span> ${p.name} (+${p.value})</div>`)
+            .join('');
+        
+        const conditionHtml = getConditionPreviewHtml(m.char.wep_condition, teamData.stats);
+            
+        return `
+            <tr class="${isLeader ? 'res-bg-green' : 'res-bg-white'}">
+                <td>${isLeader ? '<strong>隊長</strong>' : '隊員'}</td>
+                <td>
+                    <div style="display:flex; align-items:center;">
+                        <img src="./img/${m.char.id}.png" style="height:60px; margin-right:10px;" onerror="this.style.display='none'">
+                        <div>
+                            <div>${m.char.name}</div>
+                            ${conditionHtml}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="stat-tag bg-red">${ATTR_MAP[m.char.a]}</span>
+                    <span class="stat-tag bg-blue">${WEP_MAP[m.char.wc]}</span>
+                </td>
+                <td style="font-weight:bold; color:#d35400;">${m.wepVal}</td>
+                <td>${passivesHtml || '<span style="color:#ccc">無</span>'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    if (teamData.friendMember) {
+        const f = teamData.friendMember;
+        const fPassivesHtml = f.assignedPassives
+            .map(p => `<div><span class="stat-tag bg-gold">${p.rank}</span> ${p.name} (+${p.value})</div>`)
+            .join('');
+        
+        const fConditionHtml = getConditionPreviewHtml(f.char.wep_condition, teamData.stats);
+
+        rows += `
+            <tr class="res-bg-gold">
+                <td><strong>好友</strong></td>
+                <td>
+                    <div style="display:flex; align-items:center;">
+                        <img src="./img/${f.char.id}.png" style="height:60px; margin-right:10px;" onerror="this.style.display='none'">
+                        <div>
+                            <div>${f.char.name}</div>
+                            ${fConditionHtml}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <span class="stat-tag bg-red">${ATTR_MAP[f.char.a]}</span>
+                    <span class="stat-tag bg-blue">${WEP_MAP[f.char.wc]}</span>
+                </td>
+                <td style="font-weight:bold; color:#d35400;">${f.wepVal}</td>
+                <td>${fPassivesHtml}</td>
+            </tr>
+        `;
+    }
+
+    let spiritHtml = '無';
+    if(teamData.activeSpirit) {
+        spiritHtml = `
+            <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
+                <span style="font-weight:bold; color:#8e44ad;">${teamData.activeSpirit.name}</span>
+                <img src="./img/${teamData.activeSpirit.id}.png" style="height:40px;">
+                <span style="color:#e74c3c; font-weight:bold;">+${teamData.activeSpirit.score}</span>
+            </div>
+        `;
+    }
+
+    container.innerHTML = `
+        <div class="result-summary-box">
+            <div>
+                <div>最高總分</div>
+                <div class="summary-score">${totalScore.toFixed(2)}</div>
+            </div>
+            <div class="summary-details">
+                隊長技: ${teamData.lsScore}<br>
+                精靈加成: ${teamData.spiritScore}<br>
+                武器總和: ${teamData.wepScore.toFixed(2)}<br>
+                被動總和: ${teamData.passiveScore.toFixed(2)}
+            </div>
+        </div>
+        
+        ${teamData.activeSpirit ? 
+          `<div style="text-align:right; margin-bottom:10px; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:5px;">
+             <strong>生效精靈 (與隊長同屬性):</strong> ${spiritHtml}
+           </div>` 
+          : ''
+        }
+
+        <table class="res-table">
+            <thead>
+                <tr>
+                    <th>職位</th>
+                    <th>角色</th>
+                    <th>屬性/武器</th>
+                    <th>武器加成</th>
+                    <th>分配技能</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+            </tbody>
+        </table>
+    `;
+}
+
+// Start
+loadExternalData();
+
+</script>
+</body>
+</html>

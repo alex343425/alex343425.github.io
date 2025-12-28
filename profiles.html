@@ -5,6 +5,33 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Profiles Viewer</title>
   <style>
+  /* ================= NAV BAR STYLES ================= */
+        .nav-bar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-bar a {
+            text-decoration: none;
+            color: #4a90e2;
+            padding: 5px 10px;
+            border: 1px solid #4a90e2;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .nav-bar a:hover {
+            background-color: #4a90e2;
+            color: white;
+        }
     body{font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans CJK TC", "Microsoft JhengHei", Arial; margin:20px; background:#f5f7fb}
     .controls{display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
     .group{background:#fff;padding:10px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
@@ -27,7 +54,15 @@
   </style>
 </head>
 <body>
-<a href="./index.html" target="_blank">技能搜尋</a> <a href="./lswep.html" target="_blank">隊長技/專武搜尋</a> <a href="./cheerleading.html" target="_blank">啦啦隊搜尋</a> <a href="./normal_char.html" target="_blank">普池收集檢查</a> <a href="./profiles.html" target="_blank">親愛度文本</a> 
+<div class="nav-bar">
+        <a href="./index.html" target="_blank">技能搜尋</a>
+        <a href="./lswep.html" target="_blank">隊長技/專武搜尋</a>
+        <a href="./cheerleading.html" target="_blank">啦啦隊搜尋</a>
+        <a href="./normal_char.html" target="_blank">普池收集檢查</a>
+        <a href="./profiles.html" target="_blank">親愛度文本</a>
+        <a href="./exp_party.html" target="_blank">最佳經驗隊</a>
+        <a href="./loot_party.html" target="_blank">最佳複製隊</a>
+    </div>
 <br>
   <h2>親愛度文本</h2>
 <div id="lastUpdate" style="margin-bottom: 12px; font-size: 0.9em; color: #666;"></div>
