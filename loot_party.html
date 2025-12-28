@@ -272,6 +272,57 @@
             font-size: 12px;
         }
         .acc-score { font-weight: bold; color: #e74c3c; font-size: 14px; margin-top: 2px; }
+
+        /* Tarot Modal Styles */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            margin: 5% auto;
+            display: block;
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .close-modal:hover,
+        .close-modal:focus {
+            color: #bbb;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .tarot-link {
+            font-size: 10px; 
+            color: #3498db; 
+            cursor: pointer; 
+            text-decoration: underline; 
+            display: inline-block;
+            line-height: 1.2;
+            margin-top: 2px;
+        }
+        .tarot-link:hover {
+            color: #2980b9;
+        }
+
     </style>
 </head>
 <body>
@@ -373,6 +424,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="tarotModal" class="modal" onclick="closeTarotModal()">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" id="tarotImg" src="./tarot_wep.png">
     </div>
 
 <script>
@@ -1374,6 +1430,16 @@ function getConditionPreviewHtml(condStr, teamStats) {
     return html;
 }
 
+// Modal Functions
+function openTarotModal(e) {
+    if(e) e.stopPropagation();
+    document.getElementById('tarotModal').style.display = "block";
+}
+
+function closeTarotModal() {
+    document.getElementById('tarotModal').style.display = "none";
+}
+
 function displayResult(teamData, totalScore) {
     const container = document.getElementById('resultOutput');
     
@@ -1396,7 +1462,13 @@ function displayResult(teamData, totalScore) {
             .join('');
         
         const conditionHtml = getConditionPreviewHtml(m.char.wep_condition, teamData.stats);
-            
+        
+        // Handle Weapon Value Display (Special logic for value 2)
+        let wepDisplayVal = m.wepVal;
+        if (m.wepVal === 2) {
+            wepDisplayVal = `2<br><span class="tarot-link" onclick="openTarotModal(event)">(塔羅打寶武)</span>`;
+        }
+
         return `
             <tr class="${isLeader ? 'res-bg-green' : 'res-bg-white'}">
                 <td>${isLeader ? '<strong>隊長</strong>' : '隊員'}</td>
@@ -1413,7 +1485,7 @@ function displayResult(teamData, totalScore) {
                     <span class="stat-tag bg-red">${ATTR_MAP[m.char.a]}</span>
                     <span class="stat-tag bg-blue">${WEP_MAP[m.char.wc]}</span>
                 </td>
-                <td style="font-weight:bold; color:#d35400;">${m.wepVal}</td>
+                <td style="font-weight:bold; color:#d35400;">${wepDisplayVal}</td>
                 <td>${passivesHtml || '<span style="color:#ccc">無</span>'}</td>
             </tr>
         `;
@@ -1426,6 +1498,12 @@ function displayResult(teamData, totalScore) {
             .join('');
         
         const fConditionHtml = getConditionPreviewHtml(f.char.wep_condition, teamData.stats);
+
+        // Handle Friend Weapon Value Display
+        let fWepDisplayVal = f.wepVal;
+        if (f.wepVal === 2) {
+            fWepDisplayVal = `2<br><span class="tarot-link" onclick="openTarotModal(event)">(塔羅打寶武)</span>`;
+        }
 
         rows += `
             <tr class="res-bg-gold">
@@ -1443,7 +1521,7 @@ function displayResult(teamData, totalScore) {
                     <span class="stat-tag bg-red">${ATTR_MAP[f.char.a]}</span>
                     <span class="stat-tag bg-blue">${WEP_MAP[f.char.wc]}</span>
                 </td>
-                <td style="font-weight:bold; color:#d35400;">${f.wepVal}</td>
+                <td style="font-weight:bold; color:#d35400;">${fWepDisplayVal}</td>
                 <td>${fPassivesHtml}</td>
             </tr>
         `;
