@@ -63,6 +63,7 @@
         .bg-orange { background-color: #e67e22; }
         .bg-dark { background-color: #34495e; }
         .bg-gold { background-color: #f1c40f; color: #333; } /* For Friend tag */
+        .bg-grey { background-color: #95a5a6; } /* For Custom Char tag */
         
         .slot-tag { font-family: monospace; font-weight: bold; color: #555; background: #eee; padding: 1px 4px; border-radius: 3px; font-size: 10px; margin: 0 1px; }
 
@@ -81,6 +82,7 @@
         .res-bg-green { background-color: #d0e9c6; } /* Leader */
         .res-bg-gold { background-color: #fff8e1; } /* Friend */
         .res-bg-white { background-color: #fff; }
+        .res-bg-custom { background-color: #e8e8e8; } /* Custom Char */
 
         .loading { color: #e67e22; font-weight: bold; margin-left: 10px; display: inline-block; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.5; } }
@@ -114,7 +116,6 @@
         }
         .leader-option:hover { background-color: #fdfdfd; border-color: #bbb; }
         
-        /* New Styles for Double Images */
         .leader-imgs {
             display: flex;
             align-items: center;
@@ -125,6 +126,24 @@
         }
         .leader-imgs img { height: 45px; width: auto; display: block; }
         .leader-plus { font-weight: bold; font-size: 18px; margin: 0 5px; color: #7f8c8d; }
+
+        /* Custom Char Section */
+        .custom-char-panel {
+            background-color: #e8e8e8;
+            border: 1px solid #bbb;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .custom-input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+        select.custom-select { padding: 4px; border-radius: 4px; border: 1px solid #ccc; }
 
         /* Spirit Section Styles */
         .spirit-container {
@@ -346,10 +365,13 @@
             
             <div class="filter-bar">
                 <label style="font-weight: bold; color: #d35400;">
-                    <input type="checkbox" id="enableFixedLeader" onchange="toggleFixedLeaderMode()"> 啟用固定隊長模式
+                    <input type="checkbox" id="enableFixedLeader" onchange="toggleFixedLeaderMode()"> 啟用固定隊長模式(降低計算量)
                 </label>
                 <label style="font-weight: bold; color: #8e44ad; margin-left: 15px;" id="lblFriendMode">
-                    <input type="checkbox" id="enableFriend" onchange="renderFixedLeaderOptions()" disabled> 啟用好友支援 (第7人)
+                    <input type="checkbox" id="enableFriend" onchange="toggleFriendMode()" disabled> 啟用好友支援 (第7人)
+                </label>
+                <label style="font-weight: bold; color: #34495e; margin-left: 15px;">
+                    <input type="checkbox" id="enableCustomChar" onchange="toggleCustomCharMode()"> 啟用固定自訂角色 (與好友互斥，百人1st一刀用)
                 </label>
             </div>
 
@@ -359,9 +381,43 @@
                     </div>
             </div>
 
+            <div id="customCharPanel" class="custom-char-panel">
+                <strong>自訂角色設定 (不會成為隊長，必定入隊)：</strong>
+                <div class="custom-input-group">
+                    <label>屬性:
+                        <select id="custAttr" class="custom-select">
+                            <option value="1">火</option>
+                            <option value="2">水</option>
+                            <option value="3">樹</option>
+                            <option value="4">光</option>
+                            <option value="5">闇</option>
+                        </select>
+                    </label>
+                    <label>武器:
+                        <select id="custWep" class="custom-select">
+                            <option value="1">劍</option>
+                            <option value="2">斧</option>
+                            <option value="3">槍</option>
+                            <option value="4">本</option>
+                            <option value="5">杖</option>
+                            <option value="6">短</option>
+                            <option value="7">弓</option>
+                            <option value="8">特</option>
+                        </select>
+                    </label>
+                    <label>武器分數: <input type="number" id="custScore" value="0" min="0" step="0.1"></label>
+                </div>
+                <div class="custom-input-group">
+                    <span>被動技能格 (開啟S3):</span>
+                    <label><input type="checkbox" id="custSC1"> 格子1(S3)</label>
+                    <label><input type="checkbox" id="custSC2"> 格子2(S3)</label>
+                    <label><input type="checkbox" id="custSC3"> 格子3(S3)</label> ※如果格子需要放購買衝動或別的，請全部關閉					
+                </div>
+            </div>
+
             <div class="filter-bar">
                 <button class="btn-green" onclick="selectTop4PerWeapon()">一鍵選擇各武器前 4 名 + 短劍、本雙S3</button>
-<button class="btn-green" onclick="selectTop4NonLimited()" style="margin-left: 10px; background-color: #2c3e50;">排除限定/合作，一鍵選擇各武器前 4 名 + 短劍、本雙S3</button>
+                <button class="btn-green" onclick="selectTop4NonLimited()" style="margin-left: 10px; background-color: #2c3e50;">排除限定/合作，一鍵選擇各武器前 4 名 + 短劍、本雙S3</button>
                 <label style="margin-left: 20px;"><input type="checkbox" id="selectAllChars" onchange="toggleAllChars(this)"> 全選/取消全選所有顯示的角色</label>
                 <span id="selectedCount" style="margin-left: auto; font-weight: bold; color: #2980b9;">已選擇: 0 人</span>
             </div>
@@ -378,8 +434,7 @@
         <div class="section full-width">
             <h2>2. 選擇角色</h2>
             <div class="filter-bar">
-                <input type="text" id="charSearch" class="search-input" placeholder="搜尋角色名稱..." oninput="renderCharacters()">
-                <label><input type="checkbox" id="hideWeakChars" onchange="handleHideWeakToggle()"> 隱藏僅有隊長加成的角色 (wep1,2皆為2.0)</label>
+                <label><input type="checkbox" id="hideWeakChars" onchange="handleHideWeakToggle()"> 隱藏僅有隊長複製加成的角色(固定隊長時強制隱藏) </label>
             </div>
             <div id="charColumns" class="cols-container">
                 </div>
@@ -458,7 +513,6 @@ async function loadExternalData() {
 
 function parseExternalData(text) {
     try {
-        // 使用分隔符號切割區塊
         const parts1 = text.split('<<<CHAR_DATA>>>');
         if (parts1.length < 2) throw new Error("找不到 CHAR_DATA");
         
@@ -468,8 +522,6 @@ function parseExternalData(text) {
         const parts3 = parts2[1].split('<<<SPIRIT_DATA>>>');
         const passivePart = parts3[0].trim();
         
-        // 處理後續區塊 (精靈 -> 飾品(付費) -> 飾品(免費))
-        // 為了相容舊資料，使用 safe split
         let spiritPart = "";
         let accPaidPart = "";
         let accFreePart = "";
@@ -483,20 +535,13 @@ function parseExternalData(text) {
             if (parts5.length > 1) {
                 accFreePart = parts5[1].trim();
             }
-        } else {
-            // 如果沒有 ACCESSORY 標籤，假設剩餘全為 SPIRIT (雖然上面 split 已經分開了)
-            // 這裡不需要額外操作
         }
 
         RAW_CHAR_DATA = JSON.parse(charPart);
         RAW_PASSIVE_DATA = passivePart; 
         RAW_SPIRIT_DATA = JSON.parse(spiritPart);
-
-        // 解析飾品 CSV
         RAW_ACC_PAID = parseCsv(accPaidPart);
         RAW_ACC_FREE = parseCsv(accFreePart);
-
-        // 解析被動
         PASSIVES = parsePassives(); 
 
     } catch (e) {
@@ -512,7 +557,6 @@ function parseCsv(text) {
     lines.forEach(line => {
         const cleanLine = line.trim();
         if(!cleanLine) return;
-        
         const parts = cleanLine.split(',');
         if(parts.length >= 3) {
             result.push({
@@ -522,7 +566,6 @@ function parseCsv(text) {
             });
         }
     });
-    // 預設依數值高低排序
     return result.sort((a, b) => b.value - a.value);
 }
 
@@ -532,20 +575,12 @@ const ATTR_COLOR = { 1: '#e74c3c', 2: '#3498db', 3: '#27ae60', 4: '#f39c12', 5: 
 const WEP_MAP = { 1: '劍', 2: '斧', 3: '槍', 4: '本', 5: '杖', 6: '短', 7: '弓', 8: '特' };
 const RANK_SCORE = { 'S3': 8, 'SS': 7, 'S': 6, 'A': 5, 'B': 4 };
 
-// Fixed Leader IDs (Original Single Mode)
+// Fixed Leader IDs
 const FIXED_LEADER_IDS = [20001, 20381, 20751, 21141, 22351, 23271];
-
-// New: Friend Mode Pairs
-// l = Leader ID, f = Friend ID
 const FRIEND_MODE_PAIRS = [
-    { l: 20001, f: 20001 },
-    { l: 20381, f: 20381 },
-    { l: 20751, f: 20751 },
-    { l: 21141, f: 21141 },
-    { l: 22351, f: 22351 },
-    { l: 22351, f: 20751 },
-    { l: 23271, f: 23271 },
-    { l: 23271, f: 20751 }
+    { l: 20001, f: 20001 }, { l: 20381, f: 20381 }, { l: 20751, f: 20751 },
+    { l: 21141, f: 21141 }, { l: 22351, f: 22351 }, { l: 22351, f: 20751 },
+    { l: 23271, f: 23271 }, { l: 23271, f: 20751 }
 ];
 
 function parsePassives() {
@@ -559,7 +594,6 @@ function parsePassives() {
         };
     });
 }
-
 let PASSIVES = [];
 
 // ================= UI RENDERING =================
@@ -567,10 +601,9 @@ let PASSIVES = [];
 function init() {
     renderCharacters();
     renderPassives();
-    // renderFixedLeaderOptions will be called by toggle/check
     renderFixedLeaderOptions(); 
     renderSpirits();
-    renderAccessories(); // 新增：渲染飾品
+    renderAccessories();
 }
 
 function renderAccessories() {
@@ -581,7 +614,6 @@ function renderAccessories() {
             container.innerHTML = '<div style="color:#999; font-size:12px;">無資料</div>';
             return;
         }
-
         data.forEach(item => {
             const div = document.createElement('div');
             div.className = 'acc-item';
@@ -595,7 +627,6 @@ function renderAccessories() {
             container.appendChild(div);
         });
     };
-
     renderList(RAW_ACC_PAID, 'accPaidContainer');
     renderList(RAW_ACC_FREE, 'accFreeContainer');
 }
@@ -609,24 +640,17 @@ function renderFixedLeaderOptions() {
 
     if (isFriendMode) {
         title.innerText = "請選擇 隊長 + 好友 組合：";
-        
-        // Render Friend Pairs
         FRIEND_MODE_PAIRS.forEach(pair => {
             const leader = RAW_CHAR_DATA.find(c => c.id === pair.l);
             const friend = RAW_CHAR_DATA.find(c => c.id === pair.f);
             if (!leader || !friend) return;
-
-            // Value format: "LEADER_FRIEND"
             const valueVal = `${pair.l}_${pair.f}`;
             const isDifferent = (pair.l !== pair.f);
-
             const div = document.createElement('div');
             div.className = 'leader-option';
             
-            // Build visual html
             let imgsHtml = '';
             if (isDifferent) {
-                // Show Leader + Friend
                 imgsHtml = `
                     <div class="leader-imgs">
                         <img src="./img/${pair.l}.png" title="隊長: ${leader.name}" onerror="this.style.display='none'">
@@ -635,7 +659,6 @@ function renderFixedLeaderOptions() {
                     </div>
                 `;
             } else {
-                // Show Single (Implies same)
                 imgsHtml = `
                     <div class="leader-imgs">
                         <img src="./img/${pair.l}.png" onerror="this.style.display='none'">
@@ -657,14 +680,11 @@ function renderFixedLeaderOptions() {
             `;
             container.appendChild(div);
         });
-
     } else {
         title.innerText = "請選擇一位固定隊長：";
-        // Render Original Single List
         FIXED_LEADER_IDS.forEach(id => {
             const char = RAW_CHAR_DATA.find(c => c.id === id);
             if(!char) return;
-            
             const div = document.createElement('div');
             div.className = 'leader-option';
             div.innerHTML = `
@@ -687,27 +707,22 @@ function renderFixedLeaderOptions() {
 function renderSpirits() {
     const container = document.getElementById('spiritContainer');
     container.innerHTML = '';
-
     const buckets = {1:[], 2:[], 3:[], 4:[], 5:[]};
     if (RAW_SPIRIT_DATA) {
         RAW_SPIRIT_DATA.forEach(s => {
             if(buckets[s.a]) buckets[s.a].push(s);
         });
     }
-
     for(let a=1; a<=5; a++) {
         const group = document.createElement('div');
         group.className = 'spirit-group';
-        
         const header = document.createElement('div');
         header.className = 'spirit-header';
         header.style.backgroundColor = ATTR_COLOR[a];
         header.innerText = ATTR_MAP[a];
         group.appendChild(header);
-
         const list = document.createElement('div');
         list.className = 'spirit-list';
-
         const noneOption = document.createElement('div');
         noneOption.className = 'spirit-option';
         noneOption.innerHTML = `
@@ -715,9 +730,7 @@ function renderSpirits() {
             <div style="margin-left:10px; font-size:13px; color:#666;">不選擇</div>
         `;
         list.appendChild(noneOption);
-
         buckets[a].sort((x, y) => y.score - x.score);
-
         buckets[a].forEach(s => {
             const item = document.createElement('div');
             item.className = 'spirit-option';
@@ -731,86 +744,125 @@ function renderSpirits() {
             `;
             list.appendChild(item);
         });
-
         group.appendChild(list);
         container.appendChild(group);
     }
 }
 
+// 介面互動邏輯
 function toggleFixedLeaderMode() {
     const isEnabled = document.getElementById('enableFixedLeader').checked;
     const panel = document.getElementById('fixedLeaderPanel');
     const friendCb = document.getElementById('enableFriend');
     const lblFriend = document.getElementById('lblFriendMode');
+    const customCb = document.getElementById('enableCustomChar');
+
+    // 連動隱藏弱角
+    const hideWeakCb = document.getElementById('hideWeakChars');
+    if (isEnabled) {
+        hideWeakCb.checked = true;
+        hideWeakCb.disabled = true;
+        handleHideWeakToggle(); 
+    } else {
+        hideWeakCb.disabled = false;
+    }
 
     panel.style.display = isEnabled ? 'block' : 'none';
     
+    // 好友功能僅在固定隊長模式下可選
     if (isEnabled) {
-        friendCb.disabled = false;
-        lblFriend.style.opacity = "1";
+        // 如果已經勾了自訂角色，好友功能必須保持關閉/禁用
+        if (customCb.checked) {
+            friendCb.disabled = true;
+            friendCb.checked = false;
+            lblFriend.style.opacity = "0.5";
+        } else {
+            friendCb.disabled = false;
+            lblFriend.style.opacity = "1";
+        }
     } else {
         friendCb.checked = false;
         friendCb.disabled = true;
         lblFriend.style.opacity = "0.5";
     }
-    // Re-render based on current state
     renderFixedLeaderOptions();
 }
-// 新增函式：處理隱藏弱角的切換與取消選擇邏輯
-// 修改後：處理隱藏弱角的切換，但排除 "無打寶特效(雙S3)" 欄位的角色
+
+function toggleFriendMode() {
+    // 當好友模式改變時，會影響渲染，以及與自訂角色的互斥
+    const friendCb = document.getElementById('enableFriend');
+    const customCb = document.getElementById('enableCustomChar');
+    
+    if (friendCb.checked) {
+        customCb.checked = false;
+        toggleCustomCharMode(); // 更新面板顯示
+    }
+    renderFixedLeaderOptions();
+}
+
+function toggleCustomCharMode() {
+    const customCb = document.getElementById('enableCustomChar');
+    const friendCb = document.getElementById('enableFriend');
+    const panel = document.getElementById('customCharPanel');
+    const lblFriend = document.getElementById('lblFriendMode');
+    
+    // 互斥邏輯：如果開啟自訂角色，強制關閉好友支援
+    if (customCb.checked) {
+        friendCb.checked = false;
+        friendCb.disabled = true; // 強制禁用，因為好友與自訂互斥
+        lblFriend.style.opacity = "0.5";
+        panel.style.display = 'block';
+    } else {
+        // 關閉自訂角色，恢復好友功能的可選性（如果固定隊長是開啟的話）
+        panel.style.display = 'none';
+        const isFixedLeader = document.getElementById('enableFixedLeader').checked;
+        if (isFixedLeader) {
+            friendCb.disabled = false;
+            lblFriend.style.opacity = "1";
+        }
+    }
+    
+    // 如果關閉自訂角色時，固定隊長仍開著，需要刷新選項回到單人模式
+    // 如果是開啟，因為強制關了好友，也需要刷新選項
+    if (document.getElementById('enableFixedLeader').checked) {
+        renderFixedLeaderOptions();
+    }
+}
+
 function handleHideWeakToggle() {
     const cb = document.getElementById('hideWeakChars');
     if (cb.checked) {
         const selectedCheckboxes = document.querySelectorAll('.char-checkbox:checked');
         let deselectedCount = 0;
-        
         selectedCheckboxes.forEach(box => {
             const id = parseInt(box.value);
             const charData = RAW_CHAR_DATA.find(c => c.id === id);
-            
-            // 如果找不到資料或是屬於 "無打寶特效(雙S3)" (sort_type為2)，則跳過，不進行取消
             if (!charData || charData.sort_type === 2) return;
-
-            // 其餘角色若 wep1, wep2 皆為 2.0 則取消勾選
             if (charData.wep1 === 2.0 && charData.wep2 === 2.0) {
                 box.checked = false;
                 deselectedCount++;
             }
         });
-
-        if (deselectedCount > 0) {
-            updateSelectedCount();
-        }
+        if (deselectedCount > 0) updateSelectedCount();
     }
     renderCharacters();
 }
+
 function renderCharacters() {
     const container = document.getElementById('charColumns');
     const hideWeak = document.getElementById('hideWeakChars') ? document.getElementById('hideWeakChars').checked : false;
-    const searchText = document.getElementById('charSearch').value.toLowerCase();
-    
     container.innerHTML = '';
     if (!RAW_CHAR_DATA) return;
-
     const buckets = Array.from({length: 10}, () => []);
 
     RAW_CHAR_DATA.forEach(c => {
-        // 先過濾搜尋關鍵字
-        if (searchText && !c.name.toLowerCase().includes(searchText)) return;
-
-        // 特殊規則：如果是 "無打寶特效(雙S3)" (sort_type === 2)
-        // 直接放入 buckets[9]，忽略隱藏弱角的設定
         if (c.sort_type === 2) {
             buckets[9].push(c);
-            return; // 處理完畢，跳出
+            return;
         }
-
-        // 一般角色：執行隱藏弱角判斷
         if (hideWeak) {
             if (c.wep1 === 2.0 && c.wep2 === 2.0) return;
         }
-
-        // 一般角色分類放入對應武器籃子
         if (c.wc >= 1 && c.wc <= 8) {
             buckets[c.wc].push(c);
         }
@@ -819,32 +871,24 @@ function renderCharacters() {
     for (let i = 1; i <= 8; i++) {
         renderColumn(container, buckets[i], WEP_MAP[i], i);
     }
-    // 第 9 欄 (colIndex 9)
     renderColumn(container, buckets[9], "無打寶特效(雙S3)", 9);
-
     updateSelectedCount();
 }
 
 function renderColumn(container, chars, title, colIndex) {
     const colGroup = document.createElement('div');
     colGroup.className = 'col-group';
-    
     const header = document.createElement('div');
     header.className = 'col-header';
     header.innerText = title;
     colGroup.appendChild(header);
-
     const list = document.createElement('div');
     list.className = 'col-list';
     
-    // --- 修改排序邏輯開始 ---
     if (colIndex === 9) {
-        // 第9欄 "無打寶特效(雙S3)" 維持原有的僅比較 wep2
         chars.sort((a, b) => b.wep2 - a.wep2);
     } else {
-        // 其他武器欄位套用新規則
         chars.sort((a, b) => {
-            // 內部函數：計算被動分數 (S3=8 -> 2分, SS=7 -> 1分)
             const getPassiveScore = (c) => {
                 let s = 0;
                 [c.sc1, c.sc2, c.sc3].forEach(slot => {
@@ -853,30 +897,17 @@ function renderColumn(container, chars, title, colIndex) {
                 });
                 return s;
             };
-
             const scoreA = a.wep2 + getPassiveScore(a);
             const scoreB = b.wep2 + getPassiveScore(b);
-
-            // 1. 比較 "wep2 + 被動分數" (高到低)
-            if (scoreB !== scoreA) {
-                return scoreB - scoreA;
-            }
-
-            // 2. 同分時，比較 "wep1" (高到低)
-            if (b.wep1 !== a.wep1) {
-                return b.wep1 - a.wep1;
-            }
-
-            // 3. wep1 也相同時，依照 id 排序 (大到小)
+            if (scoreB !== scoreA) return scoreB - scoreA;
+            if (b.wep1 !== a.wep1) return b.wep1 - a.wep1;
             return b.id - a.id; 
         });
     }
-    // --- 修改排序邏輯結束 ---
 
     chars.forEach(c => {
         const item = document.createElement('div');
         item.className = 'char-card';
-        
         const slots = [c.sc1, c.sc2, c.sc3].map(s => {
             if (s === 8) return '<span class="slot-tag">S3</span>';
             if (s === 7) return '<span class="slot-tag">SS</span>';
@@ -902,7 +933,6 @@ function renderColumn(container, chars, title, colIndex) {
         `;
         list.appendChild(item);
     });
-
     colGroup.appendChild(list);
     container.appendChild(colGroup);
 }
@@ -931,12 +961,9 @@ function toggleAllChars(source) {
     updateSelectedCount();
 }
 
-// 修改後的按鈕邏輯
 function selectTop4PerWeapon() {
     const container = document.getElementById('charColumns');
     const colGroups = container.querySelectorAll('.col-group');
-    
-    // 原有邏輯：選擇前8組(武器組)的前4名
     for (let i = 0; i < 8; i++) { 
         if (colGroups[i]) {
             const checkboxes = colGroups[i].querySelectorAll('.char-checkbox');
@@ -945,72 +972,50 @@ function selectTop4PerWeapon() {
             }
         }
     }
-    
-    // 新增邏輯：額外選擇短劍、本雙S3的指定角色
     const extraIds = [21361, 17701];
     extraIds.forEach(id => {
-        // 使用屬性選擇器找到對應 ID 的 checkbox
         const cb = document.querySelector(`.char-checkbox[value="${id}"]`);
-        if (cb) {
-            cb.checked = true;
-        }
+        if (cb) cb.checked = true;
     });
-
     updateSelectedCount();
 }
-// 新增功能：排除限定/合作，順延選擇前4名
+
 function selectTop4NonLimited() {
     const container = document.getElementById('charColumns');
     const colGroups = container.querySelectorAll('.col-group');
-    
-    // 遍歷前 8 個欄位 (武器欄位 1~8)
     for (let i = 0; i < 8; i++) { 
         if (colGroups[i]) {
             const checkboxes = colGroups[i].querySelectorAll('.char-checkbox');
             let selectedCount = 0;
-
             checkboxes.forEach(cb => {
                 const id = parseInt(cb.value);
                 const charData = RAW_CHAR_DATA.find(c => c.id === id);
-                
                 if (charData) {
                     const name = charData.name;
-                    // 檢查名稱是否以 (合) 或 (限) 開頭
                     const isExcluded = name.startsWith('(合)') || name.startsWith('(限)');
-
                     if (isExcluded) {
-                        // 如果是限定/合作角色，強制取消勾選 (即使他原本在前4名)
                         cb.checked = false;
                     } else {
-                        // 如果是非限定角色，且目前該武器選取數還沒滿 4 人
                         if (selectedCount < 4) {
                             cb.checked = true;
                             selectedCount++;
                         }
-                        // 若已滿 4 人，則不更動後續角色的狀態 (維持使用者原本的勾選，或維持未勾選)
                     }
                 }
             });
         }
     }
-    
-    // 處理特殊欄位：無打寶特效(雙S3)
-    // 邏輯維持原狀：只勾選指定的兩個 ID
     const extraIds = [21361];
     extraIds.forEach(id => {
-        // 使用屬性選擇器找到對應 ID 的 checkbox
         const cb = document.querySelector(`.char-checkbox[value="${id}"]`);
-        if (cb) {
-            cb.checked = true;
-        }
+        if (cb) cb.checked = true;
     });
-
     updateSelectedCount();
 }
+
 function updateSelectedCount() {
     const count = document.querySelectorAll('.char-checkbox:checked').length;
     document.getElementById('selectedCount').innerText = `已選擇: ${count} 人`;
-    
     document.querySelectorAll('.char-checkbox').forEach(cb => {
         cb.onchange = () => {
              document.getElementById('selectedCount').innerText = `已選擇: ${document.querySelectorAll('.char-checkbox:checked').length} 人`;
@@ -1066,10 +1071,13 @@ async function calculateBestTeam() {
     
     const isFixedLeaderMode = document.getElementById('enableFixedLeader').checked;
     const isFriendMode = isFixedLeaderMode && document.getElementById('enableFriend').checked;
+    const isCustomMode = document.getElementById('enableCustomChar').checked;
 
     let fixedLeaderChar = null;
     let friendChar = null;
+    let customChar = null; // 自訂角色物件
 
+    // 處理固定隊長/好友
     if (isFixedLeaderMode) {
         const selectedRadio = document.querySelector('input[name="fixedLeader"]:checked');
         if (!selectedRadio) {
@@ -1080,14 +1088,13 @@ async function calculateBestTeam() {
         const rawVal = selectedRadio.value;
         let leaderId, friendId;
 
-        // Parse Leader ID and Friend ID
         if (rawVal.includes('_')) {
             const parts = rawVal.split('_');
             leaderId = parseInt(parts[0]);
             friendId = parseInt(parts[1]);
         } else {
             leaderId = parseInt(rawVal);
-            friendId = leaderId; // Default friend same as leader if not pair mode
+            friendId = leaderId;
         }
 
         fixedLeaderChar = RAW_CHAR_DATA.find(c => c.id === leaderId);
@@ -1098,6 +1105,30 @@ async function calculateBestTeam() {
                 friendChar = { ...friendData };
             }
         }
+    }
+
+    // 處理自訂角色 (如果開啟)
+    if (isCustomMode) {
+        const cAttr = parseInt(document.getElementById('custAttr').value);
+        const cWep = parseInt(document.getElementById('custWep').value);
+        const cScore = parseFloat(document.getElementById('custScore').value) || 0;
+        const sc1 = document.getElementById('custSC1').checked ? 8 : 0;
+        const sc2 = document.getElementById('custSC2').checked ? 8 : 0;
+        const sc3 = document.getElementById('custSC3').checked ? 8 : 0;
+
+        customChar = {
+            id: 'temp_char', // 使用特殊字串ID，配合 ./img/temp_char.png
+            name: '自訂角色 (固定)',
+            a: cAttr,
+            wc: cWep,
+            wep1: cScore,
+            wep2: cScore, // 假設兩狀態分數相同
+            sc1: sc1,
+            sc2: sc2,
+            sc3: sc3,
+            ls: 0, // 強制不成為隊長
+            isCustom: true // 標記用
+        };
     }
 
     const userSpirits = {};
@@ -1112,20 +1143,29 @@ async function calculateBestTeam() {
     const selectedIds = Array.from(document.querySelectorAll('.char-checkbox:checked')).map(cb => parseInt(cb.value));
     let poolChars = RAW_CHAR_DATA.filter(c => selectedIds.includes(c.id));
     
-    let requiredSubCount = 6;
-    
+    // 計算需要從 Pool 中選出幾人
+    // 基礎隊伍人數: 6
+    // 減去固定佔位者
+    let slotsTaken = 0;
     if (isFixedLeaderMode) {
         poolChars = poolChars.filter(c => c.id !== fixedLeaderChar.id);
-        requiredSubCount = 5;
-        if (poolChars.length < 5) {
-            alert("固定隊長模式下，請至少再選擇 5 名隊員！");
-            return;
-        }
-    } else {
-        if (poolChars.length < 6) {
-            alert("請至少選擇 6 名角色！");
-            return;
-        }
+        slotsTaken += 1; // 隊長佔1
+    }
+    if (isCustomMode) {
+        slotsTaken += 1; // 自訂角色佔1
+    }
+
+    let requiredSubCount = 6 - slotsTaken;
+
+    if (requiredSubCount < 0) {
+        // 理論上不會發生，除非邏輯錯誤
+        alert("設定錯誤：固定角色超過隊伍上限");
+        return;
+    }
+
+    if (poolChars.length < requiredSubCount) {
+        alert(`請至少再選擇 ${requiredSubCount} 名角色！`);
+        return;
     }
 
     let userSkillPool = [];
@@ -1152,11 +1192,9 @@ async function calculateBestTeam() {
         status.innerText = "正在篩選菁英角色(保障各武器戰力)...";
         await new Promise(r => setTimeout(r, 10));
 
-        // [修改 1] S3 技能加分改為 2.0
         const S3_VAL = 2.0; 
         const SS_VAL = 1.0; 
         
-        // 輔助函式：計算被動加分
         const getPassiveScore = (c) => {
             return [c.sc1, c.sc2, c.sc3].reduce((acc, sc) => {
                 if (sc === 8) return acc + S3_VAL;
@@ -1165,26 +1203,17 @@ async function calculateBestTeam() {
             }, 0);
         };
 
-        // [修改 2] 找出每個武器(1-8)最強的兩名 (依據 WEP1 + 被動)
-        // 目的是防止特定武器被全數篩掉
         const mandatoryIds = new Set();
         for (let w = 1; w <= 8; w++) {
-            // 找出該武器的所有候選人
             const wChars = poolChars.filter(c => c.wc === w);
-            
-            // 依照 WEP1 + 被動分數 進行降序排列
             wChars.sort((a, b) => {
                 const scoreA = a.wep1 + getPassiveScore(a);
                 const scoreB = b.wep1 + getPassiveScore(b);
                 return scoreB - scoreA;
             });
-
-            // 取前 2 名加入保底 ID (不足 2 名則全取)
             wChars.slice(0, 2).forEach(c => mandatoryIds.add(c.id));
         }
 
-        // [修改 3] 計算所有人的通用分數 (用來填補剩餘空位)
-        // 通用分數維持：Max(Wep1, Wep2) + 被動分數
         const scoredChars = poolChars.map(c => {
             return {
                 char: c,
@@ -1192,15 +1221,11 @@ async function calculateBestTeam() {
             };
         });
 
-        // 依通用分數由高至低排序
         scoredChars.sort((a, b) => b.memberScore - a.memberScore);
 
-        // [修改 4] 構建最終名單
         const finalPool = [];
         const addedIds = new Set();
 
-        // 4.1 先加入保底名單 (Mandatory)
-        // 注意：這裡重新遍歷 poolChars 是為了確保加入順序或直接用 ID 抓取
         poolChars.forEach(c => {
             if (mandatoryIds.has(c.id)) {
                 finalPool.push(c);
@@ -1208,11 +1233,8 @@ async function calculateBestTeam() {
             }
         });
 
-        // 4.2 填補剩餘名額直到 POOL_LIMIT
         for (const item of scoredChars) {
             if (finalPool.length >= POOL_LIMIT) break;
-            
-            // 如果該角色尚未被加入(非保底角色)，則加入
             if (!addedIds.has(item.char.id)) {
                 finalPool.push(item.char);
                 addedIds.add(item.char.id);
@@ -1220,8 +1242,6 @@ async function calculateBestTeam() {
         }
 
         effectivePool = finalPool;
-
-        // 同步 UI：將不在 effectivePool 中的角色取消勾選
         const effectiveIds = new Set(effectivePool.map(c => c.id));
         document.querySelectorAll('.char-checkbox:checked').forEach(cb => {
             const id = parseInt(cb.value);
@@ -1244,12 +1264,18 @@ async function calculateBestTeam() {
     for (const subTeam of generator) {
         combinationsProcessed++;
         
-        let team = subTeam;
-        let friendMember = null;
+        // 構建基礎隊伍 (6人)
+        let team = [...subTeam];
 
         if (isFixedLeaderMode) {
-            team = [fixedLeaderChar, ...subTeam];
+            team.unshift(fixedLeaderChar); // 隊長放最前
         }
+        
+        if (isCustomMode) {
+            team.push(customChar); // 自訂角色加入
+        }
+
+        // --- 之後的邏輯與原本相似，但需注意隊長判定 ---
 
         const stats = { attrCounts: {}, wepCounts: {} };
         
@@ -1345,7 +1371,13 @@ async function calculateBestTeam() {
             bestLeaderIdx = 0;
             currentMaxLS = memberData[0].char.ls;
         } else {
+            // 自動判斷隊長：遍歷成員，找 LS 最高的
+            // 注意：Custom Char 的 LS 設為 0，且通常角色 LS 都 > 0，所以不會被選中
+            // 若所有角色 LS 都是 0...則選第一位，這也符合邏輯
             for (let i = 0; i < memberData.length; i++) {
+                // 加強判斷：若為自訂角色，儘量不當隊長(除非沒人可當)
+                if (memberData[i].char.isCustom && memberData.length > 1) continue;
+
                 if (memberData[i].char.ls > currentMaxLS) {
                     currentMaxLS = memberData[i].char.ls;
                     bestLeaderIdx = i;
@@ -1431,9 +1463,21 @@ function getConditionPreviewHtml(condStr, teamStats) {
 }
 
 // Modal Functions
-function openTarotModal(e) {
+// Modal Functions
+function openTarotModal(e, type) {
     if(e) e.stopPropagation();
-    document.getElementById('tarotModal').style.display = "block";
+    const modal = document.getElementById('tarotModal');
+    const img = document.getElementById('tarotImg');
+    
+    // 根據 type 切換圖片來源
+    if (type === 'char') {
+        img.src = "./tarot_char.png";
+    } else {
+        // 預設為原本的武器圖片 (type === 'wep' 或未指定)
+        img.src = "./tarot_wep.png";
+    }
+    
+    modal.style.display = "block";
 }
 
 function closeTarotModal() {
@@ -1463,15 +1507,27 @@ function displayResult(teamData, totalScore) {
         
         const conditionHtml = getConditionPreviewHtml(m.char.wep_condition, teamData.stats);
         
-        // Handle Weapon Value Display (Special logic for value 2)
-        let wepDisplayVal = m.wepVal;
+        // --- 修改開始：處理武器顯示與塔羅特殊標記 ---
+        let wepDisplayVal = String(m.wepVal); // 先轉字串方便串接
+        
+        // 1. 原有的塔羅打寶武 (數值為2時)
         if (m.wepVal === 2) {
-            wepDisplayVal = `2<br><span class="tarot-link" onclick="openTarotModal(event)">(塔羅打寶武)</span>`;
+            wepDisplayVal = `2<br><span class="tarot-link" onclick="openTarotModal(event, 'wep')">(塔羅打寶武)</span>`;
         }
 
+        // 2. 新增：塔羅牌限角 (tarot === 1)
+        if (m.char.tarot === 1) {
+            wepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char')">(塔羅牌限角)</span>`;
+        }
+        // --- 修改結束 ---
+        
+        // 判斷樣式
+        let rowClass = isLeader ? 'res-bg-green' : 'res-bg-white';
+        if (m.char.isCustom) rowClass = 'res-bg-custom';
+
         return `
-            <tr class="${isLeader ? 'res-bg-green' : 'res-bg-white'}">
-                <td>${isLeader ? '<strong>隊長</strong>' : '隊員'}</td>
+            <tr class="${rowClass}">
+                <td>${isLeader ? '<strong>隊長</strong>' : (m.char.isCustom ? '<span style="color:#555;font-weight:bold;">固定<br>自訂</span>' : '隊員')}</td>
                 <td>
                     <div style="display:flex; align-items:center;">
                         <img src="./img/${m.char.id}.png" style="height:60px; margin-right:10px;" onerror="this.style.display='none'">
@@ -1499,11 +1555,17 @@ function displayResult(teamData, totalScore) {
         
         const fConditionHtml = getConditionPreviewHtml(f.char.wep_condition, teamData.stats);
 
-        // Handle Friend Weapon Value Display
-        let fWepDisplayVal = f.wepVal;
+        // --- 修改開始：好友部分的顯示 ---
+        let fWepDisplayVal = String(f.wepVal);
+
         if (f.wepVal === 2) {
-            fWepDisplayVal = `2<br><span class="tarot-link" onclick="openTarotModal(event)">(塔羅打寶武)</span>`;
+            fWepDisplayVal = `2<br><span class="tarot-link" onclick="openTarotModal(event, 'wep')">(塔羅打寶武)</span>`;
         }
+        
+        if (f.char.tarot === 1) {
+             fWepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char')">(塔羅牌限角)</span>`;
+        }
+        // --- 修改結束 ---
 
         rows += `
             <tr class="res-bg-gold">
@@ -1527,22 +1589,38 @@ function displayResult(teamData, totalScore) {
         `;
     }
 
-    let spiritHtml = '無';
+    // 精靈顯示 UI
+    let spiritHtml = '';
     if(teamData.activeSpirit) {
         spiritHtml = `
-            <div style="display:flex; align-items:center; justify-content:flex-end; gap:10px;">
-                <span style="font-weight:bold; color:#8e44ad;">${teamData.activeSpirit.name}</span>
-                <img src="./img/${teamData.activeSpirit.id}.png" style="height:40px;">
-                <span style="color:#e74c3c; font-weight:bold;">+${teamData.activeSpirit.score}</span>
+            <div style="text-align:left; margin-bottom:10px; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:5px;">
+                <div style="font-size:13px; color:#555; margin-bottom:5px;"><strong>生效精靈 (與隊長同屬性):</strong></div>
+                <div style="display:flex; align-items:center; justify-content:flex-start; gap:15px;">
+                    <img src="./img/${teamData.activeSpirit.id}.png" style="height:60px; width:auto; object-fit:contain;">
+                    <div>
+                        <div style="font-weight:bold; color:#8e44ad; font-size:15px;">${teamData.activeSpirit.name}</div>
+                        <div style="color:#e74c3c; font-weight:bold; font-size:14px;">+${teamData.activeSpirit.score}</div>
+                    </div>
+                </div>
             </div>
         `;
+    }
+
+    // 檢查是否有裝備被動技能
+    const userPassiveCount = teamData.assignedPassives.reduce((sum, list) => sum + list.length, 0);
+    let warningHtml = '';
+    if (userPassiveCount === 0) {
+        warningHtml = `<div style="font-size:14px; color:#e74c3c; font-weight:bold; margin-top:5px; line-height:1.4;">(警告：目前未選擇任何綠技，可能導致結果錯誤)</div>`;
     }
 
     container.innerHTML = `
         <div class="result-summary-box">
             <div>
                 <div>最高總分</div>
-                <div class="summary-score">${totalScore.toFixed(2)}</div>
+                <div class="summary-score">
+                    ${totalScore.toFixed(2)}
+                    ${warningHtml}
+                </div>
             </div>
             <div class="summary-details">
                 隊長技: ${teamData.lsScore}<br>
@@ -1552,12 +1630,7 @@ function displayResult(teamData, totalScore) {
             </div>
         </div>
         
-        ${teamData.activeSpirit ? 
-          `<div style="text-align:right; margin-bottom:10px; padding:10px; background:#fafafa; border:1px solid #eee; border-radius:5px;">
-             <strong>生效精靈 (與隊長同屬性):</strong> ${spiritHtml}
-           </div>` 
-          : ''
-        }
+        ${spiritHtml}
 
         <table class="res-table">
             <thead>
