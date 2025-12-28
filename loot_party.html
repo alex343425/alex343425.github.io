@@ -996,7 +996,7 @@ function selectTop4NonLimited() {
     
     // 處理特殊欄位：無打寶特效(雙S3)
     // 邏輯維持原狀：只勾選指定的兩個 ID
-    const extraIds = [21361, 17701];
+    const extraIds = [21361];
     extraIds.forEach(id => {
         // 使用屬性選擇器找到對應 ID 的 checkbox
         const cb = document.querySelector(`.char-checkbox[value="${id}"]`);
