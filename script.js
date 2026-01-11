@@ -266,7 +266,7 @@ function pageChange(page) {
         switch (searchMode) {
             case 'original':
                 matchesDescription = keywords.every(keyword =>
-                    item.description.includes(keyword) || item.skill_name.includes(keyword));
+                    item.description.includes(keyword) || item.name.includes(keyword) || item.skill_name.includes(keyword));
                 break;
             case 'sequential':
                 let combinedKeywords = keywords.join('.*');
