@@ -263,22 +263,29 @@ function pageChange(page) {
         let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
         let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
         let matchesDescription;
-        switch (searchMode) {
-            case 'original':
-                matchesDescription = keywords.every(keyword =>
-                    item.description.includes(keyword) || item.skill_name.includes(keyword));
-                break;
-            case 'sequential':
-                let combinedKeywords = keywords.join('.*');
-                let regex = new RegExp(combinedKeywords);
-                matchesDescription = regex.test(item.description);
-                break;
-            case 'strictSequential':
-                let combinedKeywords2 = keywords.join('[^、。・]*');
-                let regex2 = new RegExp(combinedKeywords2);
-                matchesDescription = regex2.test(item.description);
-                break;
-        }
+		const searchText = `${item.description} ${item.skill_name} ${item.skill_char}`;
+
+		switch (searchMode) {
+			case 'original':
+				matchesDescription = keywords.every(keyword =>
+					searchText.includes(keyword)
+				);
+				break;
+
+			case 'sequential': {
+				let combinedKeywords = keywords.join('.*');
+				let regex = new RegExp(combinedKeywords);
+				matchesDescription = regex.test(searchText);
+				break;
+			}
+
+			case 'strictSequential': {
+				let combinedKeywords2 = keywords.join('[^、。・]*');
+				let regex2 = new RegExp(combinedKeywords2);
+				matchesDescription = regex2.test(searchText);
+				break;
+			}
+		}
         let matchesCharEm =  item.char_em === '全' || selectedCharEm.length === 0 || selectedCharEm.includes(item.char_em);
         let matchesCharWep = selectedCharWep.length === 0 || selectedCharWep.includes(item.char_wep);
         let matchesSkillType = selectedSkillType.length === 0 || selectedSkillType.includes(item.skill_type);
