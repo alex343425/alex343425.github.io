@@ -57,8 +57,6 @@ document.addEventListener("DOMContentLoaded", function () {
         <td>${imgCellContent}</td>
         <td>${item.char_em}</td>
         <td>${item.char_wep}</td>
-        <td>${item.hp}</td>
-        <td>${item.def}</td>
         <td style="${sourceSkillBg ? 'background-color:' + sourceSkillBg + ';' : ''}">${item.source_skill}</td>
         <td style="${slot1Bg ? 'background-color:' + slot1Bg + ';' : ''}">${item.slot1}</td>
         <td style="${slot2Bg ? 'background-color:' + slot2Bg + ';' : ''}">${item.slot2}</td>

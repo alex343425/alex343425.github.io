@@ -168,11 +168,11 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1000px; /* 確保在小螢幕不會擠在一起 */
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
 
         th,
         td {
@@ -206,6 +206,9 @@
             vertical-align: middle;
             margin-right: 4px;
         }
+		.skill-col {
+    width: 8%;          /* 四欄等寬 */
+}
     </style>
     <script src="cheerleading.js"></script>
 </head>
@@ -354,12 +357,10 @@
                     <th>角色名</th>
                     <th class="fixed-width">屬性</th>
                     <th class="fixed-width">武器</th>
-                    <th class="fixed-width2">HP</th>
-                    <th class="fixed-width2">DEF</th>
-                    <th class="fixed-width">固有</th>
-                    <th>slot1</th>
-                    <th>slot2</th>
-                    <th>slot3</th>
+<th class="skill-col">固有</th>
+<th class="skill-col">slot1</th>
+<th class="skill-col">slot2</th>
+<th class="skill-col">slot3</th>
                     <th>永續昇華</th>
                 </tr>
             </thead>
