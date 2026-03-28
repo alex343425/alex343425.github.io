@@ -101,11 +101,16 @@ document.getElementById("compareBtn").addEventListener("click", async function()
 
     // ✅ 比對 list 有但使用者沒有的
     const diff = listIds.filter(id => !userIds.includes(id));
-
-    if (diff.length === 0) {
-        resultDiv.innerHTML = `<strong>列表內已全部持有 ✅</strong>`;
-        return;
-    }
+	const total = listIds.length;
+	const owned = total - diff.length;
+	const rate = ((owned / total) * 100).toFixed(2);
+	if (diff.length === 0) {
+		resultDiv.innerHTML = `
+			<strong>列表內已全部持有 ✅</strong><br>
+			收集率：${rate}% (${owned}/${total})
+		`;
+		return;
+	}
 
     // ✅ 建立圖片 grid
     let html = `<table>`;
@@ -117,7 +122,14 @@ document.getElementById("compareBtn").addEventListener("click", async function()
     if (diff.length % 5 !== 0) html += "</tr>";
     html += "</table>";
 
-    resultDiv.innerHTML = html;
+    resultDiv.innerHTML = `
+    <div>
+        收集率：<strong>${rate}%</strong> (${owned}/${total})<br>
+        缺少數量：<strong>${diff.length}</strong>
+    </div>
+    <br>
+    ${html}
+`;
 });
 </script>
 
