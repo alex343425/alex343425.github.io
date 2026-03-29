@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll('select').forEach(select => {
             select.selectedIndex = 0;
         });
+		document.getElementById('img_show').checked = true;
         document.getElementById('descriptionFilter').value = '';
         loadData();
     });
@@ -367,8 +368,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function filterData(data) {
-        let ctValue = parseInt(document.getElementById('ctFilter').value);
-        let spirit_gaugeValue = parseInt(document.getElementById('spirit_gauge').value);
+		let ctValue = document.getElementById('ctFilter').checked ? 1 : 0;
+		let spirit_gaugeValue = document.getElementById('spirit_gauge').checked ? 1 : 0;
         let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
         let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
