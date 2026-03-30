@@ -38,6 +38,25 @@
     table { border-collapse: collapse; margin-top: 10px; }
     td { padding: 5px; }
     .stats-list { margin: 10px 0; line-height: 1.6; }
+    
+    /* 隱藏元素用的 class */
+    .hidden { display: none; }
+    
+    /* 切換按鈕樣式 */
+    #toggleViewBtn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-bottom: 15px;
+        transition: background-color 0.3s;
+    }
+    #toggleViewBtn:hover {
+        background-color: #45a049;
+    }
 </style>
 </head>
 <body>
@@ -80,12 +99,111 @@ document.getElementById("inputData").addEventListener("input", function () {
     this.value = this.value.replace(/[\r\n]+/g, " ");
 });
 
-// ✅ 點擊按鈕事件
+// 用於存儲當前比對狀態的全域變數
+let currentViewMode = 'missing'; // 'missing' 或 'owned'
+let cachedResultData = null; // 存儲比對後的數據結構
+
+// 核心功能：生成圖片表格 HTML
+function generateImageTable(idList) {
+    if (!idList || idList.length === 0) return "<p>（空）</p>";
+    
+    let html = `<table>`;
+    for (let i = 0; i < idList.length; i++) {
+        if (i % 5 === 0) html += "<tr>";
+        // 為了加快加載速度，這裡加上 loading="lazy"
+        html += `<td><img src="img/${idList[i]}.png" alt="${idList[i]}" loading="lazy"></td>`;
+        if (i % 5 === 4) html += "</tr>";
+    }
+    if (idList.length % 5 !== 0) html += "</tr>";
+    html += "</table>";
+    return html;
+}
+
+// 核心功能：渲染界面
+function renderResult() {
+    const resultDiv = document.getElementById("result");
+    if (!cachedResultData) return;
+
+    const data = cachedResultData;
+    const isModeC = data.type === 'C';
+    const showMissing = currentViewMode === 'missing';
+
+    // 1. 生成統計區 (這部分不管哪個模式都顯示)
+    let statsHtml = '';
+    if (isModeC) {
+        statsHtml = `<div class="stats-list">`;
+        statsHtml += `<strong>🏆 總收集率：${data.totalRate}%</strong> (${data.totalOwned}/${data.totalAll})<br><br>`;
+        data.categories.forEach(cat => {
+            statsHtml += `🔹 ${cat.name}：<strong>${cat.rate}%</strong> (${cat.owned}/${cat.total})，缺少：${cat.missing.length} 隻<br>`;
+        });
+        statsHtml += `</div>`;
+    } else {
+        statsHtml = `
+            <div>
+                收集率：<strong>${data.rate}%</strong> (${data.owned}/${data.total})<br>
+                缺少數量：<strong>${data.missing.length}</strong>，持有數量：<strong>${data.owned}</strong>
+            </div><br>
+        `;
+    }
+
+    // 2. 生成切換按鈕
+    const btnText = showMissing ? "切換成已持有列表" : "切換成未持有列表";
+    const toggleBtn = `<button id="toggleViewBtn">${btnText}</button><br>`;
+
+    // 3. 生成圖片區域
+    let imagesHtml = '';
+    const titlePrefix = showMissing ? "缺少" : "持有";
+
+    if (isModeC) {
+        imagesHtml = `<div id="imageArea">`;
+        data.categories.forEach(cat => {
+            const listToShow = showMissing ? cat.missing : cat.ownedList;
+            if (listToShow.length > 0) {
+                imagesHtml += `<h4>${titlePrefix}的 ${cat.name} 角：</h4>`;
+                imagesHtml += generateImageTable(listToShow);
+                imagesHtml += `<br>`;
+            }
+        });
+        // 如果該模式下完全沒有角色
+        if (showMissing && data.totalAll === data.totalOwned) {
+            imagesHtml += `<strong>列表內已全部持有 ✅</strong><br>`;
+        } else if (!showMissing && data.totalOwned === 0) {
+            imagesHtml += `<strong>尚未持有列表內的任何角色 ❌</strong><br>`;
+        }
+        imagesHtml += `</div>`;
+    } else {
+        const listToShow = showMissing ? data.missing : data.ownedList;
+        imagesHtml = `<div id="imageArea">`;
+        imagesHtml += `<h4>${titlePrefix}的角色：</h4>`;
+        
+        if (listToShow.length > 0) {
+            imagesHtml += generateImageTable(listToShow);
+        } else {
+            imagesHtml += showMissing ? `<strong>列表內已全部持有 ✅</strong><br>` : `<strong>尚未持有列表內的任何角色 ❌</strong><br>`;
+        }
+        imagesHtml += `</div>`;
+    }
+
+    // 組合並寫入 DOM
+    resultDiv.innerHTML = statsHtml + '<hr>' + toggleBtn + imagesHtml;
+
+    // 重新綁定切換按鈕事件
+    document.getElementById("toggleViewBtn").addEventListener("click", function() {
+        currentViewMode = (currentViewMode === 'missing') ? 'owned' : 'missing';
+        renderResult(); // 重新渲染圖片部分
+    });
+}
+
+// ✅ 點擊「開始比對」按鈕事件
 document.getElementById("compareBtn").addEventListener("click", async function() {
     const input = document.getElementById("inputData").value.trim();
     const listPick = document.querySelector('input[name="compareList"]:checked').value;
     const resultDiv = document.getElementById("result");
+    
+    // 初始化狀態
     resultDiv.innerHTML = "讀取資料中...";
+    cachedResultData = null; 
+    currentViewMode = 'missing'; // 每次新比對都預設顯示缺少
 
     if (!input) {
         resultDiv.innerHTML = "請輸入資料！";
@@ -101,92 +219,63 @@ document.getElementById("compareBtn").addEventListener("click", async function()
             const res = await fetch('./data/sp_sort.json');
             const spSortData = await res.json();
 
-            // 按照網頁顯示順序定義 7 個 list
-            const categories = [
-                { name: "普池", data: [], diff: [] },
-                { name: "菓角不入池", data: [], diff: [] },
-                { name: "活動", data: [], diff: [] },
-                { name: "限定", data: [], diff: [] },
-                { name: "課金限定", data: [], diff: [] },
-                { name: "合作", data: [], diff: [] },
-                { name: "未匹配/三星/四星", data: [], diff: [] }
-            ];
+            // 初始化數據結構
+            cachedResultData = {
+                type: 'C',
+                totalAll: 0,
+                totalOwned: 0,
+                totalRate: 0,
+                categories: [
+                    { name: "普池", data: [], missing: [], ownedList: [] },
+                    { name: "菓角不入池", data: [], missing: [], ownedList: [] },
+                    { name: "活動", data: [], missing: [], ownedList: [] },
+                    { name: "限定", data: [], missing: [], ownedList: [] },
+                    { name: "課金限定", data: [], missing: [], ownedList: [] },
+                    { name: "合作", data: [], missing: [], ownedList: [] },
+                    { name: "未匹配/三星/四星", data: [], missing: [], ownedList: [] }
+                ]
+            };
 
-            // 讀取 sp_sort.json，只保留 id 個位數為 1 的資料並進行分類
+            // 1. 分類
             spSortData.forEach(item => {
                 if (item.id && item.id.endsWith('1')) {
                     const classify = item.classify || "";
                     const idNum = Number(item.id);
-                    let catIndex = -1;
+                    let catIndex = 6; // 預設：未匹配/三星/四星
 
-                    if (classify.includes('+不入池')) {
-                        catIndex = 1; // 菓角不入池
-                    } else if (classify.includes('SP')) {
-                        catIndex = 0; // 普池
-                    } else if (classify.includes('課金限定')) {
-                        catIndex = 4; // 課金限定
-                    } else if (classify.includes('合作')) {
-                        catIndex = 5; // 合作
-                    } else if (classify.includes('活動')) {
-                        catIndex = 2; // 活動
-                    } else if (classify.includes('限定')) {
-                        catIndex = 3; // 限定
-                    } else {
-                        catIndex = 6; // 未匹配/三星/四星
-                    }
+                    if (classify.includes('+不入池')) catIndex = 1;
+                    else if (classify.includes('SP')) catIndex = 0;
+                    else if (classify.includes('課金限定')) catIndex = 4;
+                    else if (classify.includes('合作')) catIndex = 5;
+                    else if (classify.includes('活動')) catIndex = 2;
+                    else if (classify.includes('限定')) catIndex = 3;
 
-                    categories[catIndex].data.push(idNum);
+                    cachedResultData.categories[catIndex].data.push(idNum);
                 }
             });
 
-            let totalAll = 0;
-            let ownedAll = 0;
-
-            // 計算各自的缺少與百分比
-            categories.forEach(cat => {
-                cat.diff = cat.data.filter(id => !userIds.includes(id));
+            // 2. 計算比對結果
+            cachedResultData.categories.forEach(cat => {
+                // 這裡核心邏輯：區分出持有與未持有
+                cat.missing = cat.data.filter(id => !userIds.includes(id));
+                cat.ownedList = cat.data.filter(id => userIds.includes(id));
+                
                 cat.total = cat.data.length;
-                cat.owned = cat.total - cat.diff.length;
+                cat.owned = cat.ownedList.length;
                 cat.rate = cat.total === 0 ? 0 : ((cat.owned / cat.total) * 100).toFixed(2);
 
-                totalAll += cat.total;
-                ownedAll += cat.owned;
+                cachedResultData.totalAll += cat.total;
+                cachedResultData.totalOwned += cat.owned;
             });
 
-            const rateAll = totalAll === 0 ? 0 : ((ownedAll / totalAll) * 100).toFixed(2);
+            cachedResultData.totalRate = cachedResultData.totalAll === 0 ? 0 : ((cachedResultData.totalOwned / cachedResultData.totalAll) * 100).toFixed(2);
 
-            // 先產生全部類別的持有百分比 HTML
-            let statsHtml = `<div class="stats-list">`;
-            statsHtml += `<strong>🏆 總收集率：${rateAll}%</strong> (${ownedAll}/${totalAll})<br><br>`;
-            
-            categories.forEach(cat => {
-                statsHtml += `🔹 ${cat.name}：<strong>${cat.rate}%</strong> (${cat.owned}/${cat.total})，缺少：${cat.diff.length} 隻<br>`;
-            });
-            statsHtml += `</div><hr>`;
-
-            // 分 7 個 list 顯示未持有圖片
-            let imagesHtml = '';
-            categories.forEach(cat => {
-                if (cat.diff.length > 0) {
-                    imagesHtml += `<h4>缺少的 ${cat.name} 角：</h4><table>`;
-                    for (let i = 0; i < cat.diff.length; i++) {
-                        if (i % 5 === 0) imagesHtml += "<tr>";
-                        imagesHtml += `<td><img src="img/${cat.diff[i]}.png" alt="${cat.diff[i]}"></td>`;
-                        if (i % 5 === 4) imagesHtml += "</tr>";
-                    }
-                    if (cat.diff.length % 5 !== 0) imagesHtml += "</tr>";
-                    imagesHtml += "</table><br>";
-                }
-            });
-
-            if (totalAll - ownedAll === 0) {
-                resultDiv.innerHTML = `<strong>列表內已全部持有 ✅</strong><br>` + statsHtml;
-            } else {
-                resultDiv.innerHTML = statsHtml + imagesHtml;
-            }
+            // 3. 渲染
+            renderResult();
 
         } catch (error) {
             resultDiv.innerHTML = `讀取資料發生錯誤，請確認 data/sp_sort.json 是否存在。<br>錯誤訊息：${error}`;
+            console.error(error);
         }
 
     } else {
@@ -198,40 +287,28 @@ document.getElementById("compareBtn").addEventListener("click", async function()
             const txt = await res.text();
             const listIds = txt.match(/\d+/g)?.map(Number) || [];
 
-            // 比對 list 有但使用者沒有的
-            const diff = listIds.filter(id => !userIds.includes(id));
+            // 計算比對結果並緩存
+            const missing = listIds.filter(id => !userIds.includes(id));
+            const ownedList = listIds.filter(id => userIds.includes(id));
             const total = listIds.length;
-            const owned = total - diff.length;
+            const owned = ownedList.length;
             const rate = total === 0 ? 0 : ((owned / total) * 100).toFixed(2);
-            
-            if (diff.length === 0) {
-                resultDiv.innerHTML = `
-                    <strong>列表內已全部持有 ✅</strong><br>
-                    收集率：${rate}% (${owned}/${total})
-                `;
-                return;
-            }
 
-            // 建立圖片 grid
-            let html = `<table>`;
-            for (let i = 0; i < diff.length; i++) {
-                if (i % 5 === 0) html += "<tr>";
-                html += `<td><img src="img/${diff[i]}.png" alt="${diff[i]}"></td>`;
-                if (i % 5 === 4) html += "</tr>";
-            }
-            if (diff.length % 5 !== 0) html += "</tr>";
-            html += "</table>";
+            cachedResultData = {
+                type: 'AB',
+                missing: missing,
+                ownedList: ownedList,
+                total: total,
+                owned: owned,
+                rate: rate
+            };
 
-            resultDiv.innerHTML = `
-            <div>
-                收集率：<strong>${rate}%</strong> (${owned}/${total})<br>
-                缺少數量：<strong>${diff.length}</strong>
-            </div>
-            <br>
-            ${html}
-            `;
+            // 渲染
+            renderResult();
+
         } catch (error) {
             resultDiv.innerHTML = `讀取資料發生錯誤，請確認 ${filename} 是否存在。<br>錯誤訊息：${error}`;
+            console.error(error);
         }
     }
 });
