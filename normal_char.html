@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>普池持有比對工具</title>
+<title>角色持有比對工具</title>
 <style>
 /* ================= NAV BAR STYLES ================= */
         .nav-bar {
@@ -37,6 +37,7 @@
     .radio-box { margin: 10px 0; }
     table { border-collapse: collapse; margin-top: 10px; }
     td { padding: 5px; }
+    .stats-list { margin: 10px 0; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -63,12 +64,14 @@
 <div class="radio-box">
     <label><input type="radio" name="compareList" value="A" checked> 比對全普池</label>
     &emsp;
-    <label><input type="radio" name="compareList" value="B"> 比對課限普池(2019後)，不保證每次都一樣，請抽卡前點開lineup確認</label>
+    <label><input type="radio" name="compareList" value="B"> 比對課限普池(2019後)</label>
+    &emsp;
+    <label><input type="radio" name="compareList" value="C"> 比對全部角色</label>
 </div>
 
 <button id="compareBtn">開始比對</button>
 
-<h3>缺的普池角：</h3>
+<h3>比對結果：</h3>
 <div id="result"></div>
 
 <script>
@@ -89,47 +92,148 @@ document.getElementById("compareBtn").addEventListener("click", async function()
         return;
     }
 
-    // ✅ 抽取數字陣列
+    // ✅ 抽取使用者輸入的數字陣列
     const userIds = input.match(/\d+/g)?.map(Number) || [];
 
-    // ✅ 讀取 TXT 檔
-    const filename = listPick === "A" ? "data/listA.txt" : "data/listB.txt";
-    const res = await fetch(filename);
-    const txt = await res.text();
+    if (listPick === "C") {
+        // ✅ 方案 C：比對全部角色 (從 sp_sort.json 讀取資料)
+        try {
+            const res = await fetch('./data/sp_sort.json');
+            const spSortData = await res.json();
 
-    const listIds = txt.match(/\d+/g)?.map(Number) || [];
+            // 按照網頁顯示順序定義 7 個 list
+            const categories = [
+                { name: "普池", data: [], diff: [] },
+                { name: "菓角不入池", data: [], diff: [] },
+                { name: "活動", data: [], diff: [] },
+                { name: "限定", data: [], diff: [] },
+                { name: "課金限定", data: [], diff: [] },
+                { name: "合作", data: [], diff: [] },
+                { name: "未匹配/三星/四星", data: [], diff: [] }
+            ];
 
-    // ✅ 比對 list 有但使用者沒有的
-    const diff = listIds.filter(id => !userIds.includes(id));
-	const total = listIds.length;
-	const owned = total - diff.length;
-	const rate = ((owned / total) * 100).toFixed(2);
-	if (diff.length === 0) {
-		resultDiv.innerHTML = `
-			<strong>列表內已全部持有 ✅</strong><br>
-			收集率：${rate}% (${owned}/${total})
-		`;
-		return;
-	}
+            // 讀取 sp_sort.json，只保留 id 個位數為 1 的資料並進行分類
+            spSortData.forEach(item => {
+                if (item.id && item.id.endsWith('1')) {
+                    const classify = item.classify || "";
+                    const idNum = Number(item.id);
+                    let catIndex = -1;
 
-    // ✅ 建立圖片 grid
-    let html = `<table>`;
-    for (let i = 0; i < diff.length; i++) {
-        if (i % 5 === 0) html += "<tr>";
-        html += `<td><img src="img/${diff[i]}.png" alt="${diff[i]}"></td>`;
-        if (i % 5 === 4) html += "</tr>";
+                    if (classify.includes('+不入池')) {
+                        catIndex = 1; // 菓角不入池
+                    } else if (classify.includes('SP')) {
+                        catIndex = 0; // 普池
+                    } else if (classify.includes('課金限定')) {
+                        catIndex = 4; // 課金限定
+                    } else if (classify.includes('合作')) {
+                        catIndex = 5; // 合作
+                    } else if (classify.includes('活動')) {
+                        catIndex = 2; // 活動
+                    } else if (classify.includes('限定')) {
+                        catIndex = 3; // 限定
+                    } else {
+                        catIndex = 6; // 未匹配/三星/四星
+                    }
+
+                    categories[catIndex].data.push(idNum);
+                }
+            });
+
+            let totalAll = 0;
+            let ownedAll = 0;
+
+            // 計算各自的缺少與百分比
+            categories.forEach(cat => {
+                cat.diff = cat.data.filter(id => !userIds.includes(id));
+                cat.total = cat.data.length;
+                cat.owned = cat.total - cat.diff.length;
+                cat.rate = cat.total === 0 ? 0 : ((cat.owned / cat.total) * 100).toFixed(2);
+
+                totalAll += cat.total;
+                ownedAll += cat.owned;
+            });
+
+            const rateAll = totalAll === 0 ? 0 : ((ownedAll / totalAll) * 100).toFixed(2);
+
+            // 先產生全部類別的持有百分比 HTML
+            let statsHtml = `<div class="stats-list">`;
+            statsHtml += `<strong>🏆 總收集率：${rateAll}%</strong> (${ownedAll}/${totalAll})<br><br>`;
+            
+            categories.forEach(cat => {
+                statsHtml += `🔹 ${cat.name}：<strong>${cat.rate}%</strong> (${cat.owned}/${cat.total})，缺少：${cat.diff.length} 隻<br>`;
+            });
+            statsHtml += `</div><hr>`;
+
+            // 分 7 個 list 顯示未持有圖片
+            let imagesHtml = '';
+            categories.forEach(cat => {
+                if (cat.diff.length > 0) {
+                    imagesHtml += `<h4>缺少的 ${cat.name} 角：</h4><table>`;
+                    for (let i = 0; i < cat.diff.length; i++) {
+                        if (i % 5 === 0) imagesHtml += "<tr>";
+                        imagesHtml += `<td><img src="img/${cat.diff[i]}.png" alt="${cat.diff[i]}"></td>`;
+                        if (i % 5 === 4) imagesHtml += "</tr>";
+                    }
+                    if (cat.diff.length % 5 !== 0) imagesHtml += "</tr>";
+                    imagesHtml += "</table><br>";
+                }
+            });
+
+            if (totalAll - ownedAll === 0) {
+                resultDiv.innerHTML = `<strong>列表內已全部持有 ✅</strong><br>` + statsHtml;
+            } else {
+                resultDiv.innerHTML = statsHtml + imagesHtml;
+            }
+
+        } catch (error) {
+            resultDiv.innerHTML = `讀取資料發生錯誤，請確認 data/sp_sort.json 是否存在。<br>錯誤訊息：${error}`;
+        }
+
+    } else {
+        // ✅ 方案 A / B：原有的比對 TXT 檔案邏輯
+        const filename = listPick === "A" ? "data/listA.txt" : "data/listB.txt";
+        
+        try {
+            const res = await fetch(filename);
+            const txt = await res.text();
+            const listIds = txt.match(/\d+/g)?.map(Number) || [];
+
+            // 比對 list 有但使用者沒有的
+            const diff = listIds.filter(id => !userIds.includes(id));
+            const total = listIds.length;
+            const owned = total - diff.length;
+            const rate = total === 0 ? 0 : ((owned / total) * 100).toFixed(2);
+            
+            if (diff.length === 0) {
+                resultDiv.innerHTML = `
+                    <strong>列表內已全部持有 ✅</strong><br>
+                    收集率：${rate}% (${owned}/${total})
+                `;
+                return;
+            }
+
+            // 建立圖片 grid
+            let html = `<table>`;
+            for (let i = 0; i < diff.length; i++) {
+                if (i % 5 === 0) html += "<tr>";
+                html += `<td><img src="img/${diff[i]}.png" alt="${diff[i]}"></td>`;
+                if (i % 5 === 4) html += "</tr>";
+            }
+            if (diff.length % 5 !== 0) html += "</tr>";
+            html += "</table>";
+
+            resultDiv.innerHTML = `
+            <div>
+                收集率：<strong>${rate}%</strong> (${owned}/${total})<br>
+                缺少數量：<strong>${diff.length}</strong>
+            </div>
+            <br>
+            ${html}
+            `;
+        } catch (error) {
+            resultDiv.innerHTML = `讀取資料發生錯誤，請確認 ${filename} 是否存在。<br>錯誤訊息：${error}`;
+        }
     }
-    if (diff.length % 5 !== 0) html += "</tr>";
-    html += "</table>";
-
-    resultDiv.innerHTML = `
-    <div>
-        收集率：<strong>${rate}%</strong> (${owned}/${total})<br>
-        缺少數量：<strong>${diff.length}</strong>
-    </div>
-    <br>
-    ${html}
-`;
 });
 </script>
 
