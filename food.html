@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食物效果一覽表</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f7fa;
+            --header-bg: #2c3e50;
+            --header-text: #fff;
+            --border-color: #ddd;
+            --hover-color: #e6f7ff;
+            /* 凍結欄位寬度設定 */
+            --col1-w: 60px;
+            --col2-w: 70px;
+            --col3-w: 160px;
+        }
+
+        body {
+            font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            font-size: 13px;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- 來自 lswep.html 的導覽列樣式 --- */
+        .nav-bar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .nav-bar a {
+            text-decoration: none;
+            color: var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            background-color: #eef5ff;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .nav-bar a:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .nav-bar a.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .hint-text {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        /* --- 表格區域樣式 --- */
+        .table-wrapper {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: auto;
+            flex: 1;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            min-width: 2400px;
+        }
+
+        th, td {
+            border-right: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 5px;
+            text-align: center;
+        }
+
+        th {
+            background-color: var(--header-bg);
+            color: var(--header-text);
+            cursor: pointer;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            white-space: nowrap;
+        }
+
+        th:hover { background-color: #3e5871; }
+        th.asc::after { content: " ↑"; }
+        th.desc::after { content: " ↓"; }
+
+        /* --- 凍結前三欄 CSS --- */
+        .sticky-1 { position: sticky; left: 0; width: var(--col1-w); min-width: var(--col1-w); z-index: 10; background-color: white; }
+        .sticky-2 { position: sticky; left: var(--col1-w); width: var(--col2-w); min-width: var(--col2-w); z-index: 10; background-color: white; }
+        .sticky-3 { position: sticky; left: calc(var(--col1-w) + var(--col2-w)); width: var(--col3-w); min-width: var(--col3-w); z-index: 10; background-color: white; }
+
+        th.sticky-1, th.sticky-2, th.sticky-3 { z-index: 15; background-color: var(--header-bg); }
+
+        tr:nth-child(even) td.sticky-1, 
+        tr:nth-child(even) td.sticky-2, 
+        tr:nth-child(even) td.sticky-3 { background-color: #fafafa; }
+        
+        tr:hover td { background-color: var(--hover-color) !important; }
+
+        .food-img { width: 45px; height: 45px; object-fit: contain; display: block; margin: 0 auto; }
+        .name-cell { font-weight: bold; cursor: help; text-decoration: underline dotted #999; text-align: left; }
+        .other-effects-cell { color: #8e44ad; text-align: left; }
+        .stat-val { font-weight: bold; color: #d9534f; }
+        .res-val { color: #27ae60; }
+        .craft-cell { font-weight: bold; color: #e67e22; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+<div class="nav-bar">
+	        <a href="./index.html" target="_blank">技能搜尋</a>
+        <a href="./lswep.html" target="_blank">隊長技/專武搜尋</a>
+        <a href="./cheerleading.html" target="_blank">啦啦隊搜尋</a>
+        <a href="./normal_char.html" target="_blank">普池收集檢查</a>
+        <a href="./profiles.html" target="_blank">親愛度文本</a>
+		<a href="./exp_party.html" target="_blank">最佳經驗隊</a>		
+		<a href="./loot_party.html" target="_blank">最佳複製隊</a>
+    <a href="food.html" class="active">食物效果一覽</a>
+</div>
+
+<div class="hint-text">
+    💡 提示：點擊表格標題欄位可進行自動排序
+</div>
+
+<div class="table-wrapper">
+    <table id="foodTable">
+        <thead>
+            <tr>
+                <th data-key="id" class="sticky-1">ID</th>
+                <th class="sticky-2">圖片</th>
+                <th data-key="n" class="sticky-3">名字</th>
+                <th data-key="other_effects">其他效果</th>
+                <th data-key="hp">HP</th>
+                <th data-key="atk">攻擊(%)</th>
+                <th data-key="def">防禦(%)</th>
+                <th data-key="matk">攻魔(%)</th>
+                <th data-key="mres">回魔(%)</th>
+                <th data-key="spd">速度(%)</th>
+                <th data-key="poison">毒耐</th>
+                <th data-key="paralysis">麻痺</th>
+                <th data-key="confuse">混亂</th>
+                <th data-key="blind">幻惑</th>
+                <th data-key="curse">詛咒</th>
+                <th data-key="seal">封印</th>
+                <th data-key="stun">暈眩</th>
+                <th data-key="sleep">睡眠</th>
+                <th data-key="gold">金幣</th>
+                <th data-key="drop">掉落</th>
+                <th data-key="cexp">角Exp</th>
+                <th data-key="pexp">玩Exp</th>
+                <th data-key="pbr">PB率</th>
+                <th data-key="fire">火減</th>
+                <th data-key="water">水減</th>
+                <th data-key="tree">樹減</th>
+                <th data-key="light">光減</th>
+                <th data-key="dark">闇減</th>
+                <th data-key="all">全減</th>
+                <th data-key="craft">可製造</th>
+                <th data-key="get">獲取方法</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+let rawData = [];
+
+function parseAndClean(item) {
+    return {
+        id: item.id || 0,
+        n: item.n || "",
+        d: item.d || "",
+        other_effects: item.other_effects || "",
+        hp: item.HP_UP || 0,
+        atk: item.atk_up_percent || 0,
+        def: item.def_up_percent || 0,
+        matk: item.matk_up_percent || 0,
+        mres: item.mres_up_percent || 0,
+        spd: item.speed_up_percent || 0,
+        poison: item.poison_res || 0,
+        paralysis: item.paralysis_res || 0,
+        confuse: item.confusion_res || 0,
+        blind: item.blind_res || 0,
+        curse: item.curse_res || 0,
+        seal: item.seal_res || 0,
+        stun: item.stun_res || 0,
+        sleep: item.sleep_res || 0,
+        gold: item.gold_up_percent || 0,
+        drop: item.drop_rate || 0,
+        cexp: item.char_exp_mult || 0,
+        pexp: item.player_exp_mult || 0,
+        pbr: item.parts_break_rate || 0,
+        fire: item.fire_damage_cut || 0,
+        water: item.water_damage_cut || 0,
+        tree: item.tree_damage_cut || 0,
+        light: item.light_damage_cut || 0,
+        dark: item.dark_damage_cut || 0,
+        all: item.all_damage_cut || 0,
+        craft: item.craft === 1 ? "✓" : "",
+        get: item.get || ""
+    };
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    const fragment = document.createDocumentFragment();
+    
+    data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="sticky-1">${item.id}</td>
+            <td class="sticky-2"><img class="food-img" src="./food/${item.id}.png" onerror="this.src='https://via.placeholder.com/45?text=NA'"></td>
+            <td class="sticky-3 name-cell" title="${item.d}">${item.n}</td>
+            <td class="other-effects-cell">${item.other_effects}</td>
+            <td class="stat-val">${item.hp || ''}</td>
+            <td>${item.atk || ''}</td>
+            <td>${item.def || ''}</td>
+            <td>${item.matk || ''}</td>
+            <td>${item.mres || ''}</td>
+            <td>${item.spd || ''}</td>
+            <td class="res-val">${item.poison || ''}</td>
+            <td class="res-val">${item.paralysis || ''}</td>
+            <td class="res-val">${item.confuse || ''}</td>
+            <td class="res-val">${item.blind || ''}</td>
+            <td class="res-val">${item.curse || ''}</td>
+            <td class="res-val">${item.seal || ''}</td>
+            <td class="res-val">${item.stun || ''}</td>
+            <td class="res-val">${item.sleep || ''}</td>
+            <td>${item.gold || ''}</td>
+            <td>${item.drop || ''}</td>
+            <td>${item.cexp || ''}</td>
+            <td>${item.pexp || ''}</td>
+            <td>${item.pbr || ''}</td>
+            <td>${item.fire || ''}</td>
+            <td>${item.water || ''}</td>
+            <td>${item.tree || ''}</td>
+            <td>${item.light || ''}</td>
+            <td>${item.dark || ''}</td>
+            <td>${item.all || ''}</td>
+            <td class="craft-cell">${item.craft}</td>
+            <td style="text-align:left">${item.get}</td>
+        `;
+        fragment.appendChild(tr);
+    });
+    
+    tbody.innerHTML = "";
+    tbody.appendChild(fragment);
+}
+
+let currentSortKey = '';
+let isAsc = true;
+
+document.querySelectorAll('th[data-key]').forEach(th => {
+    th.addEventListener('click', () => {
+        const key = th.getAttribute('data-key');
+        if (currentSortKey === key) { isAsc = !isAsc; } 
+        else { currentSortKey = key; isAsc = false; }
+
+        document.querySelectorAll('th').forEach(el => el.classList.remove('asc', 'desc'));
+        th.classList.add(isAsc ? 'asc' : 'desc');
+
+        rawData.sort((a, b) => {
+            let valA = a[key];
+            let valB = b[key];
+            if (typeof valA === 'string') return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            return isAsc ? (valA - valB) : (valB - valA);
+        });
+        renderTable(rawData);
+    });
+});
+
+fetch('food_test.json')
+    .then(res => res.json())
+    .then(json => {
+        rawData = json.map(item => parseAndClean(item));
+        renderTable(rawData);
+    })
+    .catch(err => console.error("JSON 載入失敗:", err));
+</script>
+</body>
+</html>
