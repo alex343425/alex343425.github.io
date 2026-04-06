@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>食物效果一覽表</title>
+    <title>道具效果一覽表</title>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -17,8 +17,8 @@
             --col1-id-w: 60px;
             --col2-img-w: 70px;
             --col3-name-w: 160px; /* 名字欄位寬度基準 */
-            --col4-effect-w: calc(var(--col3-name-w) * 2); /* 固定為名字的兩倍 */
-            --col-stat-w: 55px; /* 數值欄位通用寬度 */
+            --col4-effect-w: calc(var(--col3-name-w) * 1.5); 
+            --col-stat-w: 65px; /* 數值欄位通用寬度 */
         }
 
         body {
@@ -121,6 +121,59 @@
         .other-effects-cell { color: #8e44ad; text-align: left; white-space: normal; line-height: 1.3; }
         .stat-val { font-weight: bold; color: #d9534f; }
         .res-val { color: #27ae60; }
+/* ================= FILTER STYLES ================= */
+.filter-container {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+/* 滑塊開關本體 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 滑軌 */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #4a90e2;
+}
+
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
     </style>
 </head>
 <body>
@@ -134,11 +187,22 @@
         <a href="./exp_party.html" target="_blank">最佳經驗隊</a>
 		<a href="./loot_party.html" target="_blank">最佳複製隊</a>
 		<a href="./food.html" target="_blank">食物一覽</a>
-		<a href="./item.html" target="_blank">道具一覽</a>
+        <a href="./item.html" target="_blank">道具一覽</a>
 </div>
 
 <div class="hint-text">
     💡 提示：點擊表格標題欄位可進行自動排序 | 滑鼠懸停於名字可觀看詳細敘述
+</div>
+<div class="hint-text">
+    💡 提示：現版本推薦攜帶四個"全異常治療"道具：最高万能薬(全體)，剩下三個視攜帶數量/素材取捨，五選三
+</div>
+
+<div class="filter-container">
+    <span>隱藏不可製造物品</span>
+    <label class="switch">
+        <input type="checkbox" id="craftFilter">
+        <span class="slider"></span>
+    </label>
 </div>
 
 <div class="table-wrapper">
@@ -148,34 +212,22 @@
                 <th data-key="id" class="sticky-1 w-id">ID</th>
                 <th class="sticky-2 w-img">圖片</th>
                 <th data-key="n" class="sticky-3 w-name">名字</th>
-                <th data-key="other_effects" class="w-effect">其他效果</th>
-                <th data-key="hp" class="w-stat">HP</th>
-                <th data-key="atk" class="w-stat">攻擊</th>
-                <th data-key="def" class="w-stat">防禦</th>
-                <th data-key="matk" class="w-stat">攻魔</th>
-                <th data-key="mres" class="w-stat">回魔</th>
-                <th data-key="spd" class="w-stat">速度</th>
-                <th data-key="poison" class="w-stat">毒耐</th>
-                <th data-key="paralysis" class="w-stat">麻痺</th>
-                <th data-key="confuse" class="w-stat">混亂</th>
-                <th data-key="blind" class="w-stat">幻惑</th>
-                <th data-key="curse" class="w-stat">詛咒</th>
-                <th data-key="seal" class="w-stat">封印</th>
-                <th data-key="stun" class="w-stat">暈眩</th>
-                <th data-key="sleep" class="w-stat">睡眠</th>
-                <th data-key="gold" class="w-stat">金幣</th>
-                <th data-key="drop" class="w-stat">掉落</th>
-                <th data-key="cexp" class="w-stat">角Exp</th>
-                <th data-key="pexp" class="w-stat">玩Exp</th>
-                <th data-key="pbr" class="w-stat">PB率</th>
-                <th data-key="fire" class="w-stat">火減</th>
-                <th data-key="water" class="w-stat">水減</th>
-                <th data-key="tree" class="w-stat">樹減</th>
-                <th data-key="light" class="w-stat">光減</th>
-                <th data-key="dark" class="w-stat">闇減</th>
-                <th data-key="all" class="w-stat">全減</th>
+				<th data-key="mc" class="w-stat">攜帶數量</th>
+                <th data-key="other_effect" class="w-effect">其他效果</th>
+                <th data-key="cure_one" class="w-stat">單異常治療</th>
+                <th data-key="cure_all" class="w-stat">全異常治療</th>
+                <th data-key="heal" class="w-stat">單人HP回復</th>
+                <th data-key="heal_all" class="w-stat">全體HP回復</th>
+                <th data-key="atk_up" class="w-stat">攻擊力</th>
+                <th data-key="def_up" class="w-stat">防禦力</th>
+                <th data-key="matk_up" class="w-stat">攻擊魔力</th>
+                <th data-key="heal_up" class="w-stat">回復魔力</th>
+                <th data-key="spd_up" class="w-stat">速度</th>
+                <th data-key="cri_up" class="w-stat">爆擊</th>
+                <th data-key="ct_up" class="w-stat">單人CT</th>
+                <th data-key="ct_up_all" class="w-stat">全體CT</th>
                 <th data-key="craft" style="width: 60px;">可製造</th>
-                <th data-key="get" style="width: 250px;">獲取方法</th>
+                <th data-key="get" style="width: 250px;">入手方法</th>
             </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -190,32 +242,20 @@ function parseAndClean(item) {
         id: item.id || 0,
         n: item.n || "",
         d: item.d || "",
-        other_effects: item.other_effects || "",
-        hp: item.HP_UP || 0,
-        atk: item.atk_up_percent || 0,
-        def: item.def_up_percent || 0,
-        matk: item.matk_up_percent || 0,
-        mres: item.mres_up_percent || 0,
-        spd: item.speed_up_percent || 0,
-        poison: item.poison_res || 0,
-        paralysis: item.paralysis_res || 0,
-        confuse: item.confusion_res || 0,
-        blind: item.blind_res || 0,
-        curse: item.curse_res || 0,
-        seal: item.seal_res || 0,
-        stun: item.stun_res || 0,
-        sleep: item.sleep_res || 0,
-        gold: item.gold_up_percent || 0,
-        drop: item.drop_rate || 0,
-        cexp: item.char_exp_mult || 0,
-        pexp: item.player_exp_mult || 0,
-        pbr: item.parts_break_rate || 0,
-        fire: item.fire_damage_cut || 0,
-        water: item.water_damage_cut || 0,
-        tree: item.tree_damage_cut || 0,
-        light: item.light_damage_cut || 0,
-        dark: item.dark_damage_cut || 0,
-        all: item.all_damage_cut || 0,
+		mc: item.mc || 0,
+        other_effect: item.other_effect || "",
+        cure_one: item.cure_one || "",
+        cure_all: item.cure_all || "",
+        heal: item.heal || 0,
+        heal_all: item.heal_all || 0,
+        atk_up: item.atk_up || 0,
+        def_up: item.def_up || 0,
+        matk_up: item.matk_up || 0,
+        heal_up: item.heal_up || 0,
+        spd_up: item.spd_up || 0,
+        cri_up: item.cri_up || 0,
+        ct_up: item.ct_up || 0,
+        ct_up_all: item.ct_up_all || 0,
         craft: item.craft === 1 ? "✓" : "",
         get: item.get || ""
     };
@@ -229,34 +269,22 @@ function renderTable(data) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td class="sticky-1 w-id">${item.id}</td>
-            <td class="sticky-2 w-img"><img class="food-img" src="./food/${item.id}.png" onerror="this.src='https://via.placeholder.com/45?text=NA'"></td>
+            <td class="sticky-2 w-img"><img class="food-img" src="./item/${item.id}.png" onerror="this.src='https://via.placeholder.com/45?text=NA'"></td>
             <td class="sticky-3 w-name name-cell" title="${item.d}">${item.n}</td>
-            <td class="w-effect other-effects-cell">${item.other_effects}</td>
-            <td class="w-stat stat-val">${item.hp || ''}</td>
-            <td class="w-stat">${item.atk || ''}</td>
-            <td class="w-stat">${item.def || ''}</td>
-            <td class="w-stat">${item.matk || ''}</td>
-            <td class="w-stat">${item.mres || ''}</td>
-            <td class="w-stat">${item.spd || ''}</td>
-            <td class="w-stat res-val">${item.poison || ''}</td>
-            <td class="w-stat res-val">${item.paralysis || ''}</td>
-            <td class="w-stat res-val">${item.confuse || ''}</td>
-            <td class="w-stat res-val">${item.blind || ''}</td>
-            <td class="w-stat res-val">${item.curse || ''}</td>
-            <td class="w-stat res-val">${item.seal || ''}</td>
-            <td class="w-stat res-val">${item.stun || ''}</td>
-            <td class="w-stat res-val">${item.sleep || ''}</td>
-            <td class="w-stat">${item.gold || ''}</td>
-            <td class="w-stat">${item.drop || ''}</td>
-            <td class="w-stat">${item.cexp || ''}</td>
-            <td class="w-stat">${item.pexp || ''}</td>
-            <td class="w-stat">${item.pbr || ''}</td>
-            <td class="w-stat">${item.fire || ''}</td>
-            <td class="w-stat">${item.water || ''}</td>
-            <td class="w-stat">${item.tree || ''}</td>
-            <td class="w-stat">${item.light || ''}</td>
-            <td class="w-stat">${item.dark || ''}</td>
-            <td class="w-stat">${item.all || ''}</td>
+			<td class="w-stat">${item.mc}</td> 
+            <td class="w-effect other-effects-cell">${item.other_effect}</td>
+            <td class="w-stat res-val">${item.cure_one}</td>
+            <td class="w-stat res-val">${item.cure_all}</td>
+            <td class="w-stat stat-val">${item.heal || ''}</td>
+            <td class="w-stat stat-val">${item.heal_all || ''}</td>
+            <td class="w-stat">${item.atk_up || ''}</td>
+            <td class="w-stat">${item.def_up || ''}</td>
+            <td class="w-stat">${item.matk_up || ''}</td>
+            <td class="w-stat">${item.heal_up || ''}</td>
+            <td class="w-stat">${item.spd_up || ''}</td>
+            <td class="w-stat">${item.cri_up || ''}</td>
+            <td class="w-stat stat-val">${item.ct_up || ''}</td>
+            <td class="w-stat stat-val">${item.ct_up_all || ''}</td>
             <td style="width: 60px; font-weight: bold; color: #e67e22;">${item.craft}</td>
             <td style="width: 250px; text-align: left;">${item.get}</td>
         `;
@@ -271,6 +299,28 @@ function renderTable(data) {
 let currentSortKey = '';
 let isAsc = true;
 
+
+
+	
+// 修改原本的 fetch 區塊與新增事件監聽
+const craftFilter = document.getElementById('craftFilter');
+
+// 統一渲染與過濾的邏輯
+function updateDisplay() {
+    let displayData = [...rawData];
+
+    // 如果開關開啟，過濾掉 craft 不等於 "✓" 的項目
+    if (craftFilter.checked) {
+        displayData = displayData.filter(item => item.craft === "✓");
+    }
+
+    renderTable(displayData);
+}
+
+// 監聽開關切換
+craftFilter.addEventListener('change', updateDisplay);
+
+// 修改原本的排序監聽器，將最後一行的 renderTable(rawData) 改為 updateDisplay()
 document.querySelectorAll('th[data-key]').forEach(th => {
     th.addEventListener('click', () => {
         const key = th.getAttribute('data-key');
@@ -286,15 +336,18 @@ document.querySelectorAll('th[data-key]').forEach(th => {
             if (typeof valA === 'string') return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
             return isAsc ? (valA - valB) : (valB - valA);
         });
-        renderTable(rawData);
+        
+        // 改用這個，確保排序後依然尊重篩選狀態
+        updateDisplay(); 
     });
 });
 
-fetch('food_test.json')
+// 修改資料載入後的初始呼叫
+fetch('item_test2.json')
     .then(res => res.json())
     .then(json => {
         rawData = json.map(item => parseAndClean(item));
-        renderTable(rawData);
+        updateDisplay(); // 初始化顯示
     });
 </script>
 </body>
