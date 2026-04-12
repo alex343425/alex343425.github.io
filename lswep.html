@@ -739,7 +739,7 @@
                     // 修改：點擊圖片觸發 Modal
                     let img_show_data = img_showValue ? `
                         <a href="javascript:void(0)" class="char-link" onclick="openCharModal(${globalIndex})">
-                            <img src="img/${item.img_name}" alt="${item.skill_char}" height="70" onerror="this.src='img/0.png';">
+                            <img src="img/${item.img_name}" alt="${item.skill_char}" loading="lazy"  height="70" onerror="this.src='img/0.png';">
                         </a><br>` : '';
                     
                     // 修改：點擊名稱觸發 Modal
