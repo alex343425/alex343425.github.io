@@ -202,11 +202,11 @@
         /* 固定寬度類別 */
         .fixed-width { width: 4em; text-align: center; }
 
-        /* 特殊高亮 (原 lswep 保留) */
+        /* 特殊高亮 */
         .highlight1 { background-color: AliceBlue; }
         .highlight2 { background-color: MistyRose; }
         
-        /* 關鍵字高亮 (原 lswep 腳本生成) */
+        /* 關鍵字高亮 */
         span[class^="highlight"] {
             font-weight: bold;
             padding: 0 2px; 
@@ -245,7 +245,7 @@
             border-radius: 4px;
         }
 
-        /* ---------------- Modal 樣式 (新增) ---------------- */
+        /* Modal 樣式 */
         .modal {
             display: none; 
             position: fixed; 
@@ -261,7 +261,7 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 2% auto; /* 距離頂部一些距離，並置中 */
+            margin: 2% auto;
             padding: 20px;
             border: 1px solid #888;
             width: 90%; 
@@ -269,7 +269,7 @@
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             position: relative;
-            max-height: 90vh; /* 避免超過視窗高度 */
+            max-height: 90vh;
             display: flex;
             flex-direction: column;
         }
@@ -342,7 +342,6 @@
             background-color: #732d91;
         }
 
-        /* Modal 內容滾動區 */
         .modal-body {
             overflow-y: auto;
             flex-grow: 1;
@@ -374,7 +373,7 @@
             color: #333;
             border: 1px solid #ddd;
             padding: 8px;
-            position: static; /* Modal 內不固定表頭以免遮擋 */
+            position: static;
         }
 
         .modal-table td {
@@ -382,7 +381,6 @@
             padding: 8px;
         }
         
-        /* 連結樣式，用於觸發 Modal */
         .char-link {
             color: var(--primary-color);
             text-decoration: none;
@@ -391,6 +389,53 @@
         }
         .char-link:hover {
             text-decoration: underline;
+        }
+
+        /* ---------------- Toggle Switch 樣式 ---------------- */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-switch .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .toggle-switch .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .slider {
+            background-color: var(--primary-color); 
+        }
+
+        .toggle-switch input:checked + .slider:before {
+            transform: translateX(20px);
         }
     </style>
     <script>
@@ -489,7 +534,12 @@
 
             document.getElementById('resetButton').addEventListener('click', function () {
                 document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                    checkbox.checked = false;
+                    // img_show 預設為開啟，其他為關閉
+                    if (checkbox.id === 'img_show') {
+                        checkbox.checked = true;
+                    } else {
+                        checkbox.checked = false;
+                    }
                 });
                 document.querySelectorAll('select').forEach(select => {
                     select.selectedIndex = 0;
@@ -736,13 +786,13 @@
                     
                     let additionalInfo = item.sp_sort ? `<br>${item.sp_sort}` : '';
                     
-                    // 修改：點擊圖片觸發 Modal
+                    // 點擊圖片觸發 Modal
                     let img_show_data = img_showValue ? `
                         <a href="javascript:void(0)" class="char-link" onclick="openCharModal(${globalIndex})">
                             <img src="img/${item.img_name}" alt="${item.skill_char}" loading="lazy"  height="70" onerror="this.src='img/0.png';">
                         </a><br>` : '';
                     
-                    // 修改：點擊名稱觸發 Modal
+                    // 點擊名稱觸發 Modal
                     let imgCellContent = item.img_name ? `
                         ${img_show_data}
                         <a href="javascript:void(0)" class="char-link" onclick="openCharModal(${globalIndex})">${item.skill_char}</a>
@@ -775,9 +825,10 @@
             }
 
             function filterData(data) {
-                let ctValue = parseInt(document.getElementById('ctFilter').value);
-                let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);            
-                let em_resistValue = parseInt(document.getElementById('em_resist').value);
+                // 將下拉選單取值改為開關 (checkbox) 取值
+                let ctValue = document.getElementById('ctFilter').checked ? 1 : 0;
+                let buff_cancel_rateValue = document.getElementById('buff_cancel_rate').checked ? 1 : 0;            
+                let em_resistValue = document.getElementById('em_resist').checked ? 1 : 0;
                 let descriptionKeyword = document.getElementById('descriptionFilter').value;
                 
                 // Get selected checkboxes
@@ -942,26 +993,26 @@
         </div>
 
         <div class="filter-row">
-            <div class="filter-group">
+            <div class="filter-group" style="flex-direction: row; align-items: center; gap: 8px;">
                 <label for="ctFilter">永續昇華:</label>
-                <select id="ctFilter">
-                    <option value="0" selected>無</option>
-                    <option value="1">有</option>
-                </select>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="ctFilter">
+                    <span class="slider"></span>
+                </label>
             </div>
-            <div class="filter-group">
+            <div class="filter-group" style="flex-direction: row; align-items: center; gap: 8px;">
                 <label for="buff_cancel_rate">Debuff突破:</label>
-                <select id="buff_cancel_rate">
-                    <option value="0" selected>無</option>
-                    <option value="1">有</option>
-                </select>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="buff_cancel_rate">
+                    <span class="slider"></span>
+                </label>
             </div>
-            <div class="filter-group">
+            <div class="filter-group" style="flex-direction: row; align-items: center; gap: 8px;">
                 <label for="em_resist">エンチャント(普攻/技能觸發特效):</label>
-                <select id="em_resist">
-                    <option value="0" selected>無</option>
-                    <option value="1">有</option>
-                </select>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="em_resist">
+                    <span class="slider"></span>
+                </label>
             </div>
         </div>
 
@@ -1014,9 +1065,13 @@
         </div>
         
         <div class="filter-row">
-            <div class="filter-group">
-                <label for="img_show" style="cursor: pointer; display: flex; align-items: center;">
-                    <input type="checkbox" id="img_show" checked style="margin-right: 8px;"> 顯示圖片 <small style="color: #666; margin-left: 5px; font-weight: normal;">(若未篩選時，直接顯示圖片，可能導致載入過慢)</small>
+            <div class="filter-group" style="flex-direction: row; align-items: center; gap: 8px;">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="img_show" checked>
+                    <span class="slider"></span>
+                </label>
+                <label for="img_show" style="cursor: pointer; display: flex; align-items: center; margin-bottom: 0;">
+                    顯示圖片 <small style="color: #666; margin-left: 5px; font-weight: normal;">(若未篩選時，直接顯示圖片，可能導致載入過慢)</small>
                 </label>
             </div>
         </div>
