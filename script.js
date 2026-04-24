@@ -80,9 +80,12 @@ document.addEventListener("DOMContentLoaded", function () {
             globalData.forEach(item => {
                 if (item.skill_state !== "拆技" && item.skill_state !== "非角色") {
                     const key = `${item.img_name}_${item.skill_type}`;
-                    if (propagateMap.has(key)) {
+					if (item.skill_state ==="ULT" || item.skill_state ==="Another skill" ) {
+						item.stock = 0;
+					}
+                    else if(propagateMap.has(key)) {
                         item.stock = propagateMap.get(key);
-                    } else {
+                    }else{
                         item.stock = 0;
                     }
                 }
