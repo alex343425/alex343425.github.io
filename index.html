@@ -722,14 +722,18 @@
         </div>
         
         <div class="filter-row">
-    <div class="filter-group" style="flex-direction: row; align-items: center; gap: 10px;">
-        <label>顯示圖片:</label>
-        <label class="toggle-switch">
-            <input type="checkbox" id="img_show" checked>
-            <span class="slider"></span>
-        </label>
-    </div>
-</div>
+            <div class="filter-group" style="flex-direction: row; align-items: center; gap: 10px;">
+                <label>顯示圖片:</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="img_show" checked>
+                    <span class="slider"></span>
+                </label>
+                <button id="openInventoryModalBtn" style="background-color: #f39c12; margin-left: 10px;">持有篩選</button>
+                <label id="stockFilterLabel" style="display: none; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="onlyShowStock" style="margin-right: 5px;"> 只顯示持有技能
+                </label>
+            </div>
+        </div>
 
     </div>
 
@@ -737,9 +741,10 @@
 
     <div class="table-wrapper">
         <table border="0">
-            <thead>
+<thead>
                 <tr>
                     <th style="width: 15%;">技能名</th>
+                    <th id="stockHeader" class="fixed-width" style="display: none;">持有數</th>
                     <th class="fixed-width">種類</th>
                     <th class="fixed-width2">狀態</th>
                     <th style="width: 10%;">角色</th>
@@ -762,6 +767,27 @@
                 </div>
             <div id="modalBody" class="modal-body">
                 </div>
+        </div>
+    </div>
+
+<div id="inventoryModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-inventory">&times;</span>
+            <h2 style="color: var(--primary-color); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">持有篩選資料匯入</h2>
+            
+            <div style="margin-bottom: 15px; margin-top: 15px;">
+                <label for="skillInventoryInput" style="font-weight: bold; display: block; margin-bottom: 8px;">貼上持有技能 (JSON格式):</label>
+                <textarea id="skillInventoryInput" rows="10" style="width: 100%; border-radius: 4px; padding: 10px; border: 1px solid #ccc; font-family: monospace; box-sizing: border-box;" placeholder='[\n  {\n    "Id": 725344839,\n    "MSkillId": 10011,\n    "Stock": 14\n  }\n]'></textarea>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="charInventoryInput" style="font-weight: bold; display: block; margin-bottom: 8px;">貼上持有角色 (尚未實裝):</label>
+                <textarea id="charInventoryInput" rows="3" style="width: 100%; border-radius: 4px; padding: 10px; border: 1px solid #ccc; background-color: #f5f5f5; box-sizing: border-box;" disabled placeholder="角色篩選功能保留欄位"></textarea>
+            </div>
+
+            <div style="text-align: right;">
+                <button id="applyInventoryBtn" style="padding: 8px 20px; font-size: 15px;">分析並套用</button>
+            </div>
         </div>
     </div>
 

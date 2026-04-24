@@ -1,6 +1,8 @@
 let currentPage = 1;
 const pageSize = 300;
 let currentFilteredData = [];
+let globalData = []; // 新增：用於保存完整的原始 data，方便追加 Stock 屬性
+let isInventoryEnabled = false; // 新增：紀錄是否已啟用持有資料系統
 
 document.addEventListener("DOMContentLoaded", function () {
     let searchMode = 'original'; 
@@ -11,20 +13,101 @@ document.addEventListener("DOMContentLoaded", function () {
     const modal = document.getElementById("charModal");
     const span = document.getElementsByClassName("close")[0];
 
-    // 關閉 Modal 的事件
-    span.onclick = function() {
-        modal.style.display = "none";
+// --- 新增：Inventory Modal 邏輯 ---
+    const invModal = document.getElementById("inventoryModal");
+    const closeInvSpan = document.getElementsByClassName("close-inventory")[0];
+
+    document.getElementById("openInventoryModalBtn").addEventListener("click", function() {
+        invModal.style.display = "block";
+    });
+
+    closeInvSpan.onclick = function() {
+        invModal.style.display = "none";
     }
+
+    // 整合 window.onclick 以關閉兩個 Modal
     window.onclick = function(event) {
         if (event.target == modal) {
             modal.style.display = "none";
         }
+        if (event.target == invModal) {
+            invModal.style.display = "none";
+        }
     }
+
+    // 監聽「只顯示持有」checkbox
+    document.getElementById('onlyShowStock').addEventListener('change', () => filterData(globalData));
+
+    // 分析貼上的 JSON 資料
+    document.getElementById("applyInventoryBtn").addEventListener("click", function() {
+        const skillInput = document.getElementById("skillInventoryInput").value.trim();
+        if (!skillInput) {
+            alert("請先貼上技能 JSON 資料！");
+            return;
+        }
+
+        try {
+            const parsedData = JSON.parse(skillInput);
+            const stockMap = new Map();
+
+            // 1. 解析使用者輸入，MSkillId 除以 10 (捨去個位數) 並累加 Stock
+            parsedData.forEach(item => {
+                if (item.MSkillId && item.Stock) {
+                    const skillId = Math.floor(item.MSkillId / 10);
+                    stockMap.set(skillId, (stockMap.get(skillId) || 0) + item.Stock);
+                }
+            });
+
+            const propagateMap = new Map();
+
+            // 2. 第一遍分析：針對「拆技」與「非角色」，對照出 Stock
+            // 同時記錄其 `${img_name}_${skill_type}` 組合的 Stock 值
+            globalData.forEach(item => {
+                if (item.skill_state === "拆技" || item.skill_state === "非角色") {
+                    if (item.skill_id && stockMap.has(item.skill_id)) {
+                        item.stock = stockMap.get(item.skill_id);
+                        if (item.img_name && item.skill_type && item.stock > 0) {
+                            propagateMap.set(`${item.img_name}_${item.skill_type}`, item.stock);
+                        }
+                    } else {
+                        item.stock = 0; // 未持有設為 0
+                    }
+                }
+            });
+
+            // 3. 第二遍分析：處理其他關聯的變體技能（如限突、昇華等）
+            // 只要圖片與種類跟「拆技」相符，就繼承相同的 Stock
+            globalData.forEach(item => {
+                if (item.skill_state !== "拆技" && item.skill_state !== "非角色") {
+                    const key = `${item.img_name}_${item.skill_type}`;
+                    if (propagateMap.has(key)) {
+                        item.stock = propagateMap.get(key);
+                    } else {
+                        item.stock = 0;
+                    }
+                }
+            });
+
+            // 4. 更新 UI 狀態並觸發重新繪圖
+            isInventoryEnabled = true;
+            document.getElementById('stockHeader').style.display = 'table-cell'; // 打開表格標頭
+            document.getElementById('stockFilterLabel').style.display = 'inline-flex'; // 顯示過濾開關
+            
+            invModal.style.display = "none"; // 關閉視窗
+            alert("技能持有資料套用成功！已為您計算合併庫存。");
+            filterData(globalData); // 重新篩選套用
+
+        } catch (error) {
+            alert("JSON 解析失敗，請確認內容格式是否為正確的 JSON 陣列！");
+            console.error(error);
+        }
+    });
 
     function loadData() {
         fetch('data.json')
         .then(response => response.json())
 		.then(data => {
+			globalData = data; // 將取得的資料存入全域變數
 			currentFilteredData = data;    
 			renderTable(data);
 			currentPage = 1; 
@@ -303,10 +386,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (keywords.length > 0) {
                 displayDescription = highlightKeywords(displayDescription, keywords);
             }
-
-            tr.innerHTML = `
+			let stockCellContent = isInventoryEnabled ? `<td style="text-align: center; font-weight: bold; color: ${item.stock > 0 ? '#d35400' : '#aaa'};">${item.stock || 0}</td>` : '';
+			tr.innerHTML = `
                 <td>${item.skill_name}</td>
-                <td>${item.skill_type}</td>
+                ${stockCellContent} <td>${item.skill_type}</td>
                 <td>${item.skill_state}</td>
                 <td>${imgCellContent}</td>
                 <td>${item.char_em}</td>
@@ -380,7 +463,9 @@ document.addEventListener("DOMContentLoaded", function () {
         let descriptionKeyword = document.getElementById('descriptionFilter').value;
         
         let keywords = descriptionKeyword.split(' ').filter(k => k.trim() !== '');
-
+		
+		let onlyShowStockValue = document.getElementById('onlyShowStock').checked; // 新增這行
+		
         let selectedCharEm = [];
         document.querySelectorAll('.char-em-filter:checked').forEach(checkbox => {
             selectedCharEm.push(checkbox.value);
@@ -474,7 +559,9 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 matchesElementDmgUp = item.em_resist === elementDmgUpFilterValue;
             }
-            return matchesCt && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource && matchesLimitFilter;
+			let matchesStock = !onlyShowStockValue || (item.stock && item.stock > 0);
+			
+            return matchesCt && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource && matchesLimitFilter && matchesStock;
         });
         currentPage = 1;
         currentFilteredData = filteredData;
