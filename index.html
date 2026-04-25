@@ -732,6 +732,9 @@
                 <label id="stockFilterLabel" style="display: none; align-items: center; cursor: pointer;">
                     <input type="checkbox" id="onlyShowStock" style="margin-right: 5px;"> 只顯示持有技能
                 </label>
+				<label id="charStockFilterLabel" style="display: none; align-items: center; cursor: pointer; margin-left: 10px;">
+                    <input type="checkbox" id="onlyShowCharStock" style="margin-right: 5px;"> 只顯示持有角色
+                </label>
             </div>
         </div>
 
@@ -748,6 +751,7 @@
                     <th class="fixed-width">種類</th>
                     <th class="fixed-width2">狀態</th>
                     <th style="width: 10%;">角色</th>
+					<th id="charStockHeader" class="fixed-width" style="display: none;">持有</th>
                     <th class="fixed-width">屬性</th>
                     <th class="fixed-width">武器</th>
                     <th>技能描述</th>
@@ -781,10 +785,12 @@
             </div>
 
             <div style="margin-bottom: 15px;">
-                <label for="charInventoryInput" style="font-weight: bold; display: block; margin-bottom: 8px;">貼上持有角色 (尚未實裝):</label>
-                <textarea id="charInventoryInput" rows="3" style="width: 100%; border-radius: 4px; padding: 10px; border: 1px solid #ccc; background-color: #f5f5f5; box-sizing: border-box;" disabled placeholder="角色篩選功能保留欄位"></textarea>
+			
+                <label for="charInventoryInput" style="font-weight: bold; display: block; margin-bottom: 8px;">貼上持有角色 (:</label>
+                <textarea id="charInventoryInput" rows="3" style="width: 100%; border-radius: 4px; padding: 10px; border: 1px solid #ccc; box-sizing: border-box;" placeholder='[\n  10011,\n  10012\n]'></textarea>
             </div>
 			<a href="https://www.youtube.com/watch?v=ZsEj7ITg7P0" target="_blank">教學：持有技能篩選</a>
+			<a href="https://www.youtube.com/watch?v=(預留位置)" target="_blank">教學：持有角色篩選</a>
             <div style="text-align: right;">
                 <button id="applyInventoryBtn" style="padding: 8px 20px; font-size: 15px;">分析並套用</button>
             </div>
