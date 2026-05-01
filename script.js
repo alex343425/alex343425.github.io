@@ -13,6 +13,123 @@ document.addEventListener("DOMContentLoaded", function () {
     // Modal 元素
     const modal = document.getElementById("charModal");
     const span = document.getElementsByClassName("close")[0];
+	
+	// --- 新增：網址參數解析函式 ---
+    function applyUrlParams() {
+        const params = new URLSearchParams(window.location.search);
+        if (!Array.from(params).length) return; // 沒有參數就跳過
+
+        // 還原文字與下拉選單
+        if (params.has('desc')) document.getElementById('descriptionFilter').value = params.get('desc');
+        if (params.has('mark')) document.getElementById('markFilter').value = params.get('mark');
+        if (params.has('limit')) document.getElementById('limitFilter').value = params.get('limit');
+        if (params.has('statDwn')) document.getElementById('status_condition_downFilter').value = params.get('statDwn');
+        if (params.has('bcRate')) document.getElementById('buff_cancel_rate').value = params.get('bcRate');
+        if (params.has('bcCount')) document.getElementById('buff_cancel_count').value = params.get('bcCount');
+        
+        // 還原 Switch 開關
+        if (params.has('ct')) document.getElementById('ctFilter').checked = true;
+        if (params.has('sg')) document.getElementById('spirit_gauge').checked = true;
+        if (params.has('hp')) document.getElementById('hp_debuff').checked = true;
+        if (params.has('img') && params.get('img') === '0') document.getElementById('img_show').checked = false;
+
+        // 還原 Radio 按鈕與更新對應的變數
+        if (params.has('mode')) {
+            const mode = params.get('mode');
+            const radio = document.querySelector(`input[name="searchMode"][value="${mode}"]`);
+            if (radio) { radio.checked = true; searchMode = mode; }
+        }
+        if (params.has('eleDmg')) {
+            const val = params.get('eleDmg');
+            const radio = document.querySelector(`input[name="elementDmgUpFilter"][value="${val}"]`);
+            if (radio) { radio.checked = true; elementDmgUpFilterValue = parseInt(val); }
+        }
+        if (params.has('enmyDmg')) {
+            const val = params.get('enmyDmg');
+            const radio = document.querySelector(`input[name="enemyDmgUpFilter"][value="${val}"]`);
+            if (radio) { radio.checked = true; enemyDmgUpFilterValue = val; }
+        }
+
+        // 還原 Checkbox 群組
+        const setCheckedValues = (selector, valuesStr, separator = ',') => {
+            const valArray = valuesStr.split(separator);
+            document.querySelectorAll(selector).forEach(cb => {
+                if (valArray.includes(cb.value)) cb.checked = true;
+            });
+        };
+
+        if (params.has('sDwnF')) setCheckedValues('.stat_down_filter', params.get('sDwnF'));
+        if (params.has('cSrcF')) setCheckedValues('.char_source_filter', params.get('cSrcF'));
+        if (params.has('sState')) setCheckedValues('.skill-state-filter', params.get('sState'));
+        // 種類的值包含逗號，因此改用雙底線作分隔
+        if (params.has('sType')) setCheckedValues('.skill-type-filter', params.get('sType'), '__'); 
+        if (params.has('cEm')) setCheckedValues('.char-em-filter', params.get('cEm'));
+        if (params.has('cWep')) setCheckedValues('.char-wep-filter', params.get('cWep'));
+    }
+
+    // --- 新增：匯出篩選按鈕事件 ---
+    document.getElementById('exportFilterBtn').addEventListener('click', function() {
+        const params = new URLSearchParams();
+
+        // 收集文字與下拉選單
+        const desc = document.getElementById('descriptionFilter').value;
+        if (desc) params.set('desc', desc);
+        if (document.getElementById('markFilter').value !== '0') params.set('mark', document.getElementById('markFilter').value);
+        if (document.getElementById('limitFilter').value !== '0') params.set('limit', document.getElementById('limitFilter').value);
+        if (document.getElementById('status_condition_downFilter').value !== '0') params.set('statDwn', document.getElementById('status_condition_downFilter').value);
+        if (document.getElementById('buff_cancel_rate').value !== '0') params.set('bcRate', document.getElementById('buff_cancel_rate').value);
+        if (document.getElementById('buff_cancel_count').value !== '0') params.set('bcCount', document.getElementById('buff_cancel_count').value);
+
+        // 收集 Switch 開關
+        if (document.getElementById('ctFilter').checked) params.set('ct', '1');
+        if (document.getElementById('spirit_gauge').checked) params.set('sg', '1');
+        if (document.getElementById('hp_debuff').checked) params.set('hp', '1');
+        if (!document.getElementById('img_show').checked) params.set('img', '0'); // 預設是開啟，關閉時才記錄
+
+        // 收集 Radio 狀態
+        const modeChecked = document.querySelector('input[name="searchMode"]:checked');
+        if (modeChecked) params.set('mode', modeChecked.value);
+        
+        const eleChecked = document.querySelector('input[name="elementDmgUpFilter"]:checked');
+        if (eleChecked) params.set('eleDmg', eleChecked.value);
+        
+        const enmyChecked = document.querySelector('input[name="enemyDmgUpFilter"]:checked');
+        if (enmyChecked) params.set('enmyDmg', enmyChecked.value);
+
+        // 收集 Checkbox 群組
+        const getCheckedValues = (selector) => Array.from(document.querySelectorAll(selector + ':checked')).map(cb => cb.value);
+        
+        const statDown = getCheckedValues('.stat_down_filter');
+        if (statDown.length) params.set('sDwnF', statDown.join(','));
+
+        const charSource = getCheckedValues('.char_source_filter');
+        if (charSource.length) params.set('cSrcF', charSource.join(','));
+
+        const skillState = getCheckedValues('.skill-state-filter');
+        if (skillState.length) params.set('sState', skillState.join(','));
+
+        const skillType = getCheckedValues('.skill-type-filter');
+        if (skillType.length) params.set('sType', skillType.join('__')); // 種類的值含有逗號，改用 __ 分隔
+
+        const charEm = getCheckedValues('.char-em-filter');
+        if (charEm.length) params.set('cEm', charEm.join(','));
+
+        const charWep = getCheckedValues('.char-wep-filter');
+        if (charWep.length) params.set('cWep', charWep.join(','));
+
+        // 產生並複製網址 (不包含持有篩選資訊)
+        const newUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(newUrl).then(() => {
+                alert("已將篩選網址複製到剪貼簿！\n" + newUrl);
+            }).catch(() => {
+                prompt("自動複製失敗，請手動複製以下網址：", newUrl);
+            });
+        } else {
+            prompt("請手動複製以下網址：", newUrl);
+        }
+    });
 
 // --- 新增：Inventory Modal 邏輯 ---
     const invModal = document.getElementById("inventoryModal");
@@ -233,6 +350,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     filterData(data);
                 });
             });
+			applyUrlParams();
+            // 如果網址帶有參數，就在資料載入後主動篩選一次
+            if (window.location.search) {
+                filterData(data);
+            }
         })
         .catch(error => console.error('Error fetching data:', error));
     }
