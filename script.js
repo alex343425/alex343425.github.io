@@ -383,6 +383,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // 將 openCharModal 暴露到全域，以便 onclick 調用
+// 將 openCharModal 暴露到全域，以便 onclick 調用
     window.openCharModal = function(index) {
         const item = currentFilteredData[index];
         if (!item) return;
@@ -413,8 +414,8 @@ document.addEventListener("DOMContentLoaded", function () {
         modal.style.display = "block";
 
         // 3. 讀取 JSON
-        // 假設 img_name 是 "18291.png"，JSON 檔名為 "18291.json"
-        let jsonFileName = item.img_name.split('.')[0] + '.json';
+        let baseIdStr = item.img_name.split('.')[0];
+        let jsonFileName = baseIdStr + '.json';
         
         fetch(`./charjson/${jsonFileName}`)
             .then(res => {
@@ -423,12 +424,67 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(charData => {
                 renderModalTables(charData);
+                // 4. 表格渲染完成後，附加角色圖片
+                appendImagesToModal(baseIdStr);
             })
             .catch(err => {
                 console.error("Fetch error:", err);
                 modalBody.innerHTML = '<p style="color:red;">找不到該角色的詳細資料檔 (JSON)。</p>';
             });
     };
+
+    // 新增：非同步附加角色圖片函式
+    async function appendImagesToModal(baseIdStr) {
+        const modalBody = document.getElementById("modalBody");
+        
+        // 建立圖片的容器
+        let imageContainer = document.createElement('div');
+        imageContainer.style.textAlign = 'center';
+        imageContainer.style.marginTop = '30px';
+        imageContainer.style.borderTop = '2px solid #eee';
+        imageContainer.style.paddingTop = '20px';
+
+        // 第一張圖必定為該同名 png 檔
+        let img1 = document.createElement('img');
+        img1.src = `./charimg/${baseIdStr}.png`;
+        img1.style.maxWidth = '100%';
+        img1.style.display = 'block';
+        img1.style.margin = '0 auto 15px auto';
+        img1.style.borderRadius = '8px';
+        imageContainer.appendChild(img1);
+
+        modalBody.appendChild(imageContainer);
+
+        // 解析檔名前綴與個位數
+        let prefix = baseIdStr.slice(0, -1);
+        let lastDigit = parseInt(baseIdStr.slice(-1));
+
+        // 如果個位數小於 5，則從 5 往回檢查有無第二張圖
+        if (!isNaN(lastDigit) && lastDigit < 5) {
+            for (let i = 5; i > lastDigit; i--) {
+                let testUrl = `./charimg/${prefix}${i}.png`;
+                
+                // 透過建立 Image 物件來驗證圖片是否存在
+                let exists = await new Promise(resolve => {
+                    let img = new Image();
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    img.src = testUrl;
+                });
+
+                if (exists) {
+                    let img2 = document.createElement('img');
+                    img2.src = testUrl;
+                    img2.style.maxWidth = '100%';
+                    img2.style.display = 'block';
+                    img2.style.margin = '0 auto 15px auto';
+                    img2.style.borderRadius = '8px';
+                    imageContainer.appendChild(img2);
+                    break; // 找到第二張就停止檢查
+                }
+            }
+        }
+    }
 
     function renderModalTables(data) {
         const modalBody = document.getElementById("modalBody");
