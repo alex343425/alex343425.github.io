@@ -86,58 +86,119 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // 暴露給全域以便 `<a>` 標籤點擊時呼叫
+// 修改或新增 openCharModal 函式
   window.openCharModal = function(index) {
-    const item = currentFilteredData[index];
-    if (!item) return;
+      const item = currentFilteredData[index];
+      if (!item) return;
 
-    const modalHeader = document.getElementById("modalHeader");
-    const modalBody = document.getElementById("modalBody");
-    const modal = document.getElementById("charModal");
+      const modalHeader = document.getElementById("modalHeader");
+      const modalBody = document.getElementById("modalBody");
+      const modal = document.getElementById("charModal");
 
-    // 1. 設置 Header
-    let imgHtml = item.img_name ? `<img src="img/${item.img_name}" alt="${item.skill_char}" height="100" style="border-radius:8px;" onerror="this.src='img/0.png';">` : '';
-    // 依據原始的 wiki 連結邏輯組合 (加入星數與角色名)
-    let wikiLink = `https://otogi.wikiru.jp/index.php?★${item.r}/${item.skill_char}`;
-    
-    modalHeader.innerHTML = `
-        <div class="modal-header-img">${imgHtml}</div>
-        <div class="modal-header-info">
-            <h2>${item.skill_char}</h2>
-            <div>
-                <span class="tag">屬性: ${item.char_em}</span>
-                <span class="tag">武器: ${item.char_wep}</span>
-                <span class="tag">${item.sp_sort || '無分類'}</span>
-            </div>
-            <a href="${wikiLink}" target="_blank" class="wiki-link-btn">前往 Wiki 頁面</a>
-        </div>
-    `;
+      // 1. 設置 Header (配合啦啦隊頁面欄位，優先使用 item.char_name 或 item.skill_char)
+      let charName = item.char_name || item.skill_char || "未知角色";
+      let imgHtml = item.img_name ? `<img src="img/${item.img_name}" alt="${charName}" height="100" style="border-radius:8px;" onerror="this.src='img/0.png';">` : '';
+      let wikiLink = `https://otogi.wikiru.jp/index.php?${charName}`;
+      
+      modalHeader.innerHTML = `
+          <div class="modal-header-img">${imgHtml}</div>
+          <div class="modal-header-info">
+              <h2>${charName}</h2>
+              <div>
+                  <span class="tag">屬性: ${item.char_em || ''}</span>
+                  <span class="tag">武器: ${item.char_wep || ''}</span>
+              </div>
+              <a href="${wikiLink}" target="_blank" class="wiki-link-btn">前往 Wiki 頁面</a>
+          </div>
+      `;
 
-    // 2. 顯示 Modal 並顯示載入中
-    modalBody.innerHTML = '<p>載入資料中...</p>';
-    modal.style.display = "block";
+      // 2. 顯示 Modal 並顯示載入中
+      modalBody.innerHTML = '<p>載入資料中...</p>';
+      modal.style.display = "block";
 
-    if (!item.img_name) {
-        modalBody.innerHTML = '<p style="color:red;">無對應圖片，無法推斷詳細資料檔 (JSON)。</p>';
-        return;
-    }
-
-    // 3. 讀取 JSON
-    let jsonFileName = item.img_name.split('.')[0] + '.json';
-    
-    fetch(`./charjson/${jsonFileName}`)
-        .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
-        })
-        .then(charData => {
-            renderModalTables(charData);
-        })
-        .catch(err => {
-            console.error("Fetch error:", err);
-            modalBody.innerHTML = '<p style="color:red;">找不到該角色的詳細資料檔 (JSON)。</p>';
-        });
+      // 3. 讀取 JSON 並分析檔名
+      if (!item.img_name) {
+          modalBody.innerHTML = '<p>此角色無圖片資料。</p>';
+          return;
+      }
+      
+      let baseIdStr = item.img_name.split('.')[0];
+      let jsonFileName = baseIdStr + '.json';
+      
+      fetch(`./charjson/${jsonFileName}`)
+          .then(res => {
+              if (!res.ok) throw new Error('Network response was not ok');
+              return res.json();
+          })
+          .then(charData => {
+              // 執行原本啦啦隊頁面的表格渲染函式 (請確認名稱是否為 renderModalTables)
+              if (typeof renderModalTables === 'function') {
+                  renderModalTables(charData);
+              }
+              
+              // 4. 新增：表格渲染完成後，附加角色立繪圖片
+              appendImagesToModal(baseIdStr);
+          })
+          .catch(err => {
+              console.error("Fetch error:", err);
+              modalBody.innerHTML = '<p style="color:red;">找不到該角色的詳細資料檔 (JSON)。</p>';
+          });
   };
+
+  // 新增：立繪圖片倒序高效檢查與附加功能
+  async function appendImagesToModal(baseIdStr) {
+      const modalBody = document.getElementById("modalBody");
+      
+      // 建立圖片的容器
+      let imageContainer = document.createElement('div');
+      imageContainer.style.textAlign = 'center';
+      imageContainer.style.marginTop = '30px';
+      imageContainer.style.borderTop = '2px solid #eee';
+      imageContainer.style.paddingTop = '20px';
+
+      // 第一張圖必定為該同名 png 檔
+      let img1 = document.createElement('img');
+      img1.src = `./charimg/${baseIdStr}.png`;
+      img1.style.maxWidth = '100%';
+      img1.style.display = 'block';
+      img1.style.margin = '0 auto 15px auto';
+      img1.style.borderRadius = '8px';
+      img1.setAttribute('loading', 'lazy'); // 啟用延遲加載優化
+      imageContainer.appendChild(img1);
+
+      modalBody.appendChild(imageContainer);
+
+      // 解析檔名前綴與個位數
+      let prefix = baseIdStr.slice(0, -1);
+      let lastDigit = parseInt(baseIdStr.slice(-1));
+
+      // 如果個位數小於 5，則從 5 往回檢查有無第二張圖
+      if (!isNaN(lastDigit) && lastDigit < 5) {
+          for (let i = 5; i > lastDigit; i--) {
+              let testUrl = `./charimg/${prefix}${i}.png`;
+              
+              // 透過 Image 物件非同步驗證圖片是否存在
+              let exists = await new Promise(resolve => {
+                  let img = new Image();
+                  img.onload = () => resolve(true);
+                  img.onerror = () => resolve(false);
+                  img.src = testUrl;
+              });
+
+              if (exists) {
+                  let img2 = document.createElement('img');
+                  img2.src = testUrl;
+                  img2.style.maxWidth = '100%';
+                  img2.style.display = 'block';
+                  img2.style.margin = '0 auto 15px auto';
+                  img2.style.borderRadius = '8px';
+                  img2.setAttribute('loading', 'lazy');
+                  imageContainer.appendChild(img2);
+                  break; // 找到第二張就立即停止後續檢查
+              }
+          }
+      }
+  }
 
   // 生成 Modal 內的表格
   function renderModalTables(data) {
