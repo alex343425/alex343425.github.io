@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蝸牛關卡練轉生角色 次數計算器</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --primary-hover: #3b5984;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 550px;
+            padding: 28px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--bg-color);
+        }
+
+        .info-panel {
+            background-color: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .item-icon {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: #fafafa;
+            flex-shrink: 0;
+        }
+
+        .item-info {
+            flex-grow: 1;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .input-desc {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #4a6fa5, #5b82c2);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(74, 111, 165, 0.3);
+        }
+
+        .result-title {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .result-runs {
+            font-size: 2.5rem;
+            font-weight: bold;
+            line-height: 1.2;
+            color: #fff;
+        }
+
+        .result-detail {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.85rem;
+            opacity: 0.95;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .detail-item span {
+            display: block;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+
+        .notes-section {
+            margin-top: 25px;
+            padding: 14px 16px;
+            background-color: #fff9e6;
+            border: 1px solid #ffe58f;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            color: #665200;
+            line-height: 1.6;
+        }
+
+        .notes-section p {
+            margin-bottom: 4px;
+        }
+
+        .notes-section p:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>蝸牛關卡練轉生角色 次數計算器</h1>
+
+    <div class="info-panel">
+        <div class="info-item">
+            <span>基礎經驗值/場：</span>
+            <strong>206,336 EXP</strong>
+        </div>
+        <div class="info-item">
+            <span>升級所需經驗值：</span>
+            <strong>23,828,223 EXP</strong>
+        </div>
+    </div>
+
+    <form id="expForm" onsubmit="return false;">
+        <!-- 項目 1 -->
+        <div class="form-group">
+            <div class="item-header">
+                <img src="exp_1.png" alt="S3 学習装置" class="item-icon">
+                <div class="item-info">
+                    <label for="item1">S3 学習装置 (+200%)</label>
+                    <div class="input-desc">數量限制：0 ~ 15 個</div>
+                </div>
+            </div>
+            <input type="number" id="item1" min="0" max="15" value="0" oninput="calculateExp()">
+        </div>
+
+        <!-- 項目 2 -->
+        <div class="form-group">
+            <div class="item-header">
+                <img src="exp_2.png" alt="S3 超学習装置" class="item-icon">
+                <div class="item-info">
+                    <label for="item2">S3 超学習装置 (+350%)</label>
+                    <div class="input-desc">數量限制：0 ~ 15 個</div>
+                </div>
+            </div>
+            <input type="number" id="item2" min="0" max="15" value="0" oninput="calculateExp()">
+        </div>
+
+        <!-- 項目 3 -->
+        <div class="form-group">
+            <div class="item-header">
+                <img src="exp_3.png" alt="蝸牛鑰匙圈" class="item-icon">
+                <div class="item-info">
+                    <label for="item3">飾品 蝸牛鑰匙圈 (デンデンキーホルダー) (+99%)</label>
+                    <div class="input-desc">數量限制：0 ~ 5 個</div>
+                </div>
+            </div>
+            <input type="number" id="item3" min="0" max="5" value="0" oninput="calculateExp()">
+        </div>
+
+        <!-- 項目 4 -->
+        <div class="form-group">
+            <div class="item-header">
+                <img src="exp_4.png" alt="隊長技 阿里巴巴" class="item-icon">
+                <div class="item-info">
+                    <label for="item4">隊長技 阿里巴巴 (+50%)<br>加成很低且佔用隊長技，一般不推薦。</label>
+                    <div class="input-desc">數量限制：0 ~ 1 個</div>
+                </div>
+            </div>
+            <input type="number" id="item4" min="0" max="1" value="0" oninput="calculateExp()">
+        </div>
+    </form>
+
+    <div class="result-card">
+        <div class="result-title">升級所需通關次數</div>
+        <div class="result-runs" id="runsResult">116 次</div>
+        <div class="result-detail">
+            <div class="detail-item">
+                總經驗加成
+                <span id="bonusResult">+0%</span>
+            </div>
+            <div class="detail-item">
+                每場獲得經驗
+                <span id="expPerRunResult">206,336</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="notes-section">
+        <p>1. 只有上場的五個角色可以吃到加成</p>
+        <p>2. 可以自己組四個角色+借好友的角色</p>
+        <p>3. 關卡有低機率讓基礎經驗增加為256336(只影響角色經驗、不影響帳號經驗)，本計算器不計算隨機出現的加成</p>
+    </div>
+</div>
+
+<script>
+    const BASE_EXP = 206336;
+    const TARGET_EXP = 23828223;
+
+    function clamp(val, min, max) {
+        return Math.min(Math.max(val, min), max);
+    }
+
+    function calculateExp() {
+        const item1Input = document.getElementById('item1');
+        const item2Input = document.getElementById('item2');
+        const item3Input = document.getElementById('item3');
+        const item4Input = document.getElementById('item4');
+
+        // 讀取數值並限制在合法範圍內
+        let count1 = clamp(parseInt(item1Input.value) || 0, 0, 15);
+        let count2 = clamp(parseInt(item2Input.value) || 0, 0, 15);
+        let count3 = clamp(parseInt(item3Input.value) || 0, 0, 5);
+        let count4 = clamp(parseInt(item4Input.value) || 0, 0, 1);
+
+        // 計算總加成百分比
+        const totalBonusPercent = (count1 * 200) + (count2 * 350) + (count3 * 99) + (count4 * 50);
+
+        // 單場獲得經驗值 = 基礎經驗值 * (1 + 總加成/100)
+        const expPerRun = Math.floor(BASE_EXP * (1 + totalBonusPercent / 100));
+
+        // 計算所需場次（無條件進位）
+        const runsNeeded = Math.ceil(TARGET_EXP / expPerRun);
+
+        // 渲染結果與千分位格式化
+        document.getElementById('bonusResult').innerText = `+${totalBonusPercent}%`;
+        document.getElementById('expPerRunResult').innerText = expPerRun.toLocaleString();
+        document.getElementById('runsResult').innerText = `${runsNeeded.toLocaleString()} 次`;
+    }
+
+    // 初始執行一次
+    calculateExp();
+</script>
+
+</body>
+</html>
