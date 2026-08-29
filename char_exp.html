@@ -198,6 +198,17 @@
     </div>
 
     <form id="expForm" onsubmit="return false;">
+	        <!-- 項目 4 -->
+        <div class="form-group">
+            <div class="item-header">
+                <img src="exp_4.png" alt="隊長技 阿里巴巴" class="item-icon">
+                <div class="item-info">
+                    <label for="item4">隊長技 阿里巴巴 (+50%)<br>加成很低且佔用隊長技，一般不推薦。</label>
+                    <div class="input-desc">數量限制：0 ~ 1 個</div>
+                </div>
+            </div>
+            <input type="number" id="item4" min="0" max="1" value="0" oninput="calculateExp()">
+        </div>
         <!-- 項目 1 -->
         <div class="form-group">
             <div class="item-header">
@@ -234,17 +245,7 @@
             <input type="number" id="item3" min="0" max="5" value="0" oninput="calculateExp()">
         </div>
 
-        <!-- 項目 4 -->
-        <div class="form-group">
-            <div class="item-header">
-                <img src="exp_4.png" alt="隊長技 阿里巴巴" class="item-icon">
-                <div class="item-info">
-                    <label for="item4">隊長技 阿里巴巴 (+50%)<br>加成很低且佔用隊長技，一般不推薦。</label>
-                    <div class="input-desc">數量限制：0 ~ 1 個</div>
-                </div>
-            </div>
-            <input type="number" id="item4" min="0" max="1" value="0" oninput="calculateExp()">
-        </div>
+
     </form>
 
     <div class="result-card">
