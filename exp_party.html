@@ -208,7 +208,7 @@
                     <input type="checkbox" checked id="useFriend"> 啟用好友支援 (只選 4 人 + 固定好友)
                 </label>
                 <p style="font-size: 12px; color: #666; margin-top: 5px;">
-                    好友固定為「ミニコゼハロウィン2022ver.」，被動固定 +1050%(超学習装置x3)，飾品固定裝備「ボーナスRUSHリング」(+670%)。
+                    好友固定為「ミニコゼハロウィン2022ver.」，被動固定 +1050%(超学習装置x3)，飾品固定裝備「ナインオープナー」(+800%)。
                 </p>
             </div>
 
@@ -274,7 +274,7 @@
         
         <div class="section full-width">
             <h2>4. 飾品持有數 (請輸入數量)</h2>
-			<p>備註1：除了最後兩個外，所有經驗飾品均為課金獲得。目前(2025.12)在商店有常駐販賣「鷹の爪(3.25倍)」</p>
+			<p>備註1：除了最後兩個外，所有經驗飾品均為課金獲得。目前(2026.9)在商店有常駐販賣「焚火の薪(4倍)」和「魔女ネコのホウキ(4倍)」，能各買兩次。</p>
 			<p>「いくたま」為連動的活動飾品，完全絕版；「王道BLカプの同人誌」也是活動絕版，但有可能在骰子的飾品格子獲得</p>
 			<p>備註2：刷取金屬蝸牛關製作的飾品是增加「角色經驗值(キャラ経験値)」而不是「玩家經驗值(プレイヤー経験値)」，故不列出</p>
             <div id="accContainer" class="grid-container"></div>
@@ -432,7 +432,9 @@ const accessories = [
   {"id": 21310, "name": "未央のシュシュ", "score": 250},
   {"id": 21334, "name": "火永劫之牙R", "score": 425},
   {"id": 21337, "name": "火永劫之牙W", "score": 425},
-  {"id": 21533, "name": "メイドエプロン", "score": 250}
+  {"id": 21533, "name": "メイドエプロン", "score": 250},
+  {"id": 21599, "name": "背伸びしたベレー", "score": 300},
+  {"id": 21673, "name": "ナインオープナー", "score": 800}  
 ];
 const STAGE_DATA = [
     { name: "主線第二部Hard<br>13-15以後任意(無boss動畫)", cost: "18AP", baseExp: 2170, note: "無活動自動周回練級時的選擇<br>可以看關卡小圖示判斷怪物種類，刷打倒怪物的成就" },
@@ -445,7 +447,7 @@ const FRIEND_CHAR = {
     ls1: 0, ls2: 0, wep1: 35, wep2: 35, isFriend: true 
 };
 const FRIEND_PASSIVE_SCORE = 1050; 
-const FRIEND_ACC = { id: 21292, name: "ボーナスRUSHリング", score: 670 };
+const FRIEND_ACC = { id: 21673, name: "ナインオープナー", score: 800 };
 
 // ================= GLOBAL STATE =================
 let selectedSpirits = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
