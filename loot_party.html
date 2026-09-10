@@ -1285,6 +1285,25 @@ async function calculateBestTeam() {
         updateSelectedCount();
     }
 
+    // 補齊結果排列中完全缺席的武器類型，讓每種武器都有可用的範例角色。
+    for (let w = 1; w <= 8; w++) {
+        if (!effectivePool.some(c => c.wc === w)) {
+            effectivePool.push({
+                id: `example_weapon_${w}`,
+                name: `${WEP_MAP[w]}範例角色`,
+                a: 1,
+                wc: w,
+                wep1: 2,
+                wep2: 2,
+                sc1: 8,
+                sc2: 0,
+                sc3: 0,
+                ls: 0,
+                isExample: true
+            });
+        }
+    }
+
     const totalCombinations = Math.min(getCombinationCount(effectivePool.length, requiredSubCount), 10000000);
     updateProgressUI(0, totalCombinations, "計算中...");
     await new Promise(r => setTimeout(r, 10));
