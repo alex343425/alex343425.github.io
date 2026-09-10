@@ -84,7 +84,7 @@
         .res-bg-white { background-color: #fff; }
         .res-bg-custom { background-color: #e8e8e8; } /* Custom Char */
 
-        .loading { color: #e67e22; font-weight: bold; margin-left: 10px; display: inline-block; animation: blink 1s infinite; }
+        .loading { color: #e67e22; font-weight: bold; display: inline-block; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0.5; } }
 
         .filter-bar { background: #eaf2f8; padding: 10px; border-radius: 5px; margin-bottom: 10px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -426,7 +426,17 @@
             </div>
             
             <button onclick="calculateBestTeam()" id="calcBtn">開始計算最高分組合</button>
-            <span id="statusMsg" class="loading" style="display:none;">計算中...</span>
+            
+            <!-- 進度條區塊 -->
+            <div id="progressBox" style="display:none; margin-top:12px; background:#fff3e0; padding:12px; border-radius:6px; border:1px solid #ffe0b2;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span id="statusMsg" class="loading">計算中...</span>
+                    <span id="progressText" style="font-size:13px; font-weight:bold; color:#e67e22;">0 / 0 (0%)</span>
+                </div>
+                <div style="width:100%; background-color:#e0e0e0; height:12px; border-radius:6px; overflow:hidden;">
+                    <div id="progressBar" style="width:0%; height:100%; background-color:#e67e22; transition: width 0.1s ease;"></div>
+                </div>
+            </div>
         </div>
 
         <div class="section full-width" id="resultSection" style="display:none;">
@@ -598,6 +608,18 @@ function parsePassives() {
     });
 }
 let PASSIVES = [];
+
+// 計算 C(n, k) 總組合數
+function getCombinationCount(n, k) {
+    if (k < 0 || k > n) return 0;
+    if (k === 0 || k === n) return 1;
+    if (k > n / 2) k = n - k;
+    let res = 1;
+    for (let i = 1; i <= k; i++) {
+        res = (res * (n - i + 1)) / i;
+    }
+    return Math.round(res);
+}
 
 // ================= UI RENDERING =================
 
@@ -1069,6 +1091,9 @@ function getCombinations(array, size) {
 async function calculateBestTeam() {
     const btn = document.getElementById('calcBtn');
     const status = document.getElementById('statusMsg');
+    const progressBox = document.getElementById('progressBox');
+    const progressText = document.getElementById('progressText');
+    const progressBar = document.getElementById('progressBar');
     const resultDiv = document.getElementById('resultOutput');
     const resultSection = document.getElementById('resultSection');
     
@@ -1079,6 +1104,14 @@ async function calculateBestTeam() {
     let fixedLeaderChar = null;
     let friendChar = null;
     let customChar = null; // 自訂角色物件
+
+    // 更新進度條UI函式
+    function updateProgressUI(current, total, msgText) {
+        if (msgText) status.innerText = msgText;
+        const pct = total > 0 ? Math.min(100, (current / total) * 100).toFixed(1) : 0;
+        progressText.innerText = `${current.toLocaleString()} / ${total.toLocaleString()} (${pct}%)`;
+        progressBar.style.width = `${pct}%`;
+    }
 
     // 處理固定隊長/好友
     if (isFixedLeaderMode) {
@@ -1120,17 +1153,17 @@ async function calculateBestTeam() {
         const sc3 = document.getElementById('custSC3').checked ? 8 : 0;
 
         customChar = {
-            id: 'temp_char', // 使用特殊字串ID，配合 ./img/temp_char.png
+            id: 'temp_char',
             name: '自訂角色 (固定)',
             a: cAttr,
             wc: cWep,
             wep1: cScore,
-            wep2: cScore, // 假設兩狀態分數相同
+            wep2: cScore,
             sc1: sc1,
             sc2: sc2,
             sc3: sc3,
-            ls: 0, // 強制不成為隊長
-            isCustom: true // 標記用
+            ls: 0,
+            isCustom: true
         };
     }
 
@@ -1146,22 +1179,18 @@ async function calculateBestTeam() {
     const selectedIds = Array.from(document.querySelectorAll('.char-checkbox:checked')).map(cb => parseInt(cb.value));
     let poolChars = RAW_CHAR_DATA.filter(c => selectedIds.includes(c.id));
     
-    // 計算需要從 Pool 中選出幾人
-    // 基礎隊伍人數: 6
-    // 減去固定佔位者
     let slotsTaken = 0;
     if (isFixedLeaderMode) {
         poolChars = poolChars.filter(c => c.id !== fixedLeaderChar.id);
-        slotsTaken += 1; // 隊長佔1
+        slotsTaken += 1;
     }
     if (isCustomMode) {
-        slotsTaken += 1; // 自訂角色佔1
+        slotsTaken += 1;
     }
 
     let requiredSubCount = 6 - slotsTaken;
 
     if (requiredSubCount < 0) {
-        // 理論上不會發生，除非邏輯錯誤
         alert("設定錯誤：固定角色超過隊伍上限");
         return;
     }
@@ -1184,7 +1213,8 @@ async function calculateBestTeam() {
     userSkillPool.sort((a, b) => b.value - a.value);
 
     btn.disabled = true;
-    status.style.display = 'inline-block';
+    progressBox.style.display = 'block';
+    updateProgressUI(0, 0, "準備中...");
     
     await new Promise(r => setTimeout(r, 50));
 
@@ -1192,7 +1222,7 @@ async function calculateBestTeam() {
     const POOL_LIMIT = 40; 
 
     if (poolChars.length > POOL_LIMIT) {
-        status.innerText = "正在篩選菁英角色(保障各武器戰力)...";
+        updateProgressUI(0, 0, "正在篩選菁英角色(保障各武器戰力)...");
         await new Promise(r => setTimeout(r, 10));
 
         const S3_VAL = 2.0; 
@@ -1255,12 +1285,14 @@ async function calculateBestTeam() {
         updateSelectedCount();
     }
 
-    status.innerText = "計算中...";
+    const totalCombinations = Math.min(getCombinationCount(effectivePool.length, requiredSubCount), 10000000);
+    updateProgressUI(0, totalCombinations, "計算中...");
     await new Promise(r => setTimeout(r, 10));
 
     let maxScore = -1;
     let bestTeam = null;
     let combinationsProcessed = 0;
+    let lastYieldTime = performance.now();
 
     const generator = getCombinations(effectivePool, requiredSubCount);
     
@@ -1277,8 +1309,6 @@ async function calculateBestTeam() {
         if (isCustomMode) {
             team.push(customChar); // 自訂角色加入
         }
-
-        // --- 之後的邏輯與原本相似，但需注意隊長判定 ---
 
         const stats = { attrCounts: {}, wepCounts: {} };
         
@@ -1374,11 +1404,7 @@ async function calculateBestTeam() {
             bestLeaderIdx = 0;
             currentMaxLS = memberData[0].char.ls;
         } else {
-            // 自動判斷隊長：遍歷成員，找 LS 最高的
-            // 注意：Custom Char 的 LS 設為 0，且通常角色 LS 都 > 0，所以不會被選中
-            // 若所有角色 LS 都是 0...則選第一位，這也符合邏輯
             for (let i = 0; i < memberData.length; i++) {
-                // 加強判斷：若為自訂角色，儘量不當隊長(除非沒人可當)
                 if (memberData[i].char.isCustom && memberData.length > 1) continue;
 
                 if (memberData[i].char.ls > currentMaxLS) {
@@ -1409,9 +1435,21 @@ async function calculateBestTeam() {
                 stats: JSON.parse(JSON.stringify(stats))
             };
         }
+
+        // 每計算 2000 組進行一次時間檢查，若超過 30ms 則讓出線程以即時更新 UI
+        if (combinationsProcessed % 2000 === 0) {
+            const now = performance.now();
+            if (now - lastYieldTime > 30) {
+                updateProgressUI(combinationsProcessed, totalCombinations);
+                await new Promise(r => setTimeout(r, 0));
+                lastYieldTime = performance.now();
+            }
+        }
         
         if (combinationsProcessed > 10000000) break;
     }
+
+    updateProgressUI(combinationsProcessed, totalCombinations, "計算完成！");
 
     if (bestTeam) {
         displayResult(bestTeam, maxScore);
@@ -1421,7 +1459,7 @@ async function calculateBestTeam() {
     }
 
     btn.disabled = false;
-    status.style.display = 'none';
+    progressBox.style.display = 'none'; // 計算完畢隱藏進度條
 }
 
 function getConditionPreviewHtml(condStr, teamStats) {
@@ -1466,17 +1504,14 @@ function getConditionPreviewHtml(condStr, teamStats) {
 }
 
 // Modal Functions
-// Modal Functions
 function openTarotModal(e, type) {
     if(e) e.stopPropagation();
     const modal = document.getElementById('tarotModal');
     const img = document.getElementById('tarotImg');
     
-    // 根據 type 切換圖片來源
     if (type === 'char') {
         img.src = "./tarot_char.png";
     } else {
-        // 預設為原本的武器圖片 (type === 'wep' 或未指定)
         img.src = "./tarot_wep.png";
     }
     
@@ -1510,21 +1545,16 @@ function displayResult(teamData, totalScore) {
         
         const conditionHtml = getConditionPreviewHtml(m.char.wep_condition, teamData.stats);
         
-        // --- 修改開始：處理武器顯示與塔羅特殊標記 ---
-        let wepDisplayVal = String(m.wepVal); // 先轉字串方便串接
+        let wepDisplayVal = String(m.wepVal);
         
-        // 1. 原有的塔羅打寶武 (數值為2時)
         if (m.wepVal === 2) {
             wepDisplayVal = `2<br><span class="tarot-link" onclick="openTarotModal(event, 'wep')">(塔羅打寶武)</span>`;
         }
 
-        // 2. 新增：塔羅牌限角 (tarot === 1)
         if (m.char.tarot === 1) {
             wepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char')">(塔羅牌限角)</span>`;
         }
-        // --- 修改結束 ---
         
-        // 判斷樣式
         let rowClass = isLeader ? 'res-bg-green' : 'res-bg-white';
         if (m.char.isCustom) rowClass = 'res-bg-custom';
 
@@ -1558,7 +1588,6 @@ function displayResult(teamData, totalScore) {
         
         const fConditionHtml = getConditionPreviewHtml(f.char.wep_condition, teamData.stats);
 
-        // --- 修改開始：好友部分的顯示 ---
         let fWepDisplayVal = String(f.wepVal);
 
         if (f.wepVal === 2) {
@@ -1568,7 +1597,6 @@ function displayResult(teamData, totalScore) {
         if (f.char.tarot === 1) {
              fWepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char')">(塔羅牌限角)</span>`;
         }
-        // --- 修改結束 ---
 
         rows += `
             <tr class="res-bg-gold">
@@ -1592,7 +1620,6 @@ function displayResult(teamData, totalScore) {
         `;
     }
 
-    // 精靈顯示 UI
     let spiritHtml = '';
     if(teamData.activeSpirit) {
         spiritHtml = `
@@ -1609,7 +1636,6 @@ function displayResult(teamData, totalScore) {
         `;
     }
 
-    // 檢查是否有裝備被動技能
     const userPassiveCount = teamData.assignedPassives.reduce((sum, list) => sum + list.length, 0);
     let warningHtml = '';
     if (userPassiveCount === 0) {
