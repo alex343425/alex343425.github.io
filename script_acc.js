@@ -1,130 +1,255 @@
-document.addEventListener("DOMContentLoaded", function () {
-    let originalData = []; // 儲存原始資料
-    let currentSort = { key: null, order: null }; // 當前排序狀態
-    let filterPass = "all"; // 預設顯示全部
-    let selectedAccSources = new Set(); // 存儲選中的 acc_source 篩選值
+document.addEventListener('DOMContentLoaded', () => {
+    let originalData = [];
+    let currentSort = { key: null, order: null };
+    let filterPass = document.querySelector('input[name="passFilter"]:checked')?.value || '1';
+    let searchTimer = null;
+    let isComposing = false;
+    const selectedAccSources = new Set(
+        [...document.querySelectorAll('.accSourceFilter:checked')].map(checkbox => checkbox.value)
+    );
+
+    const keywordInput = document.getElementById('descriptionFilter');
+    const tableBody = document.getElementById('tableBody');
 
     function loadData() {
         fetch('data_acc.json')
-            .then(response => response.json())
-            .then(data => {
-                originalData = data; // 儲存原始資料
-                renderTable(data); // 初次渲染表格
-                addSortingListeners(); // 綁定排序功能
-                addFilterListeners(); // 綁定過濾功能
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
             })
-            .catch(error => console.error('載入資料時發生錯誤:', error));
+            .then(data => {
+                originalData = data.map((item, index) => ({ ...item, _origIndex: index }));
+                applyFiltersAndSort();
+            })
+            .catch(error => {
+                console.error('載入資料時發生錯誤:', error);
+                renderMessage('資料載入失敗，請稍後再試。');
+            });
+    }
+
+    function getFilteredData() {
+        const keywords = keywordInput.value
+            .trim()
+            .toLocaleLowerCase()
+            .split(/\s+/)
+            .filter(Boolean);
+
+        return originalData.filter(item => {
+            const matchesPass = filterPass === 'all' || String(item.pass) === filterPass;
+            const matchesAccSource = selectedAccSources.size === 0 || selectedAccSources.has(String(item.acc_source));
+            const searchableText = `${item.n || ''}\n${item.d || ''}`.toLocaleLowerCase();
+            const matchesKeyword = keywords.every(keyword => searchableText.includes(keyword));
+
+            return matchesPass && matchesAccSource && matchesKeyword;
+        });
+    }
+
+    function applyFiltersAndSort() {
+        const displayData = getFilteredData();
+
+        if (currentSort.key && currentSort.order) {
+            displayData.sort((a, b) => {
+                const valueA = Number(a.s?.[currentSort.key]) || 0;
+                const valueB = Number(b.s?.[currentSort.key]) || 0;
+
+                if (valueA === valueB) {
+                    return a._origIndex - b._origIndex;
+                }
+
+                return currentSort.order === 'desc' ? valueB - valueA : valueA - valueB;
+            });
+        } else {
+            displayData.sort((a, b) => a._origIndex - b._origIndex);
+        }
+
+        renderTable(displayData);
+    }
+
+    function runSearchImmediately() {
+        if (searchTimer) {
+            clearTimeout(searchTimer);
+            searchTimer = null;
+        }
+        applyFiltersAndSort();
+    }
+
+    function scheduleSearch() {
+        if (isComposing) return;
+
+        if (searchTimer) {
+            clearTimeout(searchTimer);
+        }
+        searchTimer = setTimeout(runSearchImmediately, 150);
     }
 
     function renderTable(data) {
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = ''; // 清空表格內容
+        tableBody.replaceChildren();
 
-        data.forEach(item => {
-            // 🔹 過濾 pass
-            if (filterPass === "0" && item.pass !== 0) return;
-            if (filterPass === "1" && item.pass !== 1) return;
-
-            // 🔹 過濾 acc_source（如果有勾選任何選項）
-            if (selectedAccSources.size > 0 && !selectedAccSources.has(String(item.acc_source))) return;
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>
-                    <img src="./acc_icon/${item.id}.png" alt="${item.n}" width="40" height="40" 
-                         onerror="this.onerror=null; this.src='./acc_icon/default.png';"
-                         onload="this.onerror=function() { this.src='./acc_icon_0.png'; }">
-                    ${item.n}
-                </td>
-                <td>${item.s.Hp}</td>
-                <td>${item.s.Offence}</td>
-                <td>${item.s.Defence}</td>
-                <td>${item.s.Magic}</td>
-                <td>${item.s.Heal}</td>
-                <td>${item.s.Speed}</td>
-                <td>${item.d}</td>
-            `;
-            tableBody.appendChild(row);
-        });
-    }
-
-    function addSortingListeners() {
-        const headers = document.querySelectorAll('th.sortable');
-        headers.forEach(header => {
-            header.addEventListener('click', () => {
-                const key = header.dataset.key;
-
-                // 若重複點擊相同的列，改變排序順序；否則初始化為降序
-                if (currentSort.key === key) {
-                    currentSort.order = currentSort.order === 'desc' ? 'asc' : 
-                                        currentSort.order === 'asc' ? null : 'desc';
-                } else {
-                    currentSort.key = key;
-                    currentSort.order = 'desc';
-                }
-
-                // 更新表格資料
-                sortTable(key, currentSort.order);
-
-                // 更新標題文字
-                updateHeaders(header);
-            });
-        });
-    }
-
-    function sortTable(key, order) {
-        if (!order) {
-            // 若無排序順序，恢復原始資料
-            renderTable(originalData);
+        if (data.length === 0) {
+            renderMessage('沒有符合篩選條件的飾品。');
             return;
         }
 
-        const sortedData = [...originalData].sort((a, b) => {
-            const valA = a.s[key];
-            const valB = b.s[key];
+        const fragment = document.createDocumentFragment();
 
-            if (valA === valB) return originalData.indexOf(a) - originalData.indexOf(b); // 同值時依原順序
-            return order === 'desc' ? valB - valA : valA - valB;
+        data.forEach(item => {
+            const row = document.createElement('tr');
+            const nameCell = document.createElement('td');
+            const nameWrapper = document.createElement('div');
+            const image = document.createElement('img');
+            const name = document.createElement('span');
+
+            nameWrapper.className = 'accessory-name';
+            image.src = `./acc_icon/${item.id}.png`;
+            image.alt = `${item.n || '飾品'}圖示`;
+            image.loading = 'lazy';
+            image.addEventListener('error', () => {
+                image.src = './acc_icon/default.png';
+            }, { once: true });
+            name.textContent = item.n || '--';
+
+            nameWrapper.append(image, name);
+            nameCell.appendChild(nameWrapper);
+            row.appendChild(nameCell);
+
+            ['Hp', 'Offence', 'Defence', 'Magic', 'Heal', 'Speed'].forEach(key => {
+                const cell = document.createElement('td');
+                cell.className = 'num-width';
+                cell.textContent = item.s?.[key] ?? '--';
+                row.appendChild(cell);
+            });
+
+            const descriptionCell = document.createElement('td');
+            descriptionCell.className = 'description-width';
+            descriptionCell.textContent = item.d || '--';
+            row.appendChild(descriptionCell);
+
+            fragment.appendChild(row);
         });
 
-        renderTable(sortedData);
+        tableBody.appendChild(fragment);
     }
 
-    function updateHeaders(activeHeader) {
-        // 重置所有標題
-        document.querySelectorAll('th.sortable').forEach(header => {
-            header.textContent = header.textContent.replace(/(↓|↑)$/, '');
-        });
+    function renderMessage(message) {
+        tableBody.replaceChildren();
+        const row = document.createElement('tr');
+        const cell = document.createElement('td');
+        cell.className = 'empty-message';
+        cell.colSpan = 8;
+        cell.textContent = message;
+        row.appendChild(cell);
+        tableBody.appendChild(row);
+    }
 
-        // 增加箭頭指示
-        if (currentSort.order === 'desc') {
-            activeHeader.textContent += '↓';
-        } else if (currentSort.order === 'asc') {
-            activeHeader.textContent += '↑';
+    function handleSort(header) {
+        const key = header.dataset.key;
+
+        if (currentSort.key === key) {
+            currentSort.order = currentSort.order === 'desc'
+                ? 'asc'
+                : currentSort.order === 'asc'
+                    ? null
+                    : 'desc';
+        } else {
+            currentSort = { key, order: 'desc' };
         }
+
+        updateSortIcons();
+        applyFiltersAndSort();
     }
 
-    function addFilterListeners() {
-        // 🔹 `pass` 過濾
-        document.querySelectorAll('input[name="passFilter"]').forEach(radio => {
-            radio.addEventListener('change', function () {
-                filterPass = this.value; // 取得篩選條件
-                renderTable(originalData); // 重新渲染表格
-            });
+    function updateSortIcons() {
+        document.querySelectorAll('th.sortable').forEach(header => {
+            const icon = header.querySelector('.sort-icon');
+            const isActive = header.dataset.key === currentSort.key && currentSort.order;
+            icon.textContent = isActive ? (currentSort.order === 'desc' ? '▼' : '▲') : '';
+            header.setAttribute('aria-sort', isActive
+                ? (currentSort.order === 'desc' ? 'descending' : 'ascending')
+                : 'none');
         });
+    }
 
-        // 🔹 `acc_source` 過濾
+    document.querySelectorAll('th.sortable').forEach(header => {
+        header.addEventListener('click', () => handleSort(header));
+        header.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleSort(header);
+            }
+        });
+    });
+
+    document.querySelectorAll('input[name="passFilter"]').forEach(radio => {
+        radio.addEventListener('change', event => {
+            filterPass = event.target.value;
+            applyFiltersAndSort();
+        });
+    });
+
+    document.querySelectorAll('.accSourceFilter').forEach(checkbox => {
+        checkbox.addEventListener('change', event => {
+            if (event.target.checked) {
+                selectedAccSources.add(event.target.value);
+            } else {
+                selectedAccSources.delete(event.target.value);
+            }
+            applyFiltersAndSort();
+        });
+    });
+
+    keywordInput.addEventListener('compositionstart', () => {
+        isComposing = true;
+        if (searchTimer) {
+            clearTimeout(searchTimer);
+            searchTimer = null;
+        }
+    });
+    keywordInput.addEventListener('compositionend', () => {
+        isComposing = false;
+        runSearchImmediately();
+    });
+    keywordInput.addEventListener('input', scheduleSearch);
+    keywordInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !isComposing) {
+            event.preventDefault();
+            runSearchImmediately();
+        }
+    });
+    document.getElementById('searchButton').addEventListener('click', runSearchImmediately);
+
+    document.querySelectorAll('.quick-keyword-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const keyword = button.dataset.keyword;
+            const currentKeywords = keywordInput.value.trim();
+
+            keywordInput.value = currentKeywords ? `${currentKeywords} ${keyword}` : keyword;
+            isComposing = false;
+            runSearchImmediately();
+            keywordInput.focus();
+        });
+    });
+
+    document.getElementById('resetButton').addEventListener('click', () => {
+        if (searchTimer) {
+            clearTimeout(searchTimer);
+            searchTimer = null;
+        }
+        keywordInput.value = '';
         document.querySelectorAll('.accSourceFilter').forEach(checkbox => {
-            checkbox.addEventListener('change', function () {
-                if (this.checked) {
-                    selectedAccSources.add(this.value);
-                } else {
-                    selectedAccSources.delete(this.value);
-                }
-                renderTable(originalData); // 重新渲染表格
-            });
+            checkbox.checked = checkbox.value === '0';
         });
-    }
+        document.querySelector('input[name="passFilter"][value="1"]').checked = true;
 
+        filterPass = '1';
+        selectedAccSources.clear();
+        selectedAccSources.add('0');
+        currentSort = { key: null, order: null };
+        updateSortIcons();
+        applyFiltersAndSort();
+    });
+
+    updateSortIcons();
     loadData();
 });

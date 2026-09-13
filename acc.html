@@ -1,70 +1,407 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>裝備資料表格</title>
+    <title>篩選表格：飾品一覽</title>
     <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5f7fa;
+            --border-color: #ddd;
+            --text-color: #333;
+            --hover-color: #e6f7ff;
+            --header-bg: #2c3e50;
+            --header-text: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        /* 導覽列 */
+        .nav-bar {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-bar a {
+            text-decoration: none;
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .nav-bar a:hover,
+        .nav-bar a[aria-current="page"] {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .nav-bar button#resetButton {
+            margin-left: auto;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+        }
+
+        .nav-bar button#resetButton:hover {
+            background-color: #c0392b;
+        }
+
+        /* 篩選區塊 */
+        .filter-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 15px;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .filter-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+
+        .filter-group {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 280px;
+        }
+
+        .filter-title {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .grid-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px 12px;
+            background: #fafafa;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+        }
+
+        .grid-checkboxes label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .search-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .quick-filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .quick-filter-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .quick-filter-label {
+            flex: 0 0 4.5em;
+            padding-top: 5px;
+            color: #666;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .quick-filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        button.quick-keyword-button {
+            padding: 4px 9px;
+            border: 1px solid var(--primary-color);
+            background-color: white;
+            color: var(--primary-color);
+            font-size: 13px;
+        }
+
+        button.quick-keyword-button:hover,
+        button.quick-keyword-button:focus {
+            background-color: var(--primary-color);
+            color: white;
+            outline: none;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 6px 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        /* 表格 */
+        .table-wrapper {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
         table {
             width: 100%;
+            min-width: 900px;
             border-collapse: collapse;
         }
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
+
+        th,
+        td {
+            padding: 10px;
+            border: 1px solid var(--border-color);
             text-align: left;
-        }
-        th {
-            background-color: #f4f4f4;
-            cursor: pointer;
-        }
-        th.sortable:hover {
-            background-color: #ddd;
-        }
-        img {
             vertical-align: middle;
-            margin-right: 8px;
         }
-        #filterContainer {
-            margin-bottom: 10px;
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--header-bg);
+            color: var(--header-text);
+        }
+
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .sortable:hover,
+        .sortable:focus {
+            background-color: #34495e;
+            outline: none;
+        }
+
+        .sort-icon {
+            display: inline-block;
+            width: 1em;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        tbody tr:hover {
+            background-color: var(--hover-color);
+        }
+
+        .name-width {
+            min-width: 180px;
+        }
+
+        .num-width {
+            width: 3.5em;
+            text-align: right;
+        }
+
+        .description-width {
+            min-width: 300px;
+            white-space: pre-line;
+        }
+
+        .accessory-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .accessory-name img {
+            flex: 0 0 auto;
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .empty-message {
+            padding: 24px;
+            text-align: center;
+            color: #777;
+        }
+
+        @media (max-width: 720px) {
+            body {
+                padding: 10px;
+            }
+
+            .filter-container {
+                padding: 15px;
+            }
+
+            .search-controls {
+                flex-direction: column;
+            }
+
+            .quick-filter-group {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .quick-filter-label {
+                flex-basis: auto;
+                padding-top: 0;
+            }
+
+            .nav-bar button#resetButton {
+                margin-left: 0;
+            }
         }
     </style>
-    <script src="script_acc.js" defer></script>
+    <script src="script_acc.js?v=20260913-4" defer></script>
 </head>
+
 <body>
-    <h1>裝備資料表格</h1>
+    <nav class="nav-bar" aria-label="網站導覽">
+        <a href="./index.html" target="_blank" rel="noopener noreferrer">技能搜尋</a>
+        <a href="./lswep.html" target="_blank" rel="noopener noreferrer">隊長技/專武搜尋</a>
+        <a href="./spirit.html" target="_blank" rel="noopener noreferrer">精靈技能搜尋</a>
+        <a href="./cheerleading.html" target="_blank" rel="noopener noreferrer">啦啦隊搜尋</a>
+        <a href="./normal_char.html" target="_blank" rel="noopener noreferrer">普池收集檢查</a>
+        <a href="./profiles.html" target="_blank" rel="noopener noreferrer">親愛度文本</a>
+        <a href="./exp_party.html" target="_blank" rel="noopener noreferrer">最佳經驗隊</a>
+        <a href="./loot_party.html" target="_blank" rel="noopener noreferrer">最佳複製隊</a>
+        <a href="./food.html" target="_blank" rel="noopener noreferrer">食物一覽</a>
+        <a href="./item.html" target="_blank" rel="noopener noreferrer">道具一覽</a>
+        <a href="./wep.html" target="_blank" rel="noopener noreferrer">通用武一覽</a>
+        <a href="./acc.html" aria-current="page">飾品一覽</a>
+        <button type="button" id="resetButton">重置所有篩選</button>
+    </nav>
 
-    <!-- 🔹 過濾 pass 的 Radio Button -->
-    <div id="filterContainer">
-        <label><input type="radio" name="passFilter" value="all" checked> 顯示全部</label>
-        <label><input type="radio" name="passFilter" value="0"> 只顯示 `pass = 0`</label>
-        <label><input type="radio" name="passFilter" value="1"> 只顯示 `pass = 1`</label>
+    <div class="filter-container">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label class="filter-title" for="descriptionFilter">關鍵字搜尋（飾品名字或效果）：</label>
+                <div class="search-controls">
+                    <input type="text" id="descriptionFilter" placeholder="輸入飾品名字或效果關鍵字（空白分隔）...">
+                    <button type="button" id="searchButton">搜尋</button>
+                </div>
+                <div class="quick-filter-section" aria-label="常用關鍵字篩選">
+                    <span class="filter-title">常用關鍵字篩選：</span>
+                    <div class="quick-filter-group">
+                        <span class="quick-filter-label">效果類</span>
+                        <div class="quick-filter-buttons">
+                            <button type="button" class="quick-keyword-button" data-keyword="プレイヤー経験値">玩家經驗</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="キャラ経験値">角色經驗</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="ドロップ率">道具掉落率</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="クエスト">掉落複製</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="ぬすん">偷竊複製</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="獲得ゴールド">金幣加成</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="パーツブレイク">部位破壞(十人)</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="親愛度">親愛加成</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="気絶するほど">復活</button>
+                        </div>
+                    </div>
+                    <div class="quick-filter-group">
+                        <span class="quick-filter-label">常用類</span>
+                        <div class="quick-filter-buttons">
+                            <button type="button" class="quick-keyword-button" data-keyword="新★">高級塔防</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="記憶のピラミッド">一般塔防</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="のタリスマン">金字塔攻</button>
+                            <button type="button" class="quick-keyword-button" data-keyword="属性耐性減少">屬弱耳P</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="filter-group">
+                <span class="filter-title">被動篩選：</span>
+                <div class="grid-checkboxes">
+                    <label><input type="radio" name="passFilter" value="all">顯示全部</label>
+                    <label><input type="radio" name="passFilter" value="0">只顯示無被動飾品</label>
+                    <label><input type="radio" name="passFilter" value="1" checked>只顯示有被動飾品</label>
+                </div>
+            </div>
+
+            <div class="filter-group">
+                <span class="filter-title">角色特效篩選：</span>
+                <div class="grid-checkboxes">
+                    <label><input type="checkbox" class="accSourceFilter" value="0" checked>無角色特效</label>
+                    <label><input type="checkbox" class="accSourceFilter" value="1">專屬飾品(只能裝備)</label>
+                    <label><input type="checkbox" class="accSourceFilter" value="3">專屬飾品(特定角色有特效)</label>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- 🔹 過濾 acc_source 的多選 checkbox -->
-    <div id="accSourceFilterContainer">
-        <label><input type="checkbox" class="accSourceFilter" value="0"> 無角色特效 </label>
-        <label><input type="checkbox" class="accSourceFilter" value="1"> 專屬飾品(只能裝備) </label>
-		<label><input type="checkbox" class="accSourceFilter" value="3"> 專屬飾品(特定角色有特效) </label>
-        
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th class="name-width">名稱</th>
+                    <th class="sortable num-width" data-key="Hp" tabindex="0" title="點擊排序">HP <span class="sort-icon"></span></th>
+                    <th class="sortable num-width" data-key="Offence" tabindex="0" title="點擊排序">攻擊 <span class="sort-icon"></span></th>
+                    <th class="sortable num-width" data-key="Defence" tabindex="0" title="點擊排序">防禦 <span class="sort-icon"></span></th>
+                    <th class="sortable num-width" data-key="Magic" tabindex="0" title="點擊排序">魔力 <span class="sort-icon"></span></th>
+                    <th class="sortable num-width" data-key="Heal" tabindex="0" title="點擊排序">治療 <span class="sort-icon"></span></th>
+                    <th class="sortable num-width" data-key="Speed" tabindex="0" title="點擊排序">速度 <span class="sort-icon"></span></th>
+                    <th class="description-width">描述</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>名稱</th>
-                <th class="sortable" data-key="Hp">HP</th>
-                <th class="sortable" data-key="Offence">攻擊</th>
-                <th class="sortable" data-key="Defence">防禦</th>
-                <th class="sortable" data-key="Magic">魔力</th>
-                <th class="sortable" data-key="Heal">治療</th>
-                <th class="sortable" data-key="Speed">速度</th>
-                <th>描述</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            <!-- 資料將在此插入 -->
-        </tbody>
-    </table>
 </body>
+
 </html>
