@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>親愛度RUSH計算機</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: #342a37;
+      background: #fff8fa;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    main { width: min(100% - 32px, 1000px); margin: 0 auto; padding: 32px 0 64px; }
+    h1 { margin: 0 0 8px; color: #a92e69; font-size: clamp(1.8rem, 5vw, 2.5rem); }
+    h2 { margin: 0 0 8px; font-size: 1.22rem; }
+    p { margin: 0; }
+    .lead { color: #665b65; margin-bottom: 24px; }
+    .event-image { margin: 0 0 24px; padding: 8px; border: 1px solid #ead9e1; border-radius: 16px; background: white; }
+    .event-image img { display: block; width: 100%; height: auto; border-radius: 9px; }
+    .panel { margin-bottom: 16px; padding: 22px; border: 1px solid #ead9e1; border-radius: 16px; background: white; box-shadow: 0 4px 18px #6b29400d; }
+    .hint { margin-bottom: 16px; color: #6b5d68; font-size: .92rem; }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .field { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 65px; padding: 10px 14px; border: 1px solid #eee1e7; border-radius: 11px; background: #fffafb; }
+    .field-label { display: flex; align-items: center; gap: 10px; min-width: 0; line-height: 1.45; }
+    .field-label img { width: 52px; height: 52px; flex: none; object-fit: contain; }
+    .rate { display: block; color: #a92e69; font-size: .85rem; font-weight: 700; }
+    input[type="number"], input[type="text"] { width: 76px; flex: none; padding: 8px; border: 1px solid #cbb8c2; border-radius: 8px; background: white; color: #342a37; font: inherit; text-align: center; }
+    input:focus-visible, button:focus-visible { outline: 3px solid #dc83ac; outline-offset: 2px; }
+    input:disabled { background: #f4eef1; color: #847982; }
+    .friend-options { display: grid; gap: 10px; }
+    .friend-option { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 9px 12px; border: 1px solid #eee1e7; border-radius: 10px; background: #fffafb; }
+    .friend-option input[type="radio"] { accent-color: #ba3f7c; }
+    .friend-option label { flex: 1; cursor: pointer; }
+    .friend-option input[type="text"] { width: 82px; }
+    .error { min-height: 1.5em; margin: 4px 0 12px; color: #a62139; font-weight: 700; }
+    .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .stat { padding: 14px; border-radius: 11px; background: #fff0f6; }
+    .stat span { display: block; color: #705966; font-size: .88rem; }
+    .stat strong { display: block; margin-top: 5px; color: #a92e69; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { padding: 11px 9px; border-bottom: 1px solid #eee1e7; text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: #705966; font-size: .88rem; }
+    td strong { color: #a92e69; }
+    .result-note { margin-top: 14px; color: #6b5d68; font-size: .9rem; }
+    button { margin-top: 8px; padding: 9px 16px; border: 1px solid #ba3f7c; border-radius: 9px; background: white; color: #a92e69; font: inherit; cursor: pointer; }
+    button:hover { background: #fff0f6; }
+    @media (max-width: 650px) {
+      main { width: min(100% - 24px, 1000px); padding-top: 20px; }
+      .panel { padding: 16px; }
+      .fields, .summary { grid-template-columns: 1fr; }
+      .friend-option { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>親愛度RUSH計算機</h1>
+    <p class="lead">輸入隊伍與裝備加成，估算每場可獲得的親愛度、所需場數與 AP。</p>
+
+    <figure class="event-image">
+      <img src="./loveloverush/1.png" alt="親愛度 RUSH 活動與加成說明圖">
+    </figure>
+
+    <form id="calculator" novalidate>
+      <section class="panel" aria-labelledby="characters-title">
+        <h2 id="characters-title">加成角色數量</h2>
+        <p class="hint">自己最多六人加成，好友角色不算。</p>
+        <div class="fields">
+          <label class="field"><span>50% 加成角色</span><input class="count" data-group="characters" data-bonus="50" type="number" min="0" max="6" step="1" value="0" aria-label="50% 加成角色數量"></label>
+          <label class="field"><span>25% 加成角色</span><input class="count" data-group="characters" data-bonus="25" type="number" min="0" max="6" step="1" value="0" aria-label="25% 加成角色數量"></label>
+          <label class="field"><span>15% 加成角色</span><input class="count" data-group="characters" data-bonus="15" type="number" min="0" max="6" step="1" value="0" aria-label="15% 加成角色數量"></label>
+          <label class="field"><span>10% 加成角色</span><input class="count" data-group="characters" data-bonus="10" type="number" min="0" max="6" step="1" value="0" aria-label="10% 加成角色數量"></label>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="skills-title">
+        <h2 id="skills-title">親愛綠技數量</h2>
+        <p class="hint">不包含好友；每種可輸入 0～5 個。</p>
+        <div class="fields">
+          <label class="field"><span>S3 黄昏より愛をこめて <span class="rate">10%</span></span><input class="count" data-group="skills" data-bonus="10" type="number" min="0" max="5" step="1" value="0" aria-label="S3 黄昏より愛をこめて 數量"></label>
+          <label class="field"><span>S3 甘くて優しい想いをあなたに <span class="rate">11%</span></span><input class="count" data-group="skills" data-bonus="11" type="number" min="0" max="5" step="1" value="0" aria-label="S3 甘くて優しい想いをあなたに 數量"></label>
+          <label class="field"><span>S3 トリック・アンド・ゴッデス・ラブ <span class="rate">30%</span></span><input class="count" data-group="skills" data-bonus="30" type="number" min="0" max="5" step="1" value="0" aria-label="S3 トリック・アンド・ゴッデス・ラブ 數量"></label>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="weapons-title">
+        <h2 id="weapons-title">親愛武器數量</h2>
+        <p class="hint">最多 6 個；每個增加 50%。</p>
+        <div class="fields">
+          <label class="field"><span class="field-label"><img src="./wep/12219.png" alt="" loading="lazy"><span>親愛武器 <span class="rate">50%</span></span></span><input class="count" data-group="weapons" data-bonus="50" type="number" min="0" max="6" step="1" value="0" aria-label="親愛武器數量"></label>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="accessories-title">
+        <h2 id="accessories-title">親愛飾品數量</h2>
+        <p class="hint">不包含好友；三種加起來最多 6 個。</p>
+        <div class="fields">
+          <label class="field"><span class="field-label"><img src="./acc_icon/21113.png" alt="" loading="lazy"><span>親愛の雫 <span class="rate">30%</span></span></span><input class="count" data-group="accessories" data-bonus="30" type="number" min="0" max="6" step="1" value="0" aria-label="親愛の雫數量"></label>
+          <label class="field"><span class="field-label"><img src="./acc_icon/21468.png" alt="" loading="lazy"><span>インフィニティイヤリング <span class="rate">15%</span></span></span><input class="count" data-group="accessories" data-bonus="15" type="number" min="0" max="6" step="1" value="0" aria-label="インフィニティイヤリング數量"></label>
+          <label class="field"><span class="field-label"><img src="./acc_icon/21674.png" alt="" loading="lazy"><span>のんべえすくりゅ～ <span class="rate">50%</span></span></span><input class="count" data-group="accessories" data-bonus="50" type="number" min="0" max="6" step="1" value="0" aria-label="のんべえすくりゅ～數量"></label>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="friend-title">
+        <h2 id="friend-title">親愛好友</h2>
+        <div class="friend-options">
+          <div class="friend-option"><input id="friend-none" type="radio" name="friend" value="none" checked><label for="friend-none">不使用好友（0%）</label></div>
+          <div class="friend-option"><input id="friend-max" type="radio" name="friend" value="max"><label for="friend-max">最高加成好友（萬聖珂賽特、三親愛綠、親愛武、親愛飾品）151%</label></div>
+          <div class="friend-option"><input id="friend-custom" type="radio" name="friend" value="custom"><label for="friend-custom">其他好友加成</label><input id="friend-percent" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" placeholder="1～999" aria-label="其他好友加成百分比" disabled><span>%</span></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="results-title">
+        <h2 id="results-title">計算結果</h2>
+        <p id="error" class="error" role="alert"></p>
+        <div id="results" aria-live="polite">
+          <div class="summary">
+            <div class="stat"><span>總加成</span><strong id="total-bonus">0%</strong></div>
+            <div class="stat"><span>每場親愛度</span><strong id="per-run">500</strong></div>
+            <div class="stat"><span>每場花費</span><strong>75 AP</strong></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th scope="col">親愛度範圍</th><th scope="col">需求親愛度</th><th scope="col">所需場數</th><th scope="col">所需 AP</th></tr></thead>
+              <tbody id="result-rows"></tbody>
+            </table>
+          </div>
+          <p class="result-note">所有百分比直接相加；每場親愛度 = 500 ×（1 + 總加成 ÷ 100）。場數無條件進位，AP = 場數 × 75。</p>
+        </div>
+        <button type="reset">全部歸零</button>
+      </section>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById('calculator');
+    const counts = [...form.querySelectorAll('.count')];
+    const friendPercent = document.getElementById('friend-percent');
+    const error = document.getElementById('error');
+    const results = document.getElementById('results');
+    const numberFormat = new Intl.NumberFormat('zh-TW');
+    const targets = [
+      ['0～10', 8625500],
+      ['5～10', 8383500],
+      ['7～10', 6925500],
+      ['8～10', 5467500],
+      ['9～10', 3280500]
+    ];
+
+    function calculate() {
+      const friendChoice = form.elements.friend.value;
+      friendPercent.disabled = friendChoice !== 'custom';
+      let bonus = 0;
+      const totals = { characters: 0, accessories: 0 };
+      let message = '';
+
+      for (const input of counts) {
+        const value = Number(input.value);
+        if (input.value.trim() === '' || !Number.isInteger(value) || value < 0 || value > Number(input.max)) {
+          message = '請將所有數量填成允許範圍內的整數。';
+          break;
+        }
+        bonus += value * Number(input.dataset.bonus);
+        if (input.dataset.group in totals) totals[input.dataset.group] += value;
+      }
+
+      if (!message && totals.characters > 6) message = '自己的加成角色合計最多 6 人。';
+      if (!message && totals.accessories > 6) message = '親愛飾品合計最多 6 個。';
+
+      if (friendChoice === 'max') bonus += 151;
+      if (friendChoice === 'custom') {
+        const custom = friendPercent.value.trim();
+        if (!/^[0-9]{1,3}$/.test(custom) || Number(custom) < 1 || Number(custom) > 999) {
+          if (!message) message = '其他好友加成請輸入半形整數 1～999。';
+        } else {
+          bonus += Number(custom);
+        }
+      }
+
+      error.textContent = message;
+      results.hidden = Boolean(message);
+      if (message) return;
+
+      const perRun = 500 + bonus * 5;
+      document.getElementById('total-bonus').textContent = `${numberFormat.format(bonus)}%`;
+      document.getElementById('per-run').textContent = numberFormat.format(perRun);
+      document.getElementById('result-rows').innerHTML = targets.map(([range, required]) => {
+        const runs = Math.ceil(required / perRun);
+        return `<tr><th scope="row">${range} 親愛</th><td>${numberFormat.format(required)}</td><td><strong>${numberFormat.format(runs)}</strong></td><td>${numberFormat.format(runs * 75)}</td></tr>`;
+      }).join('');
+    }
+
+    form.addEventListener('input', calculate);
+    form.addEventListener('change', calculate);
+    form.addEventListener('reset', () => setTimeout(calculate, 0));
+    calculate();
+  </script>
+</body>
+</html>
