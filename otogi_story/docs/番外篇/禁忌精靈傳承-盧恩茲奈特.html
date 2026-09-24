@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="繁體中文整理《オトギフロンティア》主線、番外、角色、設定與組織劇情，附原文行號。">
+  <meta name="color-scheme" content="light">
+  <title>番外篇：禁忌精靈傳承—盧恩茲奈特—（禁忌精霊伝承―ルインズナイト―）｜童話之國劇情資料庫</title>
+  <style>@charset "UTF-8";
+
+:root {
+  --paper: #f7f6f1;
+  --surface: #fffefa;
+  --ink: #22343d;
+  --muted: #64757a;
+  --faint: #879496;
+  --line: #dce3df;
+  --accent: #185e67;
+  --accent-soft: #e5f0ec;
+  --gold: #bd8b48;
+  --shadow: 0 18px 54px rgb(35 59 62 / 8%);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif; font-size: 16px; line-height: 1.85; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: #0c444e; }
+:focus-visible { outline: 3px solid #ba8844; outline-offset: 3px; border-radius: 3px; }
+::selection { background: #cbe6dc; color: #173640; }
+
+.skip-link { position: fixed; z-index: 100; top: -60px; left: 14px; padding: 8px 16px; background: var(--ink); color: white; }
+.skip-link:focus { top: 10px; }
+.topbar { position: sticky; top: 0; z-index: 20; height: 68px; display: flex; align-items: center; gap: 20px; padding: 0 30px; background: rgb(255 254 250 / 94%); border-bottom: 1px solid var(--line); backdrop-filter: blur(14px); }
+.brand { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; color: var(--ink); font-weight: 800; font-size: 16px; text-decoration: none; letter-spacing: .04em; }
+.brand small { margin-left: 5px; color: var(--muted); font-weight: 500; font-size: 12px; letter-spacing: .12em; }
+.brand-symbol { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: #195967; color: #f0d9a6; font-size: 19px; }
+.topbar-actions { margin-left: auto; }
+.search-open { display: flex; align-items: center; gap: 10px; min-width: 224px; height: 36px; padding: 0 10px; background: #f5f7f3; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 13px; }
+.search-open:hover { border-color: #a6bbb7; background: white; }
+.search-open:first-letter { font-size: 20px; }
+kbd { margin-left: auto; display: inline-grid; place-items: center; min-width: 21px; height: 22px; padding: 0 5px; border: 1px solid #cfdad5; border-radius: 4px; color: var(--muted); background: white; font-family: inherit; font-size: 12px; }
+.menu-button { display: none; width: 35px; height: 35px; border: 1px solid var(--line); border-radius: 8px; background: white; color: var(--ink); font-size: 18px; line-height: 1; }
+.nav-scrim[hidden] { display: none; }
+
+.layout { display: grid; grid-template-columns: 248px minmax(0, 1fr) 222px; min-height: calc(100vh - 68px); max-width: 1760px; margin: auto; }
+.sidebar { min-width: 0; border-right: 1px solid var(--line); background: #fbfbf7; }
+.sidebar-inner { position: sticky; top: 68px; overflow-y: auto; max-height: calc(100vh - 68px); padding: 24px 12px 50px 19px; scrollbar-width: thin; }
+.nav-group + .nav-group { margin-top: 26px; }
+.nav-heading { margin: 0 11px 8px; color: #768589; font-size: 11px; font-weight: 800; letter-spacing: .18em; }
+.nav-group a { display: block; padding: 7px 12px; border-radius: 7px; color: #3c5057; font-size: 13px; line-height: 1.5; text-decoration: none; }
+.nav-group a .nav-original { display: block; margin-top: 1px; color: #708388; font-size: 10px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.nav-group a:hover { background: #edf3ee; color: var(--accent); }
+.nav-group a.active { background: var(--accent-soft); color: #0d505a; font-weight: 750; box-shadow: inset 3px 0 #2d8790; }
+
+.main { min-width: 0; padding: 28px clamp(24px, 5vw, 78px) 70px; background: var(--surface); }
+.article-width { max-width: 890px; margin: 0 auto; }
+.breadcrumb { color: var(--faint); font-size: 12px; line-height: 1.5; }
+.breadcrumb span { margin: 0 7px; color: #abb9b5; }
+.page-hero { position: relative; padding: 46px 0 30px; border-bottom: 1px solid var(--line); }
+.eyebrow { margin: 0 0 16px; color: var(--accent); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+.page-hero h1 { max-width: 790px; margin: 0; font-family: "Noto Serif TC", "Source Han Serif TC", "PMingLiU", serif; color: #223940; font-size: clamp(30px, 3.3vw, 46px); font-weight: 700; line-height: 1.38; letter-spacing: .025em; }
+.page-hero h1 .title-original { display: block; margin-top: 9px; color: #61767b; font-family: system-ui, sans-serif; font-size: clamp(15px, 1.5vw, 20px); font-weight: 500; line-height: 1.5; letter-spacing: .03em; overflow-wrap: anywhere; }
+.home-hero h1 .home-original { display: inline-block; margin-left: 12px; color: #61767b; font-family: system-ui, sans-serif; font-size: 15px; font-weight: 500; letter-spacing: .03em; vertical-align: middle; }
+.home-hero { min-height: 315px; padding: 56px 0 44px; border-bottom: 0; }
+.home-hero::before { content: ""; position: absolute; z-index: 0; top: 10px; right: 0; width: min(48%, 360px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #e9eee4 0 18%, #f5ecdc 18% 19%, transparent 19% 37%, #e1eae4 37% 38%, transparent 38% 58%, #ebefe8 58% 59%, transparent 59%); opacity: .8; pointer-events: none; }
+.home-hero > * { position: relative; z-index: 1; }
+.home-hero h1 { font-size: clamp(42px, 5vw, 66px); line-height: 1.21; letter-spacing: .07em; }
+.home-hero h1 em { color: var(--accent); font-style: normal; }
+.hero-intro { max-width: 520px; margin: 20px 0 0; color: var(--muted); font-size: 15px; line-height: 1.9; }
+.hero-mark { position: absolute; right: 67px; top: 84px; z-index: 1; color: #a57d4a; font-size: 72px; line-height: 1; }
+.feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 48px; }
+.feature-card { position: relative; display: flex; flex-direction: column; min-height: 160px; gap: 9px; padding: 19px 20px; border: 1px solid var(--line); border-radius: 11px; background: #fbfcf9; color: var(--ink); text-decoration: none; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.feature-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: #a9c9bd; color: var(--ink); }
+.feature-number { color: var(--gold); font-family: Georgia, serif; font-size: 14px; }
+.feature-card strong { font-family: "Noto Serif TC", "PMingLiU", serif; font-size: 21px; }
+.feature-card > span:nth-child(3) { color: var(--muted); font-size: 12px; line-height: 1.65; }
+.feature-arrow { margin-top: auto; color: var(--accent); font-size: 12px; font-weight: 700; }
+
+.prose { padding: 34px 0 24px; overflow-wrap: anywhere; }
+.prose > :first-child { margin-top: 0; }
+.prose h2 { margin: 54px 0 19px; padding: 0 0 10px; border-bottom: 1px solid var(--line); font-family: "Noto Serif TC", "Source Han Serif TC", "PMingLiU", serif; color: #213e46; font-size: 25px; line-height: 1.4; }
+.prose h3 { margin: 34px 0 12px; color: #294e54; font-size: 18px; line-height: 1.5; }
+.prose h4 { margin: 28px 0 10px; font-size: 16px; }
+.prose p { margin: 0 0 19px; line-height: 2; }
+.prose strong { font-weight: 760; color: #193c45; }
+.prose ul, .prose ol { margin: 0 0 23px; padding-left: 1.45em; }
+.prose li { margin: 6px 0; padding-left: 3px; line-height: 1.85; }
+.prose li::marker { color: var(--gold); }
+.prose .note { margin: 0 0 27px; padding: 13px 17px; border-left: 3px solid var(--gold); border-radius: 0 7px 7px 0; background: #f7f3e9; color: #655e51; font-size: 13px; line-height: 1.8; }
+.source-note { color: #657c7d; font-size: 12px; line-height: 1.7; }
+.prose code { padding: 1px 5px; border-radius: 4px; background: #edf1ec; color: #195764; font-size: .88em; }
+.table-scroll { overflow-x: auto; max-width: 100%; margin: 19px 0 29px; border: 1px solid var(--line); border-radius: 8px; scrollbar-width: thin; }
+table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 13px; line-height: 1.7; }
+th { position: sticky; top: 0; background: #eaf0eb; color: #274850; font-size: 12px; font-weight: 750; text-align: left; }
+th, td { padding: 10px 12px; border-bottom: 1px solid #e7ebe7; vertical-align: top; }
+tbody tr:nth-child(2n) { background: #fbfcfa; }
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: #f2f7f2; }
+.sequence { display: flex; justify-content: space-between; gap: 20px; margin-top: 48px; padding: 21px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.sequence > div { max-width: 48%; }
+.sequence > div:last-child { margin-left: auto; text-align: right; }
+.sequence small { display: block; color: var(--faint); font-size: 11px; letter-spacing: .12em; }
+.sequence a { font-size: 14px; font-weight: 700; text-decoration: none; }
+.page-footer { display: flex; justify-content: space-between; gap: 15px; padding-top: 26px; color: var(--faint); font-size: 12px; }
+.page-footer a { text-decoration: none; }
+
+.toc { position: sticky; top: 68px; overflow-y: auto; max-height: calc(100vh - 68px); padding: 37px 18px 30px 12px; border-left: 1px solid var(--line); scrollbar-width: thin; }
+.toc p { margin: 0 0 15px 12px; color: #74858a; font-size: 11px; font-weight: 800; letter-spacing: .16em; }
+.toc a { display: block; margin: 0 0 1px; padding: 5px 10px 5px 12px; border-left: 2px solid transparent; color: #61747a; font-size: 12px; line-height: 1.5; text-decoration: none; }
+.toc a:hover, .toc a.current { border-left-color: var(--accent); color: var(--accent); background: #edf4ef; }
+.toc .toc-level-3 { padding-left: 22px; font-size: 11px; }
+.toc span { display: block; padding-left: 12px; color: var(--faint); font-size: 12px; }
+
+.search-backdrop[hidden] { display: none; }
+.search-backdrop { position: fixed; z-index: 40; inset: 0; display: flex; justify-content: center; align-items: flex-start; padding: min(14vh, 115px) 18px 20px; background: rgb(22 38 41 / 58%); backdrop-filter: blur(4px); }
+.search-dialog { width: min(620px, 100%); max-height: 78vh; overflow: hidden; border: 1px solid #c6d2cc; border-radius: 14px; background: #fffefa; box-shadow: 0 30px 90px rgb(10 35 40 / 26%); }
+.search-field { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-bottom: 1px solid var(--line); color: var(--accent); }
+.search-field > span { font-size: 28px; line-height: 1; }
+.search-field input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font-size: 16px; }
+.search-field input::placeholder { color: #93a19f; }
+.search-close { padding: 2px 7px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--muted); font-size: 11px; }
+.search-results { max-height: calc(78vh - 65px); overflow-y: auto; padding: 10px; }
+.search-hint { margin: 14px; color: var(--muted); font-size: 13px; }
+.search-item { display: block; padding: 12px 13px; border-radius: 8px; color: var(--ink); text-decoration: none; }
+.search-item:hover, .search-item:focus { background: var(--accent-soft); color: var(--ink); }
+.search-item span { display: block; color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+.search-item strong { display: block; font-size: 15px; }
+.search-item small { display: block; overflow: hidden; color: var(--muted); font-size: 12px; line-height: 1.55; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 1220px) {
+  .layout { grid-template-columns: 228px minmax(0, 1fr); }
+  .toc { display: none; }
+  .main { padding-right: clamp(25px, 7vw, 86px); padding-left: clamp(25px, 7vw, 86px); }
+}
+
+@media (max-width: 760px) {
+  .topbar { height: 59px; padding: 0 15px; gap: 10px; }
+  .brand { font-size: 14px; }
+  .brand small { display: none; }
+  .menu-button { display: block; }
+  .search-open { min-width: 36px; width: 36px; justify-content: center; padding: 0; font-size: 21px; }
+  .search-open span, .search-open kbd { display: none; }
+  .layout { display: block; }
+  .sidebar { position: fixed; z-index: 31; top: 59px; bottom: 0; left: 0; width: min(290px, 84vw); overflow-y: auto; box-shadow: var(--shadow); transform: translateX(-110%); transition: transform .22s ease; }
+  .sidebar-inner { position: static; max-height: none; }
+  body.nav-open .sidebar { transform: translateX(0); }
+  .nav-scrim { position: fixed; z-index: 30; inset: 59px 0 0; display: block; width: 100%; border: 0; background: rgb(15 33 37 / 35%); }
+  .main { padding: 23px 22px 55px; }
+  .page-hero { padding: 35px 0 23px; }
+  .home-hero { min-height: 250px; padding: 47px 0 28px; }
+  .hero-mark { right: 25px; top: 30px; font-size: 50px; }
+  .feature-grid { grid-template-columns: 1fr; gap: 9px; margin-bottom: 30px; }
+  .feature-card { min-height: 120px; padding: 14px 17px; gap: 3px; }
+  .feature-card strong { font-size: 19px; }
+  .feature-arrow { margin-top: 4px; }
+  .prose { padding-top: 19px; }
+  .prose h2 { margin-top: 38px; font-size: 22px; }
+  .prose h3 { font-size: 17px; }
+  .prose p { line-height: 1.9; }
+  .page-footer { flex-direction: column; }
+}
+
+@media (max-width: 420px) {
+  .main { padding-right: 17px; padding-left: 17px; }
+  .home-hero h1 { font-size: 39px; }
+  .sequence a { font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+</style>
+</head>
+<body data-search-url="../data/search.json">
+  <a class="skip-link" href="#main">跳到內容</a>
+  <div class="site-shell">
+    <header class="topbar">
+      <button class="menu-button" type="button" aria-label="開啟導覽" aria-expanded="false" aria-controls="sidebar">☰</button>
+      <a class="brand" href="../index.html"><span class="brand-symbol">✦</span><span>童話之國 <small>オトギノクニ · 劇情資料庫</small></span></a>
+      <div class="topbar-actions"><button class="search-open" type="button" aria-label="搜尋劇情與角色" aria-haspopup="dialog">⌕ <span>搜尋劇情與角色</span><kbd>/</kbd></button></div>
+    </header>
+    <button class="nav-scrim" type="button" aria-label="關閉導覽" hidden></button>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="網站導覽"><div class="sidebar-inner"><div class="nav-group"><p class="nav-heading">閱讀</p><a href="../index.html">劇情總覽</a></div><div class="nav-group"><p class="nav-heading">主線劇情</p><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%B8%80%E9%83%A8-%E7%BE%A4%E6%98%9F%E7%9A%84%E5%A4%B1%E6%A8%82%E5%9C%92.html"><span>第一部：群星的失樂園篇</span><small class="nav-original">（第一部 星々の失楽園編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-1-%E9%BB%83%E6%98%8F%E5%B0%91%E5%A5%B3.html"><span>第二部 1：黃昏少女篇</span><small class="nav-original">（第二部 1 黄昏の少女編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-1.5-%E6%8E%A2%E6%B1%82%E7%AB%A5%E8%A9%B1%E5%B0%91%E5%A5%B3.html"><span>第二部 1.5：探求童話少女篇</span><small class="nav-original">（第二部 1.5 探求の御伽乙女編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-2-%E4%BA%A4%E9%8C%AF%E5%A4%A9%E5%9C%B0.html"><span>第二部 2：交錯天地篇</span><small class="nav-original">（第二部 2 交錯する天地編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-3-%E7%85%A7%E4%BA%AE%E6%9F%B1%E7%9F%B3%E7%9A%84%E6%9B%99%E5%85%89.html"><span>第二部 3：照亮柱石的曙光篇</span><small class="nav-original">（第二部 3 柱石を照らす曙光編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-4-%E8%9E%8D%E6%96%BC%E6%9A%97%E5%BD%B1%E7%9A%84%E8%8F%AF%E5%A4%8F.html"><span>第二部 4：融於暗影的華夏篇</span><small class="nav-original">（第二部 4 暗影に溶ける華夏編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-5-%E7%B6%BB%E6%94%BE%E6%96%BC%E7%AB%A5%E8%A9%B1%E7%9A%84%E8%93%AE%E8%8A%B1%E6%9A%97%E7%84%89.html"><span>第二部 5：綻放於童話的蓮花暗焉篇</span><small class="nav-original">（第二部 5 御伽に咲く蓮花の闇焉編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-5.5-%E6%98%9F%E8%AC%90%E4%B9%8B%E7%8D%85.html"><span>第二部 5.5：星謐之獅篇</span><small class="nav-original">（第二部 5.5 星謐の獅子編）</small></a><a href="../%E4%B8%BB%E7%B7%9A/%E7%AC%AC%E4%BA%8C%E9%83%A8-6-%E7%81%BC%E7%87%92%E5%A4%A9%E8%AD%9C%E7%9A%84%E6%98%9F%E6%88%B0.html"><span>第二部 6：灼燒天譜的星戰篇</span><small class="nav-original">（第二部 6 天譜を焦がす星戦編）</small></a></div><div class="nav-group"><p class="nav-heading">番外篇</p><a href="%E5%8D%81%E4%BA%8C%E8%BF%B7%E5%AE%AE.html">番外篇：十二迷宮</a><a href="%E8%A9%95%E8%AD%B0%E6%9C%83%E5%89%B5%E8%A8%AD%E7%A7%98%E8%A9%B1.html"><span>番外篇：評議會創設秘話</span><small class="nav-original">（コミッティ創設秘話）</small></a><a href="%E7%A6%81%E5%BF%8C%E7%B2%BE%E9%9D%88%E5%82%B3%E6%89%BF-%E7%9B%A7%E6%81%A9%E8%8C%B2%E5%A5%88%E7%89%B9.html" class="active" aria-current="page"><span>番外篇：禁忌精靈傳承—盧恩茲奈特—</span><small class="nav-original">（禁忌精霊伝承―ルインズナイト―）</small></a><a href="%E7%99%BD%E7%92%A7%E5%BE%AE%E7%91%95%E7%9A%84%E9%98%BF%E7%88%BE%E5%8D%A1%E5%A8%9C.html"><span>番外篇：白璧微瑕的阿爾卡娜</span><small class="nav-original">（白璧微瑕のアルカーナ）</small></a><a href="%E7%AC%AC%E4%B9%9D%E9%BB%8E%E6%98%8E.html"><span>番外篇：第九黎明</span><small class="nav-original">（ナインスアルバ）</small></a><a href="%E9%AD%94%E5%AE%AE%E6%B5%81%E6%98%9F%E8%AD%9A.html">番外篇：魔宮流星譚</a></div><div class="nav-group"><p class="nav-heading">資料頁</p><a href="../%E4%B8%BB%E8%A6%81%E8%A7%92%E8%89%B2.html">主要角色</a><a href="../%E6%AC%A1%E8%A6%81%E8%A7%92%E8%89%B2.html">次要角色</a><a href="../%E6%AC%A1%E8%A6%81%E8%A7%92%E8%89%B2%E8%A9%B3%E8%BF%B0.html">次要角色詳述</a><a href="../%E4%B8%96%E7%95%8C%E8%A8%AD%E5%AE%9A.html">世界設定與力量</a><a href="../%E7%B5%84%E7%B9%94%E8%88%87%E5%8B%A2%E5%8A%9B.html">組織與勢力</a><a href="../%E6%B3%A2%E7%88%BE%E5%A1%94%E5%B3%B6%E4%BA%8B%E4%BB%B6%E5%8F%B2.html"><span>波爾塔島事件史</span><small class="nav-original">（ポルタ島）</small></a><a href="../%E7%AB%A0%E7%AF%80%E7%B4%A2%E5%BC%95.html">章節索引</a><a href="../%E8%A1%93%E8%AA%9E%E8%A1%A8.html">術語表</a></div></div></aside>
+      <main class="main" id="main">
+        <div class="article-width"><div class="breadcrumb">番外篇 <span>／</span> 番外篇：禁忌精靈傳承—盧恩茲奈特—（禁忌精霊伝承―ルインズナイト―）</div>
+          <header class="page-hero "><p class="eyebrow">番外篇 · 完整劇透</p><h1><span>番外篇：禁忌精靈傳承—盧恩茲奈特—</span><small class="title-original">（禁忌精霊伝承―ルインズナイト―）</small></h1></header>
+          
+          <article class="prose">
+<aside class="note">完整劇透。原文：<a href="../%E5%8E%9F%E6%96%87/%E7%95%AA%E5%A4%96%E7%AF%87/%E7%A6%81%E5%BF%8C%E7%B2%BE%E9%9C%8A%E4%BC%9D%E6%89%BF%E2%80%95%E3%83%AB%E3%82%A4%E3%83%B3%E3%82%BA%E3%83%8A%E3%82%A4%E3%83%88%E2%80%95.txt">禁忌精霊伝承―ルインズナイト―.txt</a>。以下出處以這份更新後的原文檔案、章節編號及實際行號定位；各人的往事是穿插於追查事件中的回憶。</aside>
+<h2 id="section-2">概要</h2>
+<p>忘卻之丘的舊伯爵邸發生大量居民遇害事件。杜布利・萊布拉奉天空神殿調查，因傷口留下特殊的惡之力特徵，將傳說中遭封印的武器精靈組織「盧恩茲奈特」列為嫌疑人，並請人間君、匹爾蒂和莉露協助追捕。六名成員此時也在追查鍛冶師卡娜遇襲、自己武器本體遭奪的事件；她們並不知道追查自己的男子正是人間君。雙方接連交手，雷瓦汀、杜蘭達爾、村正與卡拉德波加先後落入調查隊手中，卻各有自己的盤算。<span class="source-note">〔原文：6000101–6000117，1–974行〕</span></p>
+<p>卡娜曾以「再刃」減少六人的精靈體受武器本體所在位置限制的程度。她遭人擄走，兇手想利用其技術和六把劍；亞羅戴特則用一枚偽裝成「時鐘指針」的線索，誘使杜布利誤判幕後人物，趁機救出同伴。人間君與匹爾蒂被捲入六人的追查，最終一起找到失竊的武器本體和囚禁卡娜的線索。現場的黑衣幹員以卡娜製造的鈴操控聖劍，迫使亞羅戴特與姊姊對立；眾人推測卡娜暗中縮短鈴的效力；之後眾人才阻止亞羅戴特在暴走中傷害姊姊。杜布利最後佯稱六人已在戰鬥中消滅，讓她們帶著本體與卡娜脫離天空神殿管理。她從線索推想神官長曾利用這次追捕，卻也察覺黑衣幹員背後另有勢力；末尾的神祕人物仍打算為「那位大人」取得強大力量。<span class="source-note">〔原文：6000116–6000130，871–1748行〕</span></p>
+<h2 id="section-3">關鍵場景</h2>
+<h3 id="section-4">兩條追查線相遇</h3>
+<p>杜布利向人間君一行展示舊伯爵邸的慘案，說明這已是第三起已知事件；匹爾蒂在聖之力支援下追蹤六人特有的惡之力。另一方面，盧恩茲奈特追的是殺害卡娜、奪走本體的「那個人」，還以為人間君是天空神殿派來的能幹搜查官。雷瓦汀假裝暴走後清醒而投降，原本想潛入調查隊，聽見自己等人被稱為連環殺人犯時才知道遭到嫁禍。<span class="source-note">〔原文：6000101–6000106，1–345行〕</span></p>
+<h3 id="section-5">武器精靈（武器精霊）與持有者的關係</h3>
+<p>雷瓦汀曾與前線部隊並肩作戰，卻被掌握本體的將軍關進牢房，無法拯救戰死的同伴。杜蘭達爾在主人戰死後落入敵兵之手，失控醒來時四周已滿是屍體；她將當時的力量理解成「天使」相助。村正的「妖刀」威名多半來自偶然和他人誤解，她其實害怕實戰，未能保住收留自己的小鎮。卡拉德波加曾遭己方參謀背叛，戰力被封住、軍隊也因此陷入敗局。這些回憶說明六人走向「由自己決定如何使用力量」的原因各不相同。<span class="source-note">〔原文：6000103–6000104，117–259行；6000108–6000109，409–536行；6000113–6000114，709–844行；6000118–6000119，975–1091行〕</span></p>
+<h3 id="section-6">卡娜（カナ）的「再刃」與自由</h3>
+<p>亞羅戴特在她們失去依靠時逐一邀請成員加入。卡娜沒有追問過去，替六人的武器本體重新鍛造，讓她們即使本體被移走，也能在較大範圍內自由行動。亞羅戴特將此視為擺脫持有者支配、依自己的正義行動的起點；因此本體遭竊和卡娜被擄不只是尋人案件，也危及六人剛取得的自由。<span class="source-note">〔原文：6000104，183–259行；6000110–6000112，537–708行；6000120，1092–1135行〕</span></p>
+<h3 id="section-7">假投降與誤導線索</h3>
+<p>杜蘭達爾阻擋調查隊而被捕；村正意外得到人間君的聖之力後也遭拘束。卡拉德波加隨後假裝與同伴決裂，向杜布利說出「時鐘短針」的線索，將他引向艾文研究所。這枚針其實是雷歐娜留在現場的假線索，亞羅戴特反過來利用它誤導杜布利；雷歐娜另交給她卡娜的顧客名單。調查隊突入研究所時，四名被拘束者奪船逃走，人間君察覺後與匹爾蒂追上，反成為六人的人質。<span class="source-note">〔原文：6000108–6000117，409–974行；6000118–6000121，975–1185行〕</span></p>
+<h3 id="section-8">戴因斯列夫（ダインスレイヴ）的另一人格</h3>
+<p>戴因斯列夫平日害怕傷人，卻在感到戰鬥將起時切換為嗜血的另一人格，事後也不記得其行為。她曾因此被持有者長期封閉，孤獨到懷疑自己的存在意義；亞羅戴特與聖劍找到她時，另一人格立即發動攻擊。追到本體運送地點後，她再度失控，雷瓦汀借用人間君的聖之力攔住她，使其他人有機會制伏運送者。<span class="source-note">〔原文：6000122–6000125，1186–1429行〕</span></p>
+<h3 id="section-9">姊妹對決與亞羅戴特（アロンダイト）的傷痕</h3>
+<p>亞羅戴特曾與姊姊聖劍及兩人的騎士融洽相處。自己的持有者後來為救伯爵夫人，竟用她斬傷原本願意讓路的同僚，再把她當作會留下線索的道具拋棄；姊姊則是她在那段時期唯一的支柱。如今黑衣幹員利用卡娜被迫製作的鈴，讓聖劍無法認出她。鈴的效力很快減弱，眾人推測是卡娜暗中動了手腳；幹員又試圖毀掉聖劍本體，亞羅戴特憤怒暴走。人間君等人找回六人的本體、救醒聖劍後，她才在同伴呼喚下恢復。<span class="source-note">〔原文：6000125–6000129，1372–1681行〕</span></p>
+<h3 id="section-10">杜布利的假報告與未解幕後</h3>
+<p>運送者承認依命令製造案件並搬運武器，黑衣幹員則趁亂逃脫。杜布利明白即使六人無罪，天空神殿仍會要求武器精靈重新與本體綁定，於是製造爆炸煙塵並提出她們「本體大破、精靈消滅」的假報告，實際放六人離開。她認為神官長可能想藉追捕奪回六人的本體，同時發現黑衣幹員的運送行動未必屬於同一計畫。結尾卡娜雖被救回、仍未甦醒；另一名身分不明者處置了逃跑的黑衣幹員，表明奪取巨大力量的企圖尚未結束。<span class="source-note">〔原文：6000129–6000130，1612–1748行〕</span></p>
+<h2 id="section-11">仍需追查</h2>
+<ul><li>杜布利推測神官長利用追捕來排除不受管理的武器精靈；但現有文本沒有神官長親自說明命令，也未交代黑衣幹員與她的完整關係。<span class="source-note">〔原文：6000130，1682–1748行〕</span></li><li>黑衣幹員背後的神祕人物與「那位大人」是誰，以及失竊本體原本要運往何處，本篇沒有揭明。<span class="source-note">〔原文：6000122–6000123，1186–1313行；6000130，1682–1748行〕</span></li></ul></article>
+          <nav class="sequence" aria-label="相鄰篇章"><div><small>上一篇</small><a href="%E8%A9%95%E8%AD%B0%E6%9C%83%E5%89%B5%E8%A8%AD%E7%A7%98%E8%A9%B1.html"><span>番外篇：評議會創設秘話</span><small class="nav-original">（コミッティ創設秘話）</small></a></div><div><small>下一篇</small><a href="%E7%99%BD%E7%92%A7%E5%BE%AE%E7%91%95%E7%9A%84%E9%98%BF%E7%88%BE%E5%8D%A1%E5%A8%9C.html"><span>番外篇：白璧微瑕的阿爾卡娜</span><small class="nav-original">（白璧微瑕のアルカーナ）</small></a></div></nav>
+          <footer class="page-footer"><span>依現有文本整理 · 內容含完整劇透</span><a href="../index.html">返回總覽 ↑</a></footer>
+        </div>
+      </main>
+      <aside class="toc" aria-label="本頁目錄"><p>本頁目錄</p><a class="toc-level-2" href="#section-2">概要</a><a class="toc-level-2" href="#section-3">關鍵場景</a><a class="toc-level-3" href="#section-4">兩條追查線相遇</a><a class="toc-level-3" href="#section-5">武器精靈（武器精霊）與持有者的關係</a><a class="toc-level-3" href="#section-6">卡娜（カナ）的「再刃」與自由</a><a class="toc-level-3" href="#section-7">假投降與誤導線索</a><a class="toc-level-3" href="#section-8">戴因斯列夫（ダインスレイヴ）的另一人格</a><a class="toc-level-3" href="#section-9">姊妹對決與亞羅戴特（アロンダイト）的傷痕</a><a class="toc-level-3" href="#section-10">杜布利的假報告與未解幕後</a><a class="toc-level-2" href="#section-11">仍需追查</a></aside>
+    </div>
+  </div>
+  <div class="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="搜尋網站"><div class="search-field"><span>⌕</span><input id="search-input" type="search" autocomplete="off" placeholder="搜尋人物、篇章或事件…" aria-label="搜尋人物、篇章或事件"><button class="search-close" type="button" aria-label="關閉搜尋">Esc</button></div><div class="search-results" role="status"><p class="search-hint">輸入關鍵字，搜尋所有 WIKI 頁面。</p></div></div></div>
+  <script>(() => {
+  "use strict";
+
+  const menu = document.querySelector(".menu-button");
+  const navScrim = document.querySelector(".nav-scrim");
+  const sidebar = document.querySelector(".sidebar");
+  const backdrop = document.querySelector(".search-backdrop");
+  const searchOpen = document.querySelector(".search-open");
+  const searchClose = document.querySelector(".search-close");
+  const input = document.querySelector("#search-input");
+  const results = document.querySelector(".search-results");
+  const searchUrl = new URL(document.body.dataset.searchUrl, location.href);
+  const siteRoot = new URL("../", searchUrl);
+  let searchData;
+  let previousFocus;
+
+  function setMenu(open) {
+    document.body.classList.toggle("nav-open", open);
+    navScrim.hidden = !open;
+    menu.setAttribute("aria-expanded", String(open));
+    menu.setAttribute("aria-label", open ? "關閉導覽" : "開啟導覽");
+  }
+
+  menu.addEventListener("click", () => setMenu(!document.body.classList.contains("nav-open")));
+  navScrim.addEventListener("click", () => setMenu(false));
+  document.querySelector(".main").addEventListener("click", () => setMenu(false));
+  sidebar.querySelectorAll("a").forEach(link => link.addEventListener("click", () => setMenu(false)));
+
+  async function loadSearch() {
+    if (!searchData) {
+      const response = await fetch(searchUrl);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      searchData = await response.json();
+    }
+    return searchData;
+  }
+
+  function showMessage(message) {
+    results.replaceChildren();
+    const paragraph = document.createElement("p");
+    paragraph.className = "search-hint";
+    paragraph.textContent = message;
+    results.append(paragraph);
+  }
+
+  function snippet(text, query) {
+    const compact = text.replace(/\s+/g, " ").trim();
+    const position = compact.toLocaleLowerCase().indexOf(query);
+    if (position < 0) return compact.slice(0, 115);
+    const start = Math.max(0, position - 45);
+    return `${start ? "…" : ""}${compact.slice(start, start + 130)}${compact.length > start + 130 ? "…" : ""}`;
+  }
+
+  async function search() {
+    const query = input.value.trim().toLocaleLowerCase();
+    if (!query) {
+      showMessage("輸入關鍵字，搜尋所有 WIKI 頁面。");
+      return;
+    }
+    try {
+      const pages = await loadSearch();
+      if (query !== input.value.trim().toLocaleLowerCase()) return;
+      const found = pages.map(page => {
+        const title = page.title.toLocaleLowerCase();
+        const headings = page.headings.join(" ").toLocaleLowerCase();
+        const content = page.text.toLocaleLowerCase();
+        const titleMatch = title.includes(query);
+        const headingMatch = headings.includes(query);
+        const count = content.split(query).length - 1;
+        return { page, score: (titleMatch ? 100 : 0) + (headingMatch ? 40 : 0) + Math.min(count, 12), count };
+      }).filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 15);
+      results.replaceChildren();
+      if (!found.length) {
+        showMessage("沒有找到符合的頁面，試試人物別名或較短的詞。");
+        return;
+      }
+      for (const { page } of found) {
+        const anchor = document.createElement("a");
+        anchor.className = "search-item";
+        anchor.href = new URL(page.url, siteRoot).href;
+        const category = document.createElement("span");
+        category.textContent = page.category;
+        const title = document.createElement("strong");
+        title.textContent = page.title;
+        const preview = document.createElement("small");
+        preview.textContent = snippet(page.text, query);
+        anchor.append(category, title, preview);
+        results.append(anchor);
+      }
+    } catch {
+      showMessage("搜尋索引無法載入。請從網站網址開啟頁面，或稍後重試。");
+    }
+  }
+
+  async function openSearch() {
+    previousFocus = document.activeElement;
+    backdrop.hidden = false;
+    document.body.style.overflow = "hidden";
+    input.focus();
+    if (input.value) await search();
+  }
+
+  function closeSearch() {
+    backdrop.hidden = true;
+    document.body.style.overflow = "";
+    previousFocus?.focus();
+  }
+
+  searchOpen.addEventListener("click", openSearch);
+  searchClose.addEventListener("click", closeSearch);
+  backdrop.addEventListener("click", event => {
+    if (event.target === backdrop) closeSearch();
+  });
+  input.addEventListener("input", search);
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      if (!backdrop.hidden) closeSearch();
+      else setMenu(false);
+    }
+    if (event.key === "/" && backdrop.hidden && !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) {
+      event.preventDefault();
+      openSearch();
+    }
+  });
+
+  const tocLinks = [...document.querySelectorAll(".toc a")];
+  if (tocLinks.length && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        tocLinks.forEach(link => link.classList.toggle("current", link.hash === `#${entry.target.id}`));
+      }
+    }, { rootMargin: "-90px 0px -75% 0px" });
+    tocLinks.forEach(link => {
+      const heading = document.querySelector(link.hash);
+      if (heading) observer.observe(heading);
+    });
+  }
+})();
+</script>
+</body>
+</html>
