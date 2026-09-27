@@ -34,6 +34,7 @@ EXTRA = [
     "白璧微瑕的阿爾卡娜.md",
     "第九黎明.md",
     "魔宮流星譚.md",
+    "夢空新星譚.md",
 ]
 REFERENCE = [
     "主要角色.md",
@@ -248,7 +249,7 @@ def sequence_links(source: Path, page: Path, base: Path) -> str:
 def home_cards(page: Path, base: Path) -> str:
     cards = [
         ("01", "開始主線", "從第一部到第二部，依文本順序閱讀九篇劇情。", WIKI / "主線" / MAIN[0]),
-        ("02", "閱讀番外", "六篇獨立故事，各篇保留原文出處。", WIKI / "番外篇" / EXTRA[0]),
+        ("02", "閱讀番外", "八篇番外故事，各篇保留原文出處。", WIKI / "番外篇" / EXTRA[0]),
         ("03", "查找資料", "人物、組織、世界設定與術語集中查閱。", WIKI / "主要角色.md"),
     ]
     items = []
