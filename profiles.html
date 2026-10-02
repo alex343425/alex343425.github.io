@@ -35,10 +35,14 @@
     body{font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans CJK TC", "Microsoft JhengHei", Arial; margin:20px; background:#f5f7fb}
     .controls{display:flex;gap:16px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
     .group{background:#fff;padding:10px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+    .view-toggle{display:flex;gap:8px;width:fit-content;margin-bottom:12px}
+    .view-toggle button{padding:6px 12px;border:1px solid #4a90e2;border-radius:4px;background:#fff;color:#4a90e2;cursor:pointer;font:inherit}
+    .view-toggle button[aria-pressed="true"]{background:#4a90e2;color:#fff}
     label{margin-right:8px}
     table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.08)}
     th,td{padding:10px;text-align:left;border-bottom:1px solid #eee}
     th{background:#fafafa;font-weight:600}
+    #mainTable th,#mainTable td:nth-child(2),#mainTable td:nth-child(3){white-space:nowrap}
     tr:hover{background:#fcfcff;cursor:pointer}
     img.thumb{width:auto;height:auto;object-fit:cover;border-radius:6px}
     /* Modal */
@@ -100,16 +104,18 @@
     </div>
   </div>
 
+  <div class="group view-toggle" role="group" aria-label="表格顯示模式">
+    <button type="button" data-table-view="introduce" aria-pressed="true">顯示介紹</button>
+    <button type="button" data-table-view="profiles" aria-pressed="false">顯示資料</button>
+  </div>
+
   <table id="mainTable">
     <thead>
       <tr>
         <th>圖片 / 角色名</th>
         <th>屬性</th>
         <th>武器</th>
-        <th>身長・体重</th>
-        <th>BWH</th>
-        <th>誕生日</th>
-        <th>趣味</th>
+        <th>介紹</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -156,8 +162,11 @@
   }
 
   let data = [];
+  let tableView = 'introduce';
+  const tableHeadRow = document.querySelector('#mainTable thead tr');
   const tbody = document.querySelector('#mainTable tbody');
   const searchInput = document.getElementById('search');
+  const viewButtons = document.querySelectorAll('button[data-table-view]');
 
 async function load(){
     try{
@@ -182,6 +191,10 @@ async function load(){
 
   function renderTable(){
     const {a,wc,q} = currentFilters();
+    const columns = tableView === 'introduce'
+      ? ['圖片 / 角色名', '屬性', '武器', '介紹']
+      : ['圖片 / 角色名', '屬性', '武器', '身長・体重', 'BWH', '誕生日', '趣味'];
+    tableHeadRow.innerHTML = columns.map(title=>'<th>' + title + '</th>').join('');
     tbody.innerHTML = '';
     data.forEach(x=>{
       const showA = !a || (x.a===a);
@@ -191,6 +204,7 @@ async function load(){
       // search
       let hay = '';
       hay += (x.n||'') + ' ' + (x.filename||'') + ' ' + (x.a||'') + ' ' + (x.wc||'');
+      hay += ' ' + (x.introduce||'') + ' ' + (x.introduce_chs||'');
       if(x.HasProfiles && Array.isArray(x.Profiles)){
         x.Profiles.forEach(p=>{
           hay += ' ' + (p.Content||'') + ' ' + (p.Content_chs||'') + ' ' + (p.Title||'') + ' ' + (p.Title_chs||'');
@@ -220,7 +234,9 @@ async function load(){
       tr.appendChild(cell(x.a));
       tr.appendChild(cell(x.wc));
 
-      if(x.HasProfiles && Array.isArray(x.Profiles)){
+      if(tableView === 'introduce'){
+        tr.appendChild(cell(x.introduce_chs || ''));
+      }else if(x.HasProfiles && Array.isArray(x.Profiles)){
         tr.appendChild(cell(x.Profiles[0] ? x.Profiles[0].Content || '' : ''));
         tr.appendChild(cell(x.Profiles[1] ? x.Profiles[1].Content || '' : ''));
         tr.appendChild(cell(x.Profiles[2] ? x.Profiles[2].Content || '' : ''));
@@ -259,11 +275,25 @@ function openModal(x){
     cont.innerHTML = '';
     const lang = document.querySelector('input[name="lang"]:checked').value || 'chs';
 
+    // Introduction
+    const intro = document.createElement('div');
+    intro.style.marginTop='10px';
+
+    const introTitle = document.createElement('h3');
+    introTitle.textContent='角色介紹：';
+    intro.appendChild(introTitle);
+
+    const introText = document.createElement('div');
+    introText.innerHTML = langField(x,'introduce',lang) || '';
+    if(!introText.innerHTML) introText.className='empty';
+    intro.appendChild(introText);
+
     if(!x.HasProfiles){
       const p = document.createElement('div');
       p.className='empty';
       p.textContent='此角色無 Profiles 資料。';
       cont.appendChild(p);
+      cont.appendChild(intro);
       backdrop.style.display='flex';
       return;
     }
@@ -284,6 +314,7 @@ function openModal(x){
     });
     tbl.appendChild(tb);
     cont.appendChild(tbl);
+    cont.appendChild(intro);
 
     // BackgroundMessage
     const bg = document.createElement('div');
@@ -369,6 +400,14 @@ function openModal(x){
     
     const x = data.find(it=> (it.filename||'') === fname);
     if(x) openModal(x);
+  }));
+
+  // table view
+  viewButtons.forEach(button=>button.addEventListener('click',()=>{
+    if(tableView === button.dataset.tableView) return;
+    tableView = button.dataset.tableView;
+    viewButtons.forEach(item=>item.setAttribute('aria-pressed', String(item === button)));
+    renderTable();
   }));
 
   // filters
