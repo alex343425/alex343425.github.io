@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js"></script>
+    <script src="script.js?v=20261004-damage-filter-2"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -443,6 +443,55 @@
 .toggle-switch input:checked + .slider:before {
     transform: translateX(20px);
 }
+        .damage-filter-row {
+            align-items: stretch;
+        }
+
+        .damage-filter-up {
+            flex: 0 1 auto;
+        }
+
+        .damage-filter-down {
+            flex: 0 1 auto;
+            border-left: 2px solid #e74c3c;
+            padding-left: 20px;
+        }
+
+        .damage-filter-section h3 {
+            margin: 0 0 12px;
+            font-size: 16px;
+        }
+
+        .damage-filter-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .damage-filter-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .damage-filter-label img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .damage-radio-options {
+            grid-template-columns: max-content;
+        }
+
+        @media (max-width: 760px) {
+            .damage-filter-down {
+                flex-basis: 100%;
+                border-left: none;
+                border-top: 2px solid #e74c3c;
+                padding: 15px 0 0;
+            }
+        }
     </style>
 </head>
 
@@ -620,28 +669,55 @@
             </div>
         </div>
 
-        <div class="filter-row">
-            <div class="filter-group">
-                <label>屬性弱點包含:</label>
-                <div class="grid-checkboxes">
-                    <label><input type="radio" name="elementDmgUpFilter" value="0" checked> 無篩選</label>
-                    <label><input type="radio" name="elementDmgUpFilter" value="1"><img src="icon/blight_fire.png" />火</label>
-                    <label><input type="radio" name="elementDmgUpFilter" value="2"><img src="icon/blight_water.png" />水</label>
-                    <label><input type="radio" name="elementDmgUpFilter" value="3"><img src="icon/blight_tree.png" />樹</label>
-                    <label><input type="radio" name="elementDmgUpFilter" value="4"><img src="icon/blight_light.png" />光</label>
-                    <label><input type="radio" name="elementDmgUpFilter" value="5"><img src="icon/blight_dark.png" />暗</label>
+        <div class="filter-row damage-filter-row">
+            <section class="damage-filter-section damage-filter-up" aria-labelledby="damageUpHeading">
+                <h3 id="damageUpHeading">增傷區上升</h3>
+                <div class="damage-filter-controls">
+                    <div class="filter-group">
+                        <label>屬性弱點包含:</label>
+                        <div class="grid-checkboxes">
+                            <label><input type="radio" name="elementDmgUpFilter" value="0" checked> 無篩選</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="1"><img src="icon/blight_fire.png" />火</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="2"><img src="icon/blight_water.png" />水</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="3"><img src="icon/blight_tree.png" />樹</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="4"><img src="icon/blight_light.png" />光</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="5"><img src="icon/blight_dark.png" />暗</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>敵被傷:</label>
+                        <div class="grid-checkboxes">
+                            <label><input type="radio" name="enemyDmgUpFilter" value="noFilter" checked> 無篩選</label>
+                            <label><input type="radio" name="enemyDmgUpFilter" value="anyValue"> 任意值</label>
+                            <label><input type="radio" name="enemyDmgUpFilter" value="contains1"><img src="icon/25_2.png" />通用被傷</label>
+                            <label><input type="radio" name="enemyDmgUpFilter" value="contains2"><img src="icon/damageup_weaponsword.png" />武器被傷</label>
+                            <label><input type="radio" name="enemyDmgUpFilter" value="contains3"><img src="icon/damageup_attack.png" />技能被傷</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label id="playerDmgUpLabel" class="damage-filter-label"><img src="icon/233.png" alt="">予傷上升:</label>
+                        <div class="grid-checkboxes damage-radio-options" role="radiogroup" aria-labelledby="playerDmgUpLabel">
+                            <label><input type="radio" name="playerDmgUpFilter" value="noFilter" checked> 無篩選</label>
+                            <label><input type="radio" name="playerDmgUpFilter" value="contains1"> 自己上升</label>
+                            <label><input type="radio" name="playerDmgUpFilter" value="contains2"> 全體上升</label>
+                            <label><input type="radio" name="playerDmgUpFilter" value="contains1Or2"> 自己・全體上升</label>
+                            <label><input type="radio" name="playerDmgUpFilter" value="contains3"> 自己上升(突破2倍)</label>
+                            <label><input type="radio" name="playerDmgUpFilter" value="contains4"> 全體上升(突破2倍)</label>
+                            <label><input type="radio" name="playerDmgUpFilter" value="contains3Or4"> 自己・全體上升(突破2倍)</label>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="filter-group">
-                <label>敵被傷:</label>
-                <div class="grid-checkboxes">
-                    <label><input type="radio" name="enemyDmgUpFilter" value="noFilter" checked> 無篩選</label>
-                    <label><input type="radio" name="enemyDmgUpFilter" value="anyValue"> 任意值</label>
-                    <label><input type="radio" name="enemyDmgUpFilter" value="contains1"><img src="icon/25_2.png" />通用被傷</label>
-                    <label><input type="radio" name="enemyDmgUpFilter" value="contains2"><img src="icon/damageup_weaponsword.png" />武器被傷</label>
-                    <label><input type="radio" name="enemyDmgUpFilter" value="contains3"><img src="icon/damageup_attack.png" />技能被傷</label>
+            </section>
+            <section class="damage-filter-section damage-filter-down" aria-labelledby="damageDownHeading">
+                <h3 id="damageDownHeading">增傷區下降</h3>
+                <div class="filter-group">
+                    <label for="enemyDmgDownFilter" class="damage-filter-label"><img src="icon/234.png" alt="">予傷下降:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="enemyDmgDownFilter" aria-label="予傷下降">
+                        <span class="slider"></span>
+                    </label>
                 </div>
-            </div>
+            </section>
         </div>
 
         <div class="filter-row">

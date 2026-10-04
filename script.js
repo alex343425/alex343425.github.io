@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (params.has('ct')) document.getElementById('ctFilter').checked = true;
         if (params.has('sg')) document.getElementById('spirit_gauge').checked = true;
         if (params.has('hp')) document.getElementById('hp_debuff').checked = true;
+        if (params.get('enemyDmgDown') === '1') document.getElementById('enemyDmgDownFilter').checked = true;
         if (params.has('img') && params.get('img') === '0') document.getElementById('img_show').checked = false;
 
         // 還原 Radio 按鈕與更新對應的變數
@@ -48,6 +49,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const val = params.get('enmyDmg');
             const radio = document.querySelector(`input[name="enemyDmgUpFilter"][value="${val}"]`);
             if (radio) { radio.checked = true; enemyDmgUpFilterValue = val; }
+        }
+
+        if (params.has('playerDmgUp')) {
+            const radio = Array.from(document.querySelectorAll('input[name="playerDmgUpFilter"]'))
+                .find(input => input.value === params.get('playerDmgUp'));
+            if (radio) radio.checked = true;
         }
 
         // 還原 Checkbox 群組
@@ -84,6 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (document.getElementById('ctFilter').checked) params.set('ct', '1');
         if (document.getElementById('spirit_gauge').checked) params.set('sg', '1');
         if (document.getElementById('hp_debuff').checked) params.set('hp', '1');
+        if (document.getElementById('enemyDmgDownFilter').checked) params.set('enemyDmgDown', '1');
         if (!document.getElementById('img_show').checked) params.set('img', '0'); // 預設是開啟，關閉時才記錄
 
         // 收集 Radio 狀態
@@ -95,6 +103,9 @@ document.addEventListener("DOMContentLoaded", function () {
         
         const enmyChecked = document.querySelector('input[name="enemyDmgUpFilter"]:checked');
         if (enmyChecked) params.set('enmyDmg', enmyChecked.value);
+
+        const playerDmgChecked = document.querySelector('input[name="playerDmgUpFilter"]:checked');
+        if (playerDmgChecked && playerDmgChecked.value !== 'noFilter') params.set('playerDmgUp', playerDmgChecked.value);
 
         // 收集 Checkbox 群組
         const getCheckedValues = (selector) => Array.from(document.querySelectorAll(selector + ':checked')).map(cb => cb.value);
@@ -260,8 +271,8 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    function loadData() {
-        fetch('data.json')
+    function loadData(restoreUrlParams = true) {
+        fetch('data.json?v=20261004-damage-filter')
         .then(response => response.json())
 		.then(data => {
 			globalData = data; // 將取得的資料存入全域變數
@@ -272,6 +283,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
             document.getElementById('spirit_gauge').addEventListener('change', () => filterData(data));
 			document.getElementById('hp_debuff').addEventListener('change', () => filterData(data));
+            document.getElementById('enemyDmgDownFilter').addEventListener('change', () => filterData(data));
             document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
             document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
             document.getElementById('markFilter').addEventListener('change', () => filterData(data));
@@ -344,15 +356,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     filterData(data);
                 });
             });
+            document.querySelectorAll('input[name="playerDmgUpFilter"]').forEach(radio => {
+                radio.addEventListener('change', () => filterData(data));
+            });
            document.querySelectorAll('input[name="elementDmgUpFilter"]').forEach(radio => {
                 radio.addEventListener('change', function () {
                     elementDmgUpFilterValue = parseInt(this.value);
                     filterData(data);
                 });
             });
-			applyUrlParams();
+            if (restoreUrlParams) applyUrlParams();
             // 如果網址帶有參數，就在資料載入後主動篩選一次
-            if (window.location.search) {
+            if (restoreUrlParams && window.location.search) {
                 filterData(data);
             }
         })
@@ -369,7 +384,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 		document.getElementById('img_show').checked = true;
         document.getElementById('descriptionFilter').value = '';
-        loadData();
+        document.querySelector('input[name="playerDmgUpFilter"][value="noFilter"]').checked = true;
+        loadData(false);
     });
 
     function highlightKeywords(text, keywords) {
@@ -680,6 +696,17 @@ document.addEventListener("DOMContentLoaded", function () {
 		let ctValue = document.getElementById('ctFilter').checked ? 1 : 0;
 		let spirit_gaugeValue = document.getElementById('spirit_gauge').checked ? 1 : 0;
 		let hp_debuffValue = document.getElementById('hp_debuff').checked ? 1 : 0;
+        const enemyDmgDownFilterValue = document.getElementById('enemyDmgDownFilter').checked;
+        const playerDmgUpFilterValue = document.querySelector('input[name="playerDmgUpFilter"]:checked').value;
+        const playerDmgUpTags = {
+            noFilter: [],
+            contains1: [1],
+            contains2: [2],
+            contains1Or2: [1, 2],
+            contains3: [3],
+            contains4: [4],
+            contains3Or4: [3, 4]
+        }[playerDmgUpFilterValue];
         let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
         let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
@@ -759,6 +786,9 @@ document.addEventListener("DOMContentLoaded", function () {
 			let matchesLimitFilter = limitFilterValue == 0 || (item.limit !== undefined && item.limit >= limitFilterValue);
             let matchesstatus_condition_downFilter = status_condition_downFilterValue == 0 || item.status_condition_down >= status_condition_downFilterValue;
 
+            const matchesPlayerDmgUp = playerDmgUpTags.length === 0 || playerDmgUpTags.includes(item.player_dmg_up);
+            const matchesEnemyDmgDown = !enemyDmgDownFilterValue || item.enemy_dmg_down === 1;
+
             let matchesEnemyDmgUp;
             switch (enemyDmgUpFilterValue) {
                 case 'noFilter':
@@ -788,7 +818,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			let matchesStock = !onlyShowStockValue || (item.stock && item.stock > 0);
 			let matchesCharStock = !onlyShowCharStockValue || item.charStock === true;
 			
-            return matchesCt && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
+            return matchesCt && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
         });
         currentPage = 1;
         currentFilteredData = filteredData;
