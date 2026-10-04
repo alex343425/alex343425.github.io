@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261004-damage-filter-2"></script>
+    <script src="script.js?v=20261004-skill-ct"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -467,6 +467,8 @@
             flex-wrap: wrap;
             gap: 25px;
             align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
         }
 
         .damage-filter-label {
@@ -482,6 +484,19 @@
 
         .damage-radio-options {
             grid-template-columns: max-content;
+            justify-items: start;
+            text-align: left;
+        }
+
+        .damage-radio-options label {
+            justify-content: flex-start;
+        }
+
+        .damage-radio-options img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            flex-shrink: 0;
         }
 
         @media (max-width: 760px) {
@@ -674,17 +689,6 @@
                 <h3 id="damageUpHeading">增傷區上升</h3>
                 <div class="damage-filter-controls">
                     <div class="filter-group">
-                        <label>屬性弱點包含:</label>
-                        <div class="grid-checkboxes">
-                            <label><input type="radio" name="elementDmgUpFilter" value="0" checked> 無篩選</label>
-                            <label><input type="radio" name="elementDmgUpFilter" value="1"><img src="icon/blight_fire.png" />火</label>
-                            <label><input type="radio" name="elementDmgUpFilter" value="2"><img src="icon/blight_water.png" />水</label>
-                            <label><input type="radio" name="elementDmgUpFilter" value="3"><img src="icon/blight_tree.png" />樹</label>
-                            <label><input type="radio" name="elementDmgUpFilter" value="4"><img src="icon/blight_light.png" />光</label>
-                            <label><input type="radio" name="elementDmgUpFilter" value="5"><img src="icon/blight_dark.png" />暗</label>
-                        </div>
-                    </div>
-                    <div class="filter-group">
                         <label>敵被傷:</label>
                         <div class="grid-checkboxes">
                             <label><input type="radio" name="enemyDmgUpFilter" value="noFilter" checked> 無篩選</label>
@@ -692,6 +696,17 @@
                             <label><input type="radio" name="enemyDmgUpFilter" value="contains1"><img src="icon/25_2.png" />通用被傷</label>
                             <label><input type="radio" name="enemyDmgUpFilter" value="contains2"><img src="icon/damageup_weaponsword.png" />武器被傷</label>
                             <label><input type="radio" name="enemyDmgUpFilter" value="contains3"><img src="icon/damageup_attack.png" />技能被傷</label>
+                        </div>
+                    </div>
+					<div class="filter-group">
+                        <label>敵屬性弱點:</label>
+                        <div class="grid-checkboxes">
+                            <label><input type="radio" name="elementDmgUpFilter" value="0" checked> 無篩選</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="1"><img src="icon/blight_fire.png" />火</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="2"><img src="icon/blight_water.png" />水</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="3"><img src="icon/blight_tree.png" />樹</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="4"><img src="icon/blight_light.png" />光</label>
+                            <label><input type="radio" name="elementDmgUpFilter" value="5"><img src="icon/blight_dark.png" />暗</label>
                         </div>
                     </div>
                     <div class="filter-group">
@@ -710,12 +725,37 @@
             </section>
             <section class="damage-filter-section damage-filter-down" aria-labelledby="damageDownHeading">
                 <h3 id="damageDownHeading">增傷區下降</h3>
-                <div class="filter-group">
-                    <label for="enemyDmgDownFilter" class="damage-filter-label"><img src="icon/234.png" alt="">予傷下降:</label>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="enemyDmgDownFilter" aria-label="予傷下降">
-                        <span class="slider"></span>
-                    </label>
+                <div class="damage-filter-controls">
+                    <div class="filter-group">
+                        <label id="playerDmgDownLabel">一般減傷：</label>
+                        <div class="grid-checkboxes damage-radio-options" role="radiogroup" aria-labelledby="playerDmgDownLabel">
+                            <label><input type="radio" name="playerDmgDownFilter" value="noFilter" checked> 無篩選</label>
+                            <label><input type="radio" name="playerDmgDownFilter" value="contains1"><img src="icon/01_bf_damage_cut_up.png" alt="">自身減傷</label>
+                            <label><input type="radio" name="playerDmgDownFilter" value="contains2"><img src="icon/01_bf_damage_cut_up.png" alt="">全體減傷</label>
+                            <label><input type="radio" name="playerDmgDownFilter" value="contains1Or2"><img src="icon/01_bf_damage_cut_up.png" alt="">自身．全體減傷</label>
+                            <label><input type="radio" name="playerDmgDownFilter" value="contains5"><img src="icon/01_bf_damage_disabled.png" alt="">自身次數盾</label>
+                            <label><input type="radio" name="playerDmgDownFilter" value="contains6"><img src="icon/01_bf_damage_disabled.png" alt="">全體次數盾</label>
+                            <label><input type="radio" name="playerDmgDownFilter" value="contains5Or6"><img src="icon/01_bf_damage_disabled.png" alt="">自身．全體次數盾</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label id="elementDmgDownLabel">屬性減傷：</label>
+                        <div class="grid-checkboxes damage-radio-options" role="radiogroup" aria-labelledby="elementDmgDownLabel">
+                            <label><input type="radio" name="elementDmgDownFilter" value="0" checked> 無篩選</label>
+                            <label><input type="radio" name="elementDmgDownFilter" value="1"><img src="icon/01_bf_damage_cut_fire.png" alt="">火</label>
+                            <label><input type="radio" name="elementDmgDownFilter" value="2"><img src="icon/01_bf_damage_cut_water.png" alt="">水</label>
+                            <label><input type="radio" name="elementDmgDownFilter" value="3"><img src="icon/01_bf_damage_cut_tree.png" alt="">樹</label>
+                            <label><input type="radio" name="elementDmgDownFilter" value="4"><img src="icon/01_bf_damage_cut_light.png" alt="">光</label>
+                            <label><input type="radio" name="elementDmgDownFilter" value="5"><img src="icon/01_bf_damage_cut_darkness.png" alt="">闇</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="enemyDmgDownFilter" class="damage-filter-label"><img src="icon/234.png" alt="">予傷下降:</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="enemyDmgDownFilter" aria-label="予傷下降">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
             </section>
         </div>

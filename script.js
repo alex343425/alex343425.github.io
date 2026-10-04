@@ -57,6 +57,13 @@ document.addEventListener("DOMContentLoaded", function () {
             if (radio) radio.checked = true;
         }
 
+        [['playerDmgDown', 'playerDmgDownFilter'], ['emDmgDown', 'elementDmgDownFilter']].forEach(([param, name]) => {
+            if (!params.has(param)) return;
+            const radio = Array.from(document.querySelectorAll(`input[name="${name}"]`))
+                .find(input => input.value === params.get(param));
+            if (radio) radio.checked = true;
+        });
+
         // 還原 Checkbox 群組
         const setCheckedValues = (selector, valuesStr, separator = ',') => {
             const valArray = valuesStr.split(separator);
@@ -106,6 +113,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const playerDmgChecked = document.querySelector('input[name="playerDmgUpFilter"]:checked');
         if (playerDmgChecked && playerDmgChecked.value !== 'noFilter') params.set('playerDmgUp', playerDmgChecked.value);
+
+        const playerDmgDownChecked = document.querySelector('input[name="playerDmgDownFilter"]:checked');
+        if (playerDmgDownChecked.value !== 'noFilter') params.set('playerDmgDown', playerDmgDownChecked.value);
+
+        const elementDmgDownChecked = document.querySelector('input[name="elementDmgDownFilter"]:checked');
+        if (elementDmgDownChecked.value !== '0') params.set('emDmgDown', elementDmgDownChecked.value);
 
         // 收集 Checkbox 群組
         const getCheckedValues = (selector) => Array.from(document.querySelectorAll(selector + ':checked')).map(cb => cb.value);
@@ -272,7 +285,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function loadData(restoreUrlParams = true) {
-        fetch('data.json?v=20261004-damage-filter')
+        fetch('data.json?v=20261004-damage-reduction')
         .then(response => response.json())
 		.then(data => {
 			globalData = data; // 將取得的資料存入全域變數
@@ -356,7 +369,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     filterData(data);
                 });
             });
-            document.querySelectorAll('input[name="playerDmgUpFilter"]').forEach(radio => {
+            document.querySelectorAll('input[name="playerDmgUpFilter"], input[name="playerDmgDownFilter"], input[name="elementDmgDownFilter"]').forEach(radio => {
                 radio.addEventListener('change', () => filterData(data));
             });
            document.querySelectorAll('input[name="elementDmgUpFilter"]').forEach(radio => {
@@ -385,6 +398,8 @@ document.addEventListener("DOMContentLoaded", function () {
 		document.getElementById('img_show').checked = true;
         document.getElementById('descriptionFilter').value = '';
         document.querySelector('input[name="playerDmgUpFilter"][value="noFilter"]').checked = true;
+        document.querySelector('input[name="playerDmgDownFilter"][value="noFilter"]').checked = true;
+        document.querySelector('input[name="elementDmgDownFilter"][value="0"]').checked = true;
         loadData(false);
     });
 
@@ -502,6 +517,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function formatSkillName(skill) {
+        const ctValue = skill.ct ?? skill.CT;
+        const ct = typeof ctValue === 'number' || typeof ctValue === 'string' ? Number(ctValue) : NaN;
+        return Number.isFinite(ct) && ct > 0 ? `${skill.skill_name}<br>CT: ${ct}` : skill.skill_name;
+    }
+
     function renderModalTables(data) {
         const modalBody = document.getElementById("modalBody");
         let html = '';
@@ -528,7 +549,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 data.skill, 
                 ['技能名', '種類', '狀態', '描述'], 
                 s => `<tr>
-                        <td style="width:20%">${s.skill_name}</td>
+                        <td style="width:20%">${formatSkillName(s)}</td>
                         <td style="width:10%; text-align:center;">${s.skill_type}</td>
                         <td style="width:10%; text-align:center;">${s.skill_state}</td>
                         <td>${s.description}</td>
@@ -543,7 +564,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 data.ls, 
                 ['技能名', '描述'], 
                 l => `<tr>
-                        <td style="width:25%">${l.skill_name}</td>
+                        <td style="width:25%">${formatSkillName(l)}</td>
                         <td>${l.description}</td>
                       </tr>`
             );
@@ -556,7 +577,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 data.wep, 
                 ['技能名', '描述'], 
                 w => `<tr>
-                        <td style="width:25%">${w.skill_name}</td>
+                        <td style="width:25%">${formatSkillName(w)}</td>
                         <td>${w.description}</td>
                       </tr>`
             );
@@ -569,7 +590,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 data.acc, 
                 ['名稱', '描述'], 
                 a => `<tr>
-                        <td style="width:25%">${a.skill_name}</td>
+                        <td style="width:25%">${formatSkillName(a)}</td>
                         <td>${a.description}</td>
                       </tr>`
             );
@@ -628,7 +649,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // 修改 tr.innerHTML 插入新欄位（放在 imgCellContent 後面）：
 			tr.innerHTML = `
-                <td>${item.skill_name}</td>
+                <td>${formatSkillName(item)}</td>
                 ${stockCellContent} <td>${item.skill_type}</td>
                 <td>${item.skill_state}</td>
                 <td>${imgCellContent}</td>
@@ -707,6 +728,17 @@ document.addEventListener("DOMContentLoaded", function () {
             contains4: [4],
             contains3Or4: [3, 4]
         }[playerDmgUpFilterValue];
+        const playerDmgDownFilterValue = document.querySelector('input[name="playerDmgDownFilter"]:checked').value;
+        const playerDmgDownTags = {
+            noFilter: [],
+            contains1: [1],
+            contains2: [2],
+            contains1Or2: [1, 2],
+            contains5: [5],
+            contains6: [6],
+            contains5Or6: [5, 6]
+        }[playerDmgDownFilterValue];
+        const elementDmgDownFilterValue = parseInt(document.querySelector('input[name="elementDmgDownFilter"]:checked').value);
         let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
         let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
@@ -788,6 +820,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const matchesPlayerDmgUp = playerDmgUpTags.length === 0 || playerDmgUpTags.includes(item.player_dmg_up);
             const matchesEnemyDmgDown = !enemyDmgDownFilterValue || item.enemy_dmg_down === 1;
+            const matchesPlayerDmgDown = playerDmgDownTags.length === 0 ||
+                (Array.isArray(item.player_dmg_down) && playerDmgDownTags.some(tag => item.player_dmg_down.includes(tag)));
+            const matchesElementDmgDown = elementDmgDownFilterValue === 0 ||
+                (Array.isArray(item.em_dmg_down) && item.em_dmg_down.includes(elementDmgDownFilterValue));
 
             let matchesEnemyDmgUp;
             switch (enemyDmgUpFilterValue) {
@@ -818,7 +854,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			let matchesStock = !onlyShowStockValue || (item.stock && item.stock > 0);
 			let matchesCharStock = !onlyShowCharStockValue || item.charStock === true;
 			
-            return matchesCt && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
+            return matchesCt && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesPlayerDmgDown && matchesElementDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
         });
         currentPage = 1;
         currentFilteredData = filteredData;
