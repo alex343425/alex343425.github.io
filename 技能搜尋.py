@@ -751,10 +751,11 @@ def skill_description_search(d):
         result = mark_search(d['description'])
         if result > 0:
             d['mark'] = result
-    #超變化沒臨界的BUG
+    
     d.pop('limit',None)
-    if d['description'].find('属性臨界') > 0:
-        d['limit'] = 80
+    limit_match = re.search(r'属性(?:の)?臨界を付与[(（](\d+)回HITで効果発動[)）]', d['description'])
+    if limit_match:
+        d['limit'] = int(limit_match.group(1))
     
     # 与ダメージ上升 / 下降，依效果對象及倍率新增技能標籤。
     d.pop('player_dmg_up', None)
