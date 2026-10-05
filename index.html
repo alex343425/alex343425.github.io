@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261004-skill-ct"></script>
+    <script src="script.js?v=20261005-barrier-filters"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -453,7 +453,7 @@
 
         .damage-filter-down {
             flex: 0 1 auto;
-            border-left: 2px solid #e74c3c;
+            border-left: 1px solid #eee;
             padding-left: 20px;
         }
 
@@ -499,11 +499,15 @@
             flex-shrink: 0;
         }
 
+        .barrier-filter-row {
+            align-items: flex-start;
+        }
+
         @media (max-width: 760px) {
             .damage-filter-down {
                 flex-basis: 100%;
                 border-left: none;
-                border-top: 2px solid #e74c3c;
+                border-top: 1px solid #eee;
                 padding: 15px 0 0;
             }
         }
@@ -608,13 +612,6 @@
         </div>
 
         <div class="filter-row">
-						<div class="filter-group">
-				<label><img src="icon/drainbarrier.png" style="vertical-align:bottom;" /> 防偷盾 (紅果凍):</label>
-				<label class="toggle-switch">
-					<input type="checkbox" id="ctFilter">
-					<span class="slider"></span>
-				</label>
-			</div>
 			<div class="filter-group">
 				<label>精靈砲充能:</label>
 				<label class="toggle-switch">
@@ -760,7 +757,29 @@
             </section>
         </div>
 
-        <div class="filter-row">
+        <div class="filter-row barrier-filter-row">
+            <div class="filter-group">
+                <label id="drainBariaLabel" class="damage-filter-label"><img src="icon/drainbarrier.png" alt="">防偷盾</label>
+                <div class="grid-checkboxes damage-radio-options" role="radiogroup" aria-labelledby="drainBariaLabel">
+                    <label><input type="radio" name="drainBariaFilter" value="noFilter" checked> 無篩選</label>
+                    <label><input type="radio" name="drainBariaFilter" value="contains1"> 僅限單人</label>
+                    <label><input type="radio" name="drainBariaFilter" value="contains2Or3Or4Or5"> 確率．多人</label>
+                    <label><input type="radio" name="drainBariaFilter" value="contains3Or5"> 必定．多人</label>
+                    <label><input type="radio" name="drainBariaFilter" value="contains4Or5"> 確率．多人．多回盾</label>
+                    <label><input type="radio" name="drainBariaFilter" value="contains5"> 必定．多人．多回盾</label>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label id="dispelBariaLabel" class="damage-filter-label"><img src="icon/dispelbarrier.png" alt="">防打消盾</label>
+                <div class="grid-checkboxes damage-radio-options" role="radiogroup" aria-labelledby="dispelBariaLabel">
+                    <label><input type="radio" name="dispelBariaFilter" value="noFilter" checked> 無篩選</label>
+                    <label><input type="radio" name="dispelBariaFilter" value="contains1"> 僅限單人</label>
+                    <label><input type="radio" name="dispelBariaFilter" value="contains2Or3Or4Or5"> 確率．多人</label>
+                    <label><input type="radio" name="dispelBariaFilter" value="contains3Or5"> 必定．多人</label>
+                    <label><input type="radio" name="dispelBariaFilter" value="contains4Or5"> 確率．多人．多回盾</label>
+                    <label><input type="radio" name="dispelBariaFilter" value="contains5"> 必定．多人．多回盾</label>
+                </div>
+            </div>
             <div class="filter-group">
                 <label>無視耐性降能力:</label>
                 <div class="grid-checkboxes">

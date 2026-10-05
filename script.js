@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (params.has('bcCount')) document.getElementById('buff_cancel_count').value = params.get('bcCount');
         
         // 還原 Switch 開關
-        if (params.has('ct')) document.getElementById('ctFilter').checked = true;
         if (params.has('sg')) document.getElementById('spirit_gauge').checked = true;
         if (params.has('hp')) document.getElementById('hp_debuff').checked = true;
         if (params.get('enemyDmgDown') === '1') document.getElementById('enemyDmgDownFilter').checked = true;
@@ -57,7 +56,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if (radio) radio.checked = true;
         }
 
-        [['playerDmgDown', 'playerDmgDownFilter'], ['emDmgDown', 'elementDmgDownFilter']].forEach(([param, name]) => {
+        [['playerDmgDown', 'playerDmgDownFilter'], ['emDmgDown', 'elementDmgDownFilter'],
+         ['drainBaria', 'drainBariaFilter'], ['dispelBaria', 'dispelBariaFilter']].forEach(([param, name]) => {
             if (!params.has(param)) return;
             const radio = Array.from(document.querySelectorAll(`input[name="${name}"]`))
                 .find(input => input.value === params.get(param));
@@ -95,7 +95,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (document.getElementById('buff_cancel_count').value !== '0') params.set('bcCount', document.getElementById('buff_cancel_count').value);
 
         // 收集 Switch 開關
-        if (document.getElementById('ctFilter').checked) params.set('ct', '1');
         if (document.getElementById('spirit_gauge').checked) params.set('sg', '1');
         if (document.getElementById('hp_debuff').checked) params.set('hp', '1');
         if (document.getElementById('enemyDmgDownFilter').checked) params.set('enemyDmgDown', '1');
@@ -119,6 +118,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const elementDmgDownChecked = document.querySelector('input[name="elementDmgDownFilter"]:checked');
         if (elementDmgDownChecked.value !== '0') params.set('emDmgDown', elementDmgDownChecked.value);
+
+        [['drainBaria', 'drainBariaFilter'], ['dispelBaria', 'dispelBariaFilter']].forEach(([param, name]) => {
+            const checked = document.querySelector(`input[name="${name}"]:checked`);
+            if (checked.value !== 'noFilter') params.set(param, checked.value);
+        });
 
         // 收集 Checkbox 群組
         const getCheckedValues = (selector) => Array.from(document.querySelectorAll(selector + ':checked')).map(cb => cb.value);
@@ -285,7 +289,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function loadData(restoreUrlParams = true) {
-        fetch('data.json?v=20261004-damage-reduction')
+        fetch('data.json?v=20261005-barrier-filters')
         .then(response => response.json())
 		.then(data => {
 			globalData = data; // 將取得的資料存入全域變數
@@ -293,7 +297,6 @@ document.addEventListener("DOMContentLoaded", function () {
 			renderTable(data);
 			currentPage = 1; 
             // ... (其餘 Event Listeners 保持不變) ...
-            document.getElementById('ctFilter').addEventListener('change', () => filterData(data));
             document.getElementById('spirit_gauge').addEventListener('change', () => filterData(data));
 			document.getElementById('hp_debuff').addEventListener('change', () => filterData(data));
             document.getElementById('enemyDmgDownFilter').addEventListener('change', () => filterData(data));
@@ -369,7 +372,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     filterData(data);
                 });
             });
-            document.querySelectorAll('input[name="playerDmgUpFilter"], input[name="playerDmgDownFilter"], input[name="elementDmgDownFilter"]').forEach(radio => {
+            document.querySelectorAll('input[name="playerDmgUpFilter"], input[name="playerDmgDownFilter"], input[name="elementDmgDownFilter"], input[name="drainBariaFilter"], input[name="dispelBariaFilter"]').forEach(radio => {
                 radio.addEventListener('change', () => filterData(data));
             });
            document.querySelectorAll('input[name="elementDmgUpFilter"]').forEach(radio => {
@@ -400,6 +403,8 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelector('input[name="playerDmgUpFilter"][value="noFilter"]').checked = true;
         document.querySelector('input[name="playerDmgDownFilter"][value="noFilter"]').checked = true;
         document.querySelector('input[name="elementDmgDownFilter"][value="0"]').checked = true;
+        document.querySelector('input[name="drainBariaFilter"][value="noFilter"]').checked = true;
+        document.querySelector('input[name="dispelBariaFilter"][value="noFilter"]').checked = true;
         loadData(false);
     });
 
@@ -714,7 +719,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function filterData(data) {
-		let ctValue = document.getElementById('ctFilter').checked ? 1 : 0;
+        const barrierFilterTags = {
+            noFilter: [],
+            contains1: [1],
+            contains2Or3Or4Or5: [2, 3, 4, 5],
+            contains3Or5: [3, 5],
+            contains4Or5: [4, 5],
+            contains5: [5]
+        };
+        const drainBariaTags = barrierFilterTags[document.querySelector('input[name="drainBariaFilter"]:checked').value];
+        const dispelBariaTags = barrierFilterTags[document.querySelector('input[name="dispelBariaFilter"]:checked').value];
 		let spirit_gaugeValue = document.getElementById('spirit_gauge').checked ? 1 : 0;
 		let hp_debuffValue = document.getElementById('hp_debuff').checked ? 1 : 0;
         const enemyDmgDownFilterValue = document.getElementById('enemyDmgDownFilter').checked;
@@ -777,7 +791,8 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         let filteredData = data.filter(item => {
-            let matchesCt = ctValue == 0 || item.drain_baria >= ctValue;
+            const matchesDrainBaria = drainBariaTags.length === 0 || drainBariaTags.includes(item.drain_baria);
+            const matchesDispelBaria = dispelBariaTags.length === 0 || dispelBariaTags.includes(item.dispel_baria);
             let matchesspirit_gauge = spirit_gaugeValue == 0 || item.spirit_gauge >= spirit_gaugeValue;
 			let matcheshp_debuff = hp_debuffValue == 0 || item.hp_debuff >= hp_debuffValue;
             let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
@@ -854,7 +869,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			let matchesStock = !onlyShowStockValue || (item.stock && item.stock > 0);
 			let matchesCharStock = !onlyShowCharStockValue || item.charStock === true;
 			
-            return matchesCt && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesPlayerDmgDown && matchesElementDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
+            return matchesDrainBaria && matchesDispelBaria && matchesspirit_gauge && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesPlayerDmgDown && matchesElementDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
         });
         currentPage = 1;
         currentFilteredData = filteredData;

@@ -50,7 +50,8 @@ d_hpdebuff={
     '百枚あるなら千枚ある！':30,
     '大吸引・一吸万枚日！':40,
     '十枚ぽっちじゃ足りない！＋':20,
-    '崩れ破する普遍の往日':50
+    '崩れ破する普遍の往日':50,
+    '儚き夜の予告状':50
     }
 
 def match(s):
@@ -619,10 +620,110 @@ def damage_reduction_search(y):
     return sorted(player_dmg_down), sorted(em_dmg_down)
 
 
+def barrier_search(y):
+    # 回傳 (drain_baria, dispel_baria)，0 表示沒有符合的屏障。
+    # 1：僅自身；2/3：其他角色單回機率/必定；4/5：其他角色多回機率/必定。
+    barriers = {'ドレインバリア': 0, 'ディスペルバリア': 0}
+    if not any(name in y for name in barriers):
+        return 0, 0
+
+    def target_kind(text):
+        if re.search(r'味方|キャラ|自身以外|自分以外|非自身|PT全体|パーティ', text):
+            return 'ally'
+        if '攻撃対象' in text or re.search(r'敵(?!対心)', text):
+            return 'enemy'
+        if re.search(r'全員|全体', text):
+            return 'ally'
+        if '自身' in text or '自分' in text:
+            return 'self'
+        return None
+
+    def is_random(match):
+        if match is None:
+            return False
+        rate = match.group('rate_before') or match.group('rate_after')
+        if rate is not None:
+            return float(rate) < 100
+        return match.group('chance') not in ['確実', '必ず', '必定']
+
+    # 統一全形數字與符號；「A＆B(2回)」的回數及機率由兩種屏障共用。
+    y = y.translate(str.maketrans('０１２３４５６７８９（）％＆', '0123456789()%&'))
+    barrier = r'(?:ドレインバリア|ディスペルバリア)'
+    chance = (r'(?P<chance>確率\s*(?P<rate_before>\d+(?:\.\d+)?)\s*%|'
+              r'(?P<rate_after>\d+(?:\.\d+)?)\s*%の確率|'
+              r'(?:超高|超低|高|中|低)?確率|ごく稀|稀|まれ|確実|必ず|必定)')
+    tokens = (r'(?P<header>(?:(?!ドレインバリア|ディスペルバリア)'
+              r'[^。・、():：<>\r\n])+)[：:]'
+              r'|(?P<open>\()|(?P<close>\))'
+              r'|(?P<sentence>。|<br\s*/?>|[\r\n]+)'
+              r'|(?P<separator>[・、])|'
+              + chance +
+              r'|(?P<subject>自身以外|自分以外|非自身|自身|自分|'
+              r'味方|PT全体|パーティ|全員|全体|キャラ|攻撃対象|敵(?!対心))'
+              r'|(?P<barriers>' + barrier + r'(?:\s*&\s*' + barrier + r')*)'
+              r'(?:\s*(?:を付与)?\s*\((?P<count>\d+(?:[〜～~－-]\d+)?)回\))?')
+    target = None
+    explicit_target = False
+    random = False
+    context_stack = []
+    for match in re.finditer(tokens, y):
+        if match.group('header') is not None:
+            header = match.group('header')
+            target = target_kind(header)
+            explicit_target = target is not None
+            random = is_random(re.search(chance, header))
+            continue
+        if match.group('open') is not None:
+            # 狀態名稱的括號內沿用對象及該狀態的發動機率。
+            context_stack.append((target, explicit_target, random))
+            continue
+        if match.group('close') is not None:
+            if context_stack:
+                target, explicit_target, random = context_stack.pop()
+            continue
+        if match.group('sentence') is not None:
+            # 「味方全員：HPを回復。...」仍屬同一對象的效果清單。
+            if not explicit_target:
+                target = None
+            random = False
+            continue
+        if match.group('separator') is not None:
+            # 其他效果的機率不能延用到屏障；括號內仍保留外層狀態機率。
+            random = context_stack[-1][2] if context_stack else False
+            continue
+        if match.group('chance') is not None:
+            random = is_random(match)
+            continue
+        if match.group('subject') is not None:
+            if not explicit_target:
+                target = target_kind(match.group('subject'))
+            continue
+
+        if target == 'enemy':
+            continue
+        if target != 'ally':
+            tag = 1
+        else:
+            count = match.group('count')
+            # 沒寫回數的持續回合／狀態內屏障視為多回。
+            multiple = count is None or max(map(int, re.split(r'[〜～~－-]', count))) >= 2
+            tag = (4 if multiple else 2) + (0 if random else 1)
+        for name in barriers:
+            if name in match.group('barriers'):
+                # 同技能有多種屏障效果時，保留較高的分類。
+                barriers[name] = max(barriers[name], tag)
+    return barriers['ドレインバリア'], barriers['ディスペルバリア']
+
+
 def skill_description_search(d):
     
-    if 'ドレインバリア' in d['description']:
-        d['drain_baria'] = 1
+    d.pop('drain_baria', None)
+    d.pop('dispel_baria', None)
+    drain_baria, dispel_baria = barrier_search(d['description'])
+    if drain_baria:
+        d['drain_baria'] = drain_baria
+    if dispel_baria:
+        d['dispel_baria'] = dispel_baria
     result = d['description'].find('有利')
     if result >=0:
         l_result = buff_cancel_search(d['description'])
@@ -793,6 +894,8 @@ for x in r:
             d['char_em'] = '全'
         d['char_wep']=x[6]
         d['description'] = x[7]
+        d['CT'] = x[8]
+        
         
         d = skill_description_search(d)
         
@@ -840,8 +943,13 @@ for x in extra_skill:
     d['char_wep']='--'
     d['description'] = x['d']
     d['sp_sort_for_search']=7
+    try:
+        d['ct'] = x['ct']
+    except:
+        pass
     d = skill_description_search(d)
-
+    
+        
     l.append(d)
 
 l_char_special_passskill = char_special_passskill()
