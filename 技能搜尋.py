@@ -743,9 +743,24 @@ def skill_description_search(d):
     if result_key != False:
         d['em_resist']= d_em_resist[result_key[result_key.find('属性耐')-1]]
     
-    #精靈槽 spirit_gauge
-    if '精霊ゲージ' in d['description']:
-        d['spirit_gauge'] = 1
+    # 精靈槽：只記錄回復效果；格數與機率依指定整數分類。
+    d.pop('spirit_gauge', None)
+    d.pop('spirit_chance', None)
+    spirit_description = d['description'].translate(
+        str.maketrans('０１２３４５６７８９％〜～－', '0123456789%~~~'))
+    spirit_match = re.search(
+        r'(?:^|[。・、：:（(\s])'
+        r'(?P<chance>稀に|低確率で|確率で|高確率で|確率(?:30|50)%で)?'
+        r'(?:発動時)?\s*精霊ゲージ\s*(?P<gauge>1(?:\s*[~-]\s*[23])?|2(?:\s*[~-]\s*3)?|3)\s*回復',
+        spirit_description)
+    if spirit_match:
+        spirit_gauge_tags = {'1': 2, '2': 4, '3': 6, '1~2': 3, '1~3': 3, '2~3': 5}
+        spirit_chance_tags = {
+            '稀に': 1, '低確率で': 1, '確率で': 2,
+            '高確率で': 3, '確率30%で': 3, '確率50%で': 4, '': 5}
+        spirit_gauge = re.sub(r'\s+', '', spirit_match.group('gauge')).replace('-', '~')
+        d['spirit_gauge'] = spirit_gauge_tags[spirit_gauge]
+        d['spirit_chance'] = spirit_chance_tags[spirit_match.group('chance') or '']
         
     if d['description'].find('刻印') > 0:
         result = mark_search(d['description'])

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261005-barrier-filters"></script>
+    <script src="script.js?v=20261006-spirit-filters"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -443,6 +443,159 @@
 .toggle-switch input:checked + .slider:before {
     transform: translateX(20px);
 }
+        /* 精靈砲充能：開啟後向右展開兩條五檔滑條。 */
+        .filter-group.spirit-filter {
+            flex-direction: row;
+            align-items: center;
+            gap: 0;
+            max-width: 100%;
+        }
+
+        .spirit-filter-toggle {
+            flex-shrink: 0;
+        }
+
+        .spirit-filter-panel {
+            width: 0;
+            max-height: 0;
+            margin-left: 0;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateX(-12px);
+            transition: width 0.2s ease, max-height 0.2s ease, margin-left 0.2s ease,
+                        opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        }
+
+        .spirit-filter.is-active .spirit-filter-panel {
+            width: 300px;
+            max-height: 80px;
+            margin-left: 15px;
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .spirit-filter-sliders {
+            width: 300px;
+            max-width: 100%;
+            display: grid;
+            gap: 8px;
+        }
+
+        .spirit-filter-slider-row {
+            display: grid;
+            grid-template-columns: 94px minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+        }
+
+        .spirit-filter-value {
+            text-align: center;
+            font-size: 18px;
+            white-space: nowrap;
+        }
+
+        .spirit-range {
+            position: relative;
+            height: 28px;
+            --spirit-progress: 0%;
+        }
+
+        .spirit-range::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 11px;
+            right: 11px;
+            height: 16px;
+            border-radius: 999px;
+            background: linear-gradient(to right, var(--primary-color) 0%,
+                        var(--primary-color) var(--spirit-progress),
+                        #5c5c5c var(--spirit-progress), #5c5c5c 100%);
+        }
+
+        .spirit-range-ticks {
+            position: absolute;
+            left: 11px;
+            right: 11px;
+            top: 12px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+
+        .spirit-range-ticks span {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.45);
+        }
+
+        .spirit-range input[type="range"] {
+            position: relative;
+            appearance: none;
+            -webkit-appearance: none;
+            width: 100%;
+            height: 28px;
+            margin: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .spirit-range input[type="range"]:focus-visible {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 3px;
+            border-radius: 999px;
+        }
+
+        .spirit-range input[type="range"]::-webkit-slider-runnable-track {
+            height: 16px;
+            background: transparent;
+        }
+
+        .spirit-range input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            margin-top: -3px;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+
+        .spirit-range input[type="range"]::-moz-range-track {
+            height: 16px;
+            background: transparent;
+        }
+
+        .spirit-range input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            background: white;
+        }
+
+        @media (max-width: 520px) {
+            .filter-group.spirit-filter {
+                flex-wrap: wrap;
+            }
+
+            .spirit-filter.is-active .spirit-filter-panel {
+                flex-basis: 100%;
+                max-width: 100%;
+                margin: 8px 0 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .spirit-filter-panel {
+                transition: none;
+            }
+        }
+
         .damage-filter-row {
             align-items: stretch;
         }
@@ -610,13 +763,33 @@
         </div>
 
         <div class="filter-row">
-			<div class="filter-group">
-				<label>精靈砲充能:</label>
-				<label class="toggle-switch">
-					<input type="checkbox" id="spirit_gauge">
-					<span class="slider"></span>
-				</label>
-			</div>
+            <div class="filter-group spirit-filter" id="spiritFilterGroup">
+                <div class="filter-group spirit-filter-toggle">
+                    <label for="spirit_gauge">精靈砲充能:</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="spirit_gauge" aria-controls="spiritFilterControls" aria-expanded="false">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="spirit-filter-panel" id="spiritFilterControls" aria-hidden="true">
+                    <div class="spirit-filter-sliders">
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="spiritChanceLabel" for="spiritChanceFilter">低確率</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="spiritChanceFilter" min="1" max="5" step="1" value="1" aria-label="精靈砲充能機率" aria-valuetext="低確率" disabled>
+                            </div>
+                        </div>
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="spiritGaugeLabel" for="spiritGaugeFilter">1格</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="spiritGaugeFilter" min="2" max="6" step="1" value="2" aria-label="精靈砲回復格數" aria-valuetext="1格" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 			<div class="filter-group">
 				<label>降血技能:</label>
 				<label class="toggle-switch">
