@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261006-spirit-filters"></script>
+    <script src="script.js?v=20261006-buff-filters"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -110,6 +110,16 @@
             border: 1px solid #eee;
         }
         
+        .grid-checkboxes.char-source-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px 10px;
+        }
+
+        .char-source-options label {
+            white-space: nowrap;
+        }
+
         .grid-checkboxes.wide {
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         }
@@ -656,6 +666,15 @@
             align-items: flex-start;
         }
 
+        .filter-group.buff-effect-filter {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .buff-effect-filter.is-active .spirit-filter-panel {
+            margin: 8px 0 0;
+        }
+
         @media (max-width: 760px) {
             .damage-filter-down {
                 flex-basis: 100%;
@@ -830,27 +849,6 @@
                     <option value="100">100</option>
                 </select>
             </div>
-            <div class="filter-group">
-                <label>有利打消與數量:</label>
-                <div style="display: flex; gap: 5px;">
-                    <select id="buff_cancel_rate">
-                        <option value="0" selected>機率: 無</option>
-                        <option value="1">ごく稀 (極稀)</option>
-                        <option value="2">稀</option>
-                        <option value="3">低確率</option>
-                        <option value="4">確率</option>
-                        <option value="5">高確率</option>
-                        <option value="6">確率50％</option>
-                        <option value="7">確実</option>
-                    </select>
-                    <select id="buff_cancel_count">
-                        <option value="0" selected>數量: 無</option>
-                        <option value="1">1</option>
-                        <option value="2">有2以上</option>
-                        <option value="3">全部</option>
-                    </select>
-                </div>
-            </div>
         </div>
 
         <div class="filter-row damage-filter-row">
@@ -963,17 +961,58 @@
                     <label><input type="checkbox" value="6" class="stat_down_filter">機率零防</label>
                 </div>
             </div>
-            
-            <div class="filter-group">
-                <label>角色來源分類:</label>
-                <div class="grid-checkboxes">
-                    <label><input type="checkbox" value="1" class="char_source_filter">普池角</label>
-					<label><input type="checkbox" value="6" class="char_source_filter">菓子角(不入池)</label>
-                    <label><input type="checkbox" value="4" class="char_source_filter">一般限定</label>
-                    <label><input type="checkbox" value="2" class="char_source_filter">合作角</label>
-                    <label><input type="checkbox" value="3" class="char_source_filter">活動角</label>
-                    <label><input type="checkbox" value="5" class="char_source_filter">3-4星</label>					
-                    <label><input type="checkbox" value="7" class="char_source_filter">非角色</label>
+            <div class="filter-group spirit-filter buff-effect-filter" id="buffCancelFilterGroup">
+                <div class="filter-group spirit-filter-toggle">
+                    <label for="buffCancelToggle">有利打消篩選</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="buffCancelToggle" aria-controls="buffCancelFilterControls" aria-expanded="false">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="spirit-filter-panel" id="buffCancelFilterControls" aria-hidden="true">
+                    <div class="spirit-filter-sliders">
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="buffCancelRateLabel" for="buff_cancel_rate">低確率</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="buff_cancel_rate" min="1" max="4" step="1" value="1" aria-label="有利打消機率" aria-valuetext="低確率" disabled>
+                            </div>
+                        </div>
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="buffCancelCountLabel" for="buff_cancel_count">1</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="buff_cancel_count" min="1" max="5" step="1" value="1" aria-label="有利打消數量" aria-valuetext="1" disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-group spirit-filter buff-effect-filter" id="buffDrainFilterGroup">
+                <div class="filter-group spirit-filter-toggle">
+                    <label for="buffDrainToggle">BUFF偷取篩選</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="buffDrainToggle" aria-controls="buffDrainFilterControls" aria-expanded="false">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="spirit-filter-panel" id="buffDrainFilterControls" aria-hidden="true">
+                    <div class="spirit-filter-sliders">
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="buffDrainRateLabel" for="buff_drain_rate">低確率</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="buff_drain_rate" min="1" max="4" step="1" value="1" aria-label="BUFF偷取機率" aria-valuetext="低確率" disabled>
+                            </div>
+                        </div>
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="buffDrainCountLabel" for="buff_drain_count">1</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="buff_drain_count" min="1" max="4" step="1" value="1" aria-label="BUFF偷取數量" aria-valuetext="1" disabled>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1009,15 +1048,29 @@
             </div>
         </div>
 
-        <div class="filter-row">
-             <div class="filter-group" style="flex: 1;">
-                <label>角色屬性:</label>
-                <div class="grid-checkboxes">
-                    <label><input type="checkbox" value="火" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_f.png" width="20" />火</label>
-                    <label><input type="checkbox" value="水" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_w.png" width="20" />水</label>
-                    <label><input type="checkbox" value="樹" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_r.png" width="20" />樹</label>
-                    <label><input type="checkbox" value="光" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_l.png" width="20" />光</label>
-                    <label><input type="checkbox" value="闇" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_d.png" width="20" />闇</label>
+        <div class="filter-row" style="align-items: flex-start;">
+            <div class="filter-group" style="flex: 1; min-width: 0; gap: 15px;">
+                <div class="filter-group">
+                    <label>角色屬性:</label>
+                    <div class="grid-checkboxes">
+                        <label><input type="checkbox" value="火" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_f.png" width="20" />火</label>
+                        <label><input type="checkbox" value="水" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_w.png" width="20" />水</label>
+                        <label><input type="checkbox" value="樹" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_r.png" width="20" />樹</label>
+                        <label><input type="checkbox" value="光" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_l.png" width="20" />光</label>
+                        <label><input type="checkbox" value="闇" class="char-em-filter"><img src="icon/00_01_04_03_i_ele_d.png" width="20" />闇</label>
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <label>角色來源分類:</label>
+                    <div class="grid-checkboxes char-source-options">
+                        <label><input type="checkbox" value="1" class="char_source_filter">普池角</label>
+                        <label><input type="checkbox" value="6" class="char_source_filter">菓子角(不入池)</label>
+                        <label><input type="checkbox" value="4" class="char_source_filter">一般限定</label>
+                        <label><input type="checkbox" value="2" class="char_source_filter">合作角</label>
+                        <label><input type="checkbox" value="3" class="char_source_filter">活動角</label>
+                        <label><input type="checkbox" value="5" class="char_source_filter">3-4星</label>
+                        <label><input type="checkbox" value="7" class="char_source_filter">非角色</label>
+                    </div>
                 </div>
             </div>
             <div class="filter-group" style="flex: 2;">

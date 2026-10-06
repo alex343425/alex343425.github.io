@@ -73,90 +73,56 @@ def match2(s):
         
     return result
 
-def buff_cancel_count_result(s):
-    i = s.split('~')[-1]
-    if i == '全':
-        return 3
-    if i == '1':
-        return 1
-    return 2
+def buff_cancel_search(y, skill_name=''):
+    # 回傳 (機率分類, 最低消除數量)；全部消除為 99，未符合為 (0, 0)。
+    if skill_name == 'Stand by Michiru':
+        return 2, 1
 
+    y = y.translate(str.maketrans('０１２３４５６７８９％', '0123456789%'))
+    y = re.sub(r'<br\s*/?>', '。', y, flags=re.IGNORECASE)
+    chance_pattern = (r'(?:確率\s*)?(?P<percent>\d+(?:\.\d+)?)\s*%(?:の確率)?|'
+                      r'ごく稀|低確率|高確率|稀|確率|確実|必ず|必定')
+    chance_tags = {'ごく稀': 1, '稀': 1, '低確率': 1, '確率': 2,
+                   '高確率': 3, '確実': 4, '必ず': 4, '必定': 4}
 
-def buff_cancel_search(y):
-    y=y.replace('・', '。')
-    y=y.replace('、', '。')
-    z=y.split('。')
-    flag = False    
-    for z2 in z:
-        result = z2.find('有利')
-        if result >= 0:
-            flag = True
-            break
-    flag=False
-    keyword=['確実','高確率','低確率','確率50％','確率','ごく稀','稀']
-    l_result=[]
-    for z in keyword:
-        if z in z2:
-            flag = True
-            l_result.append(z)
-            break
-    if flag == False:
-        l_result.append('確実')
-    for z in keyword:
-        z2=z2.replace(z+'で', '') 
-    for z in keyword:
-        z2=z2.replace(z+'に', '')
-    for z in keyword:
-        z2=z2.replace(z, '') 
-    z2=z2.replace('を','')
-    flag=False
-    keyword={'有利属性1つ':'1',
-             '有利効果一つ':'1',
-             '有利効果１つ':'1',
-             '有利効果1つ':'1',             
-             '有利効果超セクシーゆえ1つ':'1',
-             '有利効果二つ':'2',             
-             '有利効果2つ':'2',
-             '有利効果全て':'全',
-             '有利効果全消去':'全',
-             '全有利効果消去':'全',
-             '有利効果2～3つ':'2~3',
-             '有利効果1～2つ':'1~2',
-             '有利効果1〜2つ':'1~2',
-             '有利効果2〜3つ':'2~3',
-             '有利効果3〜4つ':'3~4',
-             '有利効果3～4つ':'3~4',
-             '有利効果5つ':'5',
-             '有利効果3つ':'3',
-             '有利効果三つ':'3',
-             '有利効果4つ':'4',
-             '有利効果6つ':'6',
-             '有利効果7つ':'7',
-             '有利効果1個':'1',
-             '有利効果2個':'2',
-             '有利効果3個':'3',
-             '有利効果5個':'5',
-             '有利効果9つ':'9',
-             '有利効果8つ':'8'
-        }    
-    for z,v in keyword.items():
-        if z in z2:
-            flag = True
-            l_result.append(v)
-            break
-    if flag == False:
-        print('有沒匹配到的',y)
-    #攻擊對象
-    flag=False
-    keyword=['全体攻撃','敵全体','敵全員']
-    for z in keyword:
-        if z in x:
-            flag = True
-            l_result.append('全体')
-            break
-    if flag == False:
-        l_result.append('單体')                
-    return l_result
+    for clause in re.split(r'[。・、：:\r\n]+', y):
+        effect = re.search(r'(?P<name>全?有利効果)(?P<details>.*?)'
+                           r'(?:打ち消(?:す|し)|消去(?:する)?)', clause)
+        if effect is None:
+            continue
+
+        # 僅搜尋有利効果的消除；ステータス上昇効果消去不會符合。
+        details = effect.group('details').translate(
+            str.maketrans('一二三四五六七八九', '123456789'))
+        if effect.group('name').startswith('全') or '全' in details:
+            count = 99
+        else:
+            quantity = re.search(r'(\d+)(?:\s*[~〜～－-]\s*(\d+))?\s*(?:つ|個)', details)
+            if quantity is None:
+                raise ValueError(f'未能判定有利効果消除數量：{clause}')
+            count = min(int(n) for n in quantity.groups() if n is not None)
+
+        # 限定在同一效果且截止於消除動詞，避免取到其他效果的機率。
+        chances = list(re.finditer(chance_pattern, clause[:effect.end()]))
+        if not chances:
+            rate = 4
+        elif chances[-1].group('percent') is None:
+            rate = chance_tags[chances[-1].group()]
+        else:
+            percent = float(chances[-1].group('percent'))
+            if percent in (5, 10):
+                rate = 1
+            elif percent in (25, 30):
+                rate = 2
+            elif 40 <= percent <= 80:
+                rate = 3
+            elif percent == 100:
+                rate = 4
+            else:
+                raise ValueError(f'未定義的有利効果消除機率：{percent}%（{clause}）')
+        return rate, count
+
+    return 0, 0
 
 def stat_down_search(y):
     #回傳格式：list
@@ -715,6 +681,51 @@ def barrier_search(y):
     return barriers['ドレインバリア'], barriers['ディスペルバリア']
 
 
+def buff_drain_search(y):
+    # 回傳 (機率分類, 最低吸取數量)；依描述採第一個效果，未符合為 (0, 0)。
+    y = y.translate(str.maketrans('０１２３４５６７８９％', '0123456789%'))
+    y = re.sub(r'<br\s*/?>', '。', y, flags=re.IGNORECASE)
+    chance_pattern = (r'(?:確率\s*)?(?P<percent>\d+(?:\.\d+)?)\s*%(?:の確率)?|'
+                      r'ごく稀|低確率|高確率|稀|確率|確実|必ず|必定')
+    chance_tags = {'ごく稀': 1, '稀': 1, '低確率': 1, '確率': 2,
+                   '高確率': 3, '確実': 4, '必ず': 4, '必定': 4}
+    quantity = r'\d+(?:\s*[~〜～－-]\s*\d+)?'
+    effect_pattern = (r'(?:(?P<all>全)|(?P<before>' + quantity + r')\s*回)?'
+                      r'\s*バフドレイン(?:\s*(?P<after>' + quantity + r')\s*回)?')
+
+    for clause in re.split(r'[。・、：:\r\n]+', y):
+        effect = re.search(effect_pattern, clause)
+        if effect is None:
+            continue
+
+        if effect.group('all'):
+            count = 99
+        else:
+            count_text = effect.group('before') or effect.group('after')
+            count = min(map(int, re.findall(r'\d+', count_text))) if count_text else 1
+
+        # 僅取吸取效果前方的同段機率；＆串接的共同機率也適用。
+        chances = list(re.finditer(chance_pattern, clause[:effect.start()]))
+        if not chances:
+            rate = 4
+        elif chances[-1].group('percent') is None:
+            rate = chance_tags[chances[-1].group()]
+        else:
+            percent = float(chances[-1].group('percent'))
+            if 0 <= percent <= 10:
+                rate = 1
+            elif 11 <= percent <= 35:
+                rate = 2
+            elif 36 <= percent <= 99:
+                rate = 3
+            elif percent == 100:
+                rate = 4
+            else:
+                raise ValueError(f'未定義的バフドレイン機率：{percent}%（{clause}）')
+        return rate, count
+
+    return 0, 0
+
 def skill_description_search(d):
     
     d.pop('drain_baria', None)
@@ -724,11 +735,18 @@ def skill_description_search(d):
         d['drain_baria'] = drain_baria
     if dispel_baria:
         d['dispel_baria'] = dispel_baria
-    result = d['description'].find('有利')
-    if result >=0:
-        l_result = buff_cancel_search(d['description'])
-        d['buff_cancel_rate']=d_keyword[l_result[0]]
-        d['buff_cancel_count']=buff_cancel_count_result(l_result[1])
+    d.pop('buff_cancel_rate', None)
+    d.pop('buff_cancel_count', None)
+    buff_cancel_rate, buff_cancel_count = buff_cancel_search(d['description'], d['skill_name'])
+    if buff_cancel_rate:
+        d['buff_cancel_rate'] = buff_cancel_rate
+        d['buff_cancel_count'] = buff_cancel_count
+    d.pop('buff_drain_rate', None)
+    d.pop('buff_drain_count', None)
+    buff_drain_rate, buff_drain_count = buff_drain_search(d['description'])
+    if buff_drain_rate:
+        d['buff_drain_rate'] = buff_drain_rate
+        d['buff_drain_count'] = buff_drain_count
     l_result=[]
     if d['description'].find('関わらず') >0 or d['description'].find('耐性を無視') >0:
         l_result = stat_down_search(d['description'])
@@ -858,13 +876,6 @@ for x in sp_sort:
     
 
 l=[]
-d_keyword={'確実':7,
-           '高確率':5,
-           '低確率':3,
-           '確率50％':6,
-           '確率':4,
-           'ごく稀':1,
-           '稀':2}
 url = 'https://otogimigwestsp.blob.core.windows.net/prodassets/MasterData/MMonsters.json'
 MMonsters = requests.get(url).json()
 set_wiki_name(MMonsters)

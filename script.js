@@ -44,6 +44,69 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     updateSpiritControls();
 
+    const buffChanceLabels = ['低確率', '確率', '高確率', '必定'];
+    const buffFilters = [
+        {
+            toggle: document.getElementById('buffCancelToggle'),
+            group: document.getElementById('buffCancelFilterGroup'),
+            panel: document.getElementById('buffCancelFilterControls'),
+            rate: document.getElementById('buff_cancel_rate'),
+            count: document.getElementById('buff_cancel_count'),
+            rateLabel: document.getElementById('buffCancelRateLabel'),
+            countLabel: document.getElementById('buffCancelCountLabel'),
+            countValues: [1, 2, 3, 5, 99], countLabels: ['1', '2', '3', '5', '全'],
+            rateField: 'buff_cancel_rate', countField: 'buff_cancel_count',
+            enableParam: 'bc', rateParam: 'bcRate', countParam: 'bcCount'
+        },
+        {
+            toggle: document.getElementById('buffDrainToggle'),
+            group: document.getElementById('buffDrainFilterGroup'),
+            panel: document.getElementById('buffDrainFilterControls'),
+            rate: document.getElementById('buff_drain_rate'),
+            count: document.getElementById('buff_drain_count'),
+            rateLabel: document.getElementById('buffDrainRateLabel'),
+            countLabel: document.getElementById('buffDrainCountLabel'),
+            countValues: [1, 2, 3, 99], countLabels: ['1', '2', '3', '全'],
+            rateField: 'buff_drain_rate', countField: 'buff_drain_count',
+            enableParam: 'bd', rateParam: 'bdRate', countParam: 'bdCount'
+        }
+    ];
+
+    function updateBuffControls(filter) {
+        const enabled = filter.toggle.checked;
+        filter.group.classList.toggle('is-active', enabled);
+        filter.panel.setAttribute('aria-hidden', String(!enabled));
+        filter.toggle.setAttribute('aria-expanded', String(enabled));
+        [[filter.rate, filter.rateLabel, buffChanceLabels],
+         [filter.count, filter.countLabel, filter.countLabels]].forEach(([slider, output, labels]) => {
+            const position = Number(slider.value) - Number(slider.min);
+            const label = labels[position];
+            slider.disabled = !enabled;
+            slider.setAttribute('aria-valuetext', label);
+            output.textContent = label;
+            const progress = position / (Number(slider.max) - Number(slider.min)) * 100;
+            slider.parentElement.style.setProperty('--spirit-progress', `${progress}%`);
+        });
+    }
+
+    buffFilters.forEach(filter => {
+        filter.toggle.addEventListener('change', () => {
+            if (filter.toggle.checked) {
+                filter.rate.value = filter.rate.min;
+                filter.count.value = filter.count.min;
+            }
+            updateBuffControls(filter);
+            filterData(globalData);
+        });
+        [filter.rate, filter.count].forEach(slider => {
+            slider.addEventListener('input', () => {
+                updateBuffControls(filter);
+                if (filter.toggle.checked) filterData(globalData);
+            });
+        });
+        updateBuffControls(filter);
+    });
+
     // Modal 元素
     const modal = document.getElementById("charModal");
     const span = document.getElementsByClassName("close")[0];
@@ -58,8 +121,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (params.has('mark')) document.getElementById('markFilter').value = params.get('mark');
         if (params.has('limit')) document.getElementById('limitFilter').value = params.get('limit');
         if (params.has('statDwn')) document.getElementById('status_condition_downFilter').value = params.get('statDwn');
-        if (params.has('bcRate')) document.getElementById('buff_cancel_rate').value = params.get('bcRate');
-        if (params.has('bcCount')) document.getElementById('buff_cancel_count').value = params.get('bcCount');
         
         // 還原 Switch 開關
         if (params.has('sg')) {
@@ -71,6 +132,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             });
         }
+        buffFilters.forEach(filter => {
+            const rate = Number(params.get(filter.rateParam));
+            const countPosition = filter.countValues.indexOf(Number(params.get(filter.countParam)));
+            const validRate = Number.isInteger(rate) && rate >= 1 && rate <= 4;
+            filter.toggle.checked = params.get(filter.enableParam) === '1' ||
+                (params.get(filter.enableParam) !== '0' && (validRate || countPosition >= 0));
+            if (validRate) filter.rate.value = String(rate);
+            if (countPosition >= 0) filter.count.value = String(countPosition + 1);
+            updateBuffControls(filter);
+        });
         if (params.has('hp')) document.getElementById('hp_debuff').checked = true;
         if (params.get('enemyDmgDown') === '1') document.getElementById('enemyDmgDownFilter').checked = true;
         if (params.has('img') && params.get('img') === '0') document.getElementById('img_show').checked = false;
@@ -133,8 +204,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (document.getElementById('markFilter').value !== '0') params.set('mark', document.getElementById('markFilter').value);
         if (document.getElementById('limitFilter').value !== '0') params.set('limit', document.getElementById('limitFilter').value);
         if (document.getElementById('status_condition_downFilter').value !== '0') params.set('statDwn', document.getElementById('status_condition_downFilter').value);
-        if (document.getElementById('buff_cancel_rate').value !== '0') params.set('bcRate', document.getElementById('buff_cancel_rate').value);
-        if (document.getElementById('buff_cancel_count').value !== '0') params.set('bcCount', document.getElementById('buff_cancel_count').value);
 
         // 收集 Switch 開關
         if (spiritToggle.checked) {
@@ -142,6 +211,12 @@ document.addEventListener("DOMContentLoaded", function () {
             params.set('scMin', spiritChanceFilter.value);
             params.set('sgMin', spiritGaugeFilter.value);
         }
+        buffFilters.forEach(filter => {
+            if (!filter.toggle.checked) return;
+            params.set(filter.enableParam, '1');
+            params.set(filter.rateParam, filter.rate.value);
+            params.set(filter.countParam, String(filter.countValues[Number(filter.count.value) - 1]));
+        });
         if (document.getElementById('hp_debuff').checked) params.set('hp', '1');
         if (document.getElementById('enemyDmgDownFilter').checked) params.set('enemyDmgDown', '1');
         if (!document.getElementById('img_show').checked) params.set('img', '0'); // 預設是開啟，關閉時才記錄
@@ -335,7 +410,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function loadData(restoreUrlParams = true) {
-        fetch('data.json?v=20261006-spirit-filters')
+        fetch('data.json?v=20261006-buff-filters')
         .then(response => response.json())
 		.then(data => {
 			globalData = data; // 將取得的資料存入全域變數
@@ -345,8 +420,6 @@ document.addEventListener("DOMContentLoaded", function () {
             // ... (其餘 Event Listeners 保持不變) ...
 			document.getElementById('hp_debuff').addEventListener('change', () => filterData(data));
             document.getElementById('enemyDmgDownFilter').addEventListener('change', () => filterData(data));
-            document.getElementById('buff_cancel_rate').addEventListener('change', () => filterData(data));
-            document.getElementById('buff_cancel_count').addEventListener('change', () => filterData(data));
             document.getElementById('markFilter').addEventListener('change', () => filterData(data));
 			document.getElementById('limitFilter').addEventListener('change', () => filterData(data));
 			document.getElementById('status_condition_downFilter').addEventListener('change', () => filterData(data));
@@ -428,6 +501,7 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             if (restoreUrlParams) applyUrlParams();
             updateSpiritControls();
+            buffFilters.forEach(updateBuffControls);
             // 如果網址帶有參數，就在資料載入後主動篩選一次
             if (restoreUrlParams && window.location.search) {
                 filterData(data);
@@ -447,6 +521,11 @@ document.addEventListener("DOMContentLoaded", function () {
         spiritChanceFilter.value = '1';
         spiritGaugeFilter.value = '2';
         updateSpiritControls();
+        buffFilters.forEach(filter => {
+            filter.rate.value = filter.rate.min;
+            filter.count.value = filter.count.min;
+            updateBuffControls(filter);
+        });
         document.getElementById('img_show').checked = true;
         document.getElementById('descriptionFilter').value = '';
         document.querySelector('input[name="playerDmgUpFilter"][value="noFilter"]').checked = true;
@@ -804,8 +883,12 @@ document.addEventListener("DOMContentLoaded", function () {
             contains5Or6: [5, 6]
         }[playerDmgDownFilterValue];
         const elementDmgDownFilterValue = parseInt(document.querySelector('input[name="elementDmgDownFilter"]:checked').value);
-        let buff_cancel_rateValue = parseInt(document.getElementById('buff_cancel_rate').value);
-        let buff_cancel_countValue = parseInt(document.getElementById('buff_cancel_count').value);
+        const activeBuffFilters = buffFilters.filter(filter => filter.toggle.checked).map(filter => ({
+            rateField: filter.rateField,
+            countField: filter.countField,
+            rate: Number(filter.rate.value),
+            count: filter.countValues[Number(filter.count.value) - 1]
+        }));
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
         let limitFilterValue = parseInt(document.getElementById('limitFilter').value);
         let status_condition_downFilterValue = parseInt(document.getElementById('status_condition_downFilter').value);
@@ -847,8 +930,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchesSpirit = !spiritEnabled ||
                 (item.spirit_gauge >= spiritGaugeValue && item.spirit_chance >= spiritChanceValue);
 			let matcheshp_debuff = hp_debuffValue == 0 || item.hp_debuff >= hp_debuffValue;
-            let matchesbuff_cancel_rate = buff_cancel_rateValue == 0 || item.buff_cancel_rate >= buff_cancel_rateValue;
-            let matchesbuff_cancel_count = buff_cancel_countValue == 0 || item.buff_cancel_count >= buff_cancel_countValue;
+            const matchesBuffFilters = activeBuffFilters.every(({ rateField, countField, rate, count }) =>
+                item[rateField] >= rate && item[countField] >= count);
             let matchesDescription;
             const searchText = `${item.description} ${item.skill_name} ${item.skill_char}`;
 
@@ -921,7 +1004,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			let matchesStock = !onlyShowStockValue || (item.stock && item.stock > 0);
 			let matchesCharStock = !onlyShowCharStockValue || item.charStock === true;
 			
-            return matchesDrainBaria && matchesDispelBaria && matchesSpirit && matcheshp_debuff && matchesbuff_cancel_rate && matchesbuff_cancel_count && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesPlayerDmgDown && matchesElementDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
+            return matchesDrainBaria && matchesDispelBaria && matchesSpirit && matcheshp_debuff && matchesBuffFilters && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesPlayerDmgDown && matchesElementDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
         });
         currentPage = 1;
         currentFilteredData = filteredData;
