@@ -208,14 +208,16 @@ document.addEventListener("DOMContentLoaded", function () {
         // 收集 Switch 開關
         if (spiritToggle.checked) {
             params.set('sg', '1');
-            params.set('scMin', spiritChanceFilter.value);
-            params.set('sgMin', spiritGaugeFilter.value);
+            if (spiritChanceFilter.value !== spiritChanceFilter.defaultValue) params.set('scMin', spiritChanceFilter.value);
+            if (spiritGaugeFilter.value !== spiritGaugeFilter.defaultValue) params.set('sgMin', spiritGaugeFilter.value);
         }
         buffFilters.forEach(filter => {
             if (!filter.toggle.checked) return;
             params.set(filter.enableParam, '1');
-            params.set(filter.rateParam, filter.rate.value);
-            params.set(filter.countParam, String(filter.countValues[Number(filter.count.value) - 1]));
+            if (filter.rate.value !== filter.rate.defaultValue) params.set(filter.rateParam, filter.rate.value);
+            if (filter.count.value !== filter.count.defaultValue) {
+                params.set(filter.countParam, String(filter.countValues[Number(filter.count.value) - 1]));
+            }
         });
         if (document.getElementById('hp_debuff').checked) params.set('hp', '1');
         if (document.getElementById('enemyDmgDownFilter').checked) params.set('enemyDmgDown', '1');
@@ -223,13 +225,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // 收集 Radio 狀態
         const modeChecked = document.querySelector('input[name="searchMode"]:checked');
-        if (modeChecked) params.set('mode', modeChecked.value);
+        if (modeChecked && modeChecked.value !== 'original') params.set('mode', modeChecked.value);
         
         const eleChecked = document.querySelector('input[name="elementDmgUpFilter"]:checked');
-        if (eleChecked) params.set('eleDmg', eleChecked.value);
+        if (eleChecked && eleChecked.value !== '0') params.set('eleDmg', eleChecked.value);
         
         const enmyChecked = document.querySelector('input[name="enemyDmgUpFilter"]:checked');
-        if (enmyChecked) params.set('enmyDmg', enmyChecked.value);
+        if (enmyChecked && enmyChecked.value !== 'noFilter') params.set('enmyDmg', enmyChecked.value);
 
         const playerDmgChecked = document.querySelector('input[name="playerDmgUpFilter"]:checked');
         if (playerDmgChecked && playerDmgChecked.value !== 'noFilter') params.set('playerDmgUp', playerDmgChecked.value);
@@ -267,7 +269,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (charWep.length) params.set('cWep', charWep.join(','));
 
         // 產生並複製網址 (不包含持有篩選資訊)
-        const newUrl = window.location.origin + window.location.pathname + '?' + params.toString();
+        const query = params.toString();
+        const newUrl = window.location.origin + window.location.pathname + (query ? '?' + query : '');
         
         if (navigator.clipboard) {
             navigator.clipboard.writeText(newUrl).then(() => {
@@ -528,6 +531,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         document.getElementById('img_show').checked = true;
         document.getElementById('descriptionFilter').value = '';
+        searchMode = 'original';
+        enemyDmgUpFilterValue = 'noFilter';
+        elementDmgUpFilterValue = 0;
+        document.getElementById('modeOriginal').checked = true;
+        document.querySelector('input[name="enemyDmgUpFilter"][value="noFilter"]').checked = true;
+        document.querySelector('input[name="elementDmgUpFilter"][value="0"]').checked = true;
         document.querySelector('input[name="playerDmgUpFilter"][value="noFilter"]').checked = true;
         document.querySelector('input[name="playerDmgDownFilter"][value="noFilter"]').checked = true;
         document.querySelector('input[name="elementDmgDownFilter"][value="0"]').checked = true;
