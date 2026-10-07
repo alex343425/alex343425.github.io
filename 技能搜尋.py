@@ -726,7 +726,79 @@ def buff_drain_search(y):
 
     return 0, 0
 
+def remove_debuff_search(y):
+    # 回傳 (機率分類, 消除數量, 對象分類)；同技能優先選對象較廣的效果。
+    y = y.translate(str.maketrans('０１２３４５６７８９％', '0123456789%'))
+    y = re.sub(r'<br\s*/?>', '。', y, flags=re.IGNORECASE)
+    chance_pattern = (r'(?:確率\s*)?(?P<percent>\d+(?:\.\d+)?)\s*%(?:の確率)?|'
+                      r'ごく稀|低確率|高確率|稀|確率|確実|必ず|必定')
+    chance_tags = {'ごく稀': 1, '稀': 1, '低確率': 1, '確率': 2,
+                   '高確率': 3, '確実': 4, '必ず': 4, '必定': 4}
+    effects = []
+
+    for effect in re.finditer(
+            r'(?P<name>全?不利効果)(?P<details>[^。・、：:()（）\r\n]*?)'
+            r'(?:リフレッシュ|解除|消去(?:する)?|打ち消(?:す|し))', y):
+        # 同一小段內的機率只作用於這項消除，不沿用其他效果的機率。
+        clause_start = max(y.rfind(c, 0, effect.start())
+                           for c in '。・、：:()（）\r\n') + 1
+        clause = y[clause_start:effect.end()]
+        chances = list(re.finditer(chance_pattern, clause))
+        if not chances:
+            rate = 4
+        elif chances[-1].group('percent') is None:
+            rate = chance_tags[chances[-1].group()]
+        else:
+            percent = float(chances[-1].group('percent'))
+            if 0 <= percent <= 10:
+                rate = 1
+            elif 11 <= percent <= 35:
+                rate = 2
+            elif 36 <= percent <= 99:
+                rate = 3
+            elif percent == 100:
+                rate = 4
+            else:
+                raise ValueError(f'未定義的不利効果消除機率：{percent}%（{clause}）')
+
+        details = effect.group('details').translate(
+            str.maketrans('一二三四五六七八九', '123456789'))
+        quantity = re.search(r'(\d+)(?:\s*[~〜～－-]\s*(\d+))?\s*(?:つ|個)', details)
+        if effect.group('name').startswith('全') or '全' in details:
+            count = 99
+        elif quantity:
+            count = min(int(n) for n in quantity.groups() if n is not None)
+        else:
+            # 未標明數量的「状態異常＆不利効果リフレッシュ」也視為全部解除。
+            count = 99
+
+        # 保留原文對象標頭；ULT 的指定 Buff 條件按已滿足處理。
+        headings = list(re.finditer(r'([^。、・()（）:：<>\r\n]+)[：:]',
+                                    y[:effect.start()]))
+        target_text = headings[-1].group(1).strip() if headings else clause
+        if target_text.endswith(('味方全員', '味方全体')):
+            target = 3
+        elif target_text.endswith(('自身', '自分')):
+            target = 1
+        else:
+            target = 2
+        effects.append((rate, count, target))
+
+    # 同對象比較機率，再比較數量；三個標籤始終來自同一組效果。
+    return max(effects, key=lambda item: (item[2], item[0], item[1])) if effects else (0, 0, 0)
+
+
 def skill_description_search(d):
+    # 不利効果消除：清除舊值，再依目前描述重算三個標籤。
+    for key in ('remove_debuff_rate', 'remove_debuff_count', 'remove_debuff_target'):
+        d.pop(key, None)
+    if '不利' in d['description']:
+        remove_debuff_rate, remove_debuff_count, remove_debuff_target = remove_debuff_search(d['description'])
+        if remove_debuff_rate:
+            d['remove_debuff_rate'] = remove_debuff_rate
+            d['remove_debuff_count'] = remove_debuff_count
+            d['remove_debuff_target'] = remove_debuff_target
+
     
     d.pop('drain_baria', None)
     d.pop('dispel_baria', None)

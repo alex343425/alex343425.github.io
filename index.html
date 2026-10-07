@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261006-filter-export"></script>
+    <script src="script.js?v=20261007-remove-debuff-filter"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -666,6 +666,32 @@
             align-items: flex-start;
         }
 
+        .remove-debuff-filter.is-active .spirit-filter-panel {
+            max-height: 120px;
+        }
+
+        .remove-debuff-target-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 8px;
+            margin-top: 8px;
+        }
+
+        .remove-debuff-target-options label {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 13px;
+            font-weight: normal;
+            color: #333;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .remove-debuff-target-options input {
+            margin: 0;
+        }
+
         .filter-group.buff-effect-filter {
             flex-direction: column;
             align-items: flex-start;
@@ -732,8 +758,6 @@
                 <div id="keywordButtonsArea" style="display: none;">
                     <strong>常用指令：</strong><br>
                     <button class="keywordBtn" data-keyword="デバフムーブ">debuff move</button>
-                    <button class="keywordBtn" data-keyword="バフドレイン">偷Buff</button>
-                    <button class="keywordBtn" data-keyword="不利">不利效果解除</button>
                     <button class="keywordBtn" data-keyword="スティール">偷竊(主動技)</button>
                     <button class="keywordBtn" data-keyword="ドロップ率">打寶力</button>
                     <button class="keywordBtn" data-keyword="クエスト アイテム">掉落複製</button>
@@ -806,6 +830,38 @@
                                 <input type="range" id="spiritGaugeFilter" min="2" max="6" step="1" value="2" aria-label="精靈砲回復格數" aria-valuetext="1格" disabled>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-group spirit-filter remove-debuff-filter" id="removeDebuffFilterGroup">
+                <div class="filter-group spirit-filter-toggle">
+                    <label for="removeDebuffToggle">不利解除</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="removeDebuffToggle" aria-controls="removeDebuffFilterControls" aria-expanded="false">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="spirit-filter-panel" id="removeDebuffFilterControls" aria-hidden="true">
+                    <div class="spirit-filter-sliders">
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="removeDebuffRateLabel" for="remove_debuff_rate">低確率</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="remove_debuff_rate" min="1" max="4" step="1" value="1" aria-label="不利解除機率" aria-valuetext="低確率" disabled>
+                            </div>
+                        </div>
+                        <div class="spirit-filter-slider-row">
+                            <output class="spirit-filter-value" id="removeDebuffCountLabel" for="remove_debuff_count">1</output>
+                            <div class="spirit-range">
+                                <span class="spirit-range-ticks" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+                                <input type="range" id="remove_debuff_count" min="1" max="4" step="1" value="1" aria-label="不利解除數量" aria-valuetext="1" disabled>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="remove-debuff-target-options" role="radiogroup" aria-label="不利解除對象">
+                        <label><input type="radio" name="remove_debuff_target" value="1" checked disabled>僅自身</label>
+                        <label><input type="radio" name="remove_debuff_target" value="2" disabled>非自身(特定條件)</label>
+                        <label><input type="radio" name="remove_debuff_target" value="3" disabled>僅全體</label>
                     </div>
                 </div>
             </div>

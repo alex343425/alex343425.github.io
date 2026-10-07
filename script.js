@@ -69,6 +69,20 @@ document.addEventListener("DOMContentLoaded", function () {
             countValues: [1, 2, 3, 99], countLabels: ['1', '2', '3', '全'],
             rateField: 'buff_drain_rate', countField: 'buff_drain_count',
             enableParam: 'bd', rateParam: 'bdRate', countParam: 'bdCount'
+        },
+        {
+            toggle: document.getElementById('removeDebuffToggle'),
+            group: document.getElementById('removeDebuffFilterGroup'),
+            panel: document.getElementById('removeDebuffFilterControls'),
+            rate: document.getElementById('remove_debuff_rate'),
+            count: document.getElementById('remove_debuff_count'),
+            rateLabel: document.getElementById('removeDebuffRateLabel'),
+            countLabel: document.getElementById('removeDebuffCountLabel'),
+            countValues: [1, 2, 3, 99], countLabels: ['1', '2', '3', '全部'],
+            targetInputs: Array.from(document.querySelectorAll('input[name="remove_debuff_target"]')),
+            targetField: 'remove_debuff_target', targetParam: 'rdTarget',
+            rateField: 'remove_debuff_rate', countField: 'remove_debuff_count',
+            enableParam: 'rd', rateParam: 'rdRate', countParam: 'rdCount'
         }
     ];
 
@@ -87,6 +101,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const progress = position / (Number(slider.max) - Number(slider.min)) * 100;
             slider.parentElement.style.setProperty('--spirit-progress', `${progress}%`);
         });
+        filter.targetInputs?.forEach(radio => {
+            radio.disabled = !enabled;
+        });
     }
 
     buffFilters.forEach(filter => {
@@ -94,6 +111,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (filter.toggle.checked) {
                 filter.rate.value = filter.rate.min;
                 filter.count.value = filter.count.min;
+                filter.targetInputs?.forEach(radio => {
+                    radio.checked = radio.defaultChecked;
+                });
             }
             updateBuffControls(filter);
             filterData(globalData);
@@ -101,6 +121,11 @@ document.addEventListener("DOMContentLoaded", function () {
         [filter.rate, filter.count].forEach(slider => {
             slider.addEventListener('input', () => {
                 updateBuffControls(filter);
+                if (filter.toggle.checked) filterData(globalData);
+            });
+        });
+        filter.targetInputs?.forEach(radio => {
+            radio.addEventListener('change', () => {
                 if (filter.toggle.checked) filterData(globalData);
             });
         });
@@ -140,6 +165,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 (params.get(filter.enableParam) !== '0' && (validRate || countPosition >= 0));
             if (validRate) filter.rate.value = String(rate);
             if (countPosition >= 0) filter.count.value = String(countPosition + 1);
+            if (filter.targetInputs) {
+                const selected = filter.targetInputs.find(radio => radio.value === params.get(filter.targetParam));
+                filter.targetInputs.forEach(radio => {
+                    radio.checked = selected ? radio === selected : radio.defaultChecked;
+                });
+            }
             updateBuffControls(filter);
         });
         if (params.has('hp')) document.getElementById('hp_debuff').checked = true;
@@ -218,6 +249,8 @@ document.addEventListener("DOMContentLoaded", function () {
             if (filter.count.value !== filter.count.defaultValue) {
                 params.set(filter.countParam, String(filter.countValues[Number(filter.count.value) - 1]));
             }
+            const target = filter.targetInputs?.find(radio => radio.checked);
+            if (target && !target.defaultChecked) params.set(filter.targetParam, target.value);
         });
         if (document.getElementById('hp_debuff').checked) params.set('hp', '1');
         if (document.getElementById('enemyDmgDownFilter').checked) params.set('enemyDmgDown', '1');
@@ -413,7 +446,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function loadData(restoreUrlParams = true) {
-        fetch('data.json?v=20261006-buff-filters')
+        fetch('data.json?v=20261007-remove-debuff-filter')
         .then(response => response.json())
 		.then(data => {
 			globalData = data; // 將取得的資料存入全域變數
@@ -527,6 +560,9 @@ document.addEventListener("DOMContentLoaded", function () {
         buffFilters.forEach(filter => {
             filter.rate.value = filter.rate.min;
             filter.count.value = filter.count.min;
+            filter.targetInputs?.forEach(radio => {
+                radio.checked = radio.defaultChecked;
+            });
             updateBuffControls(filter);
         });
         document.getElementById('img_show').checked = true;
@@ -896,7 +932,11 @@ document.addEventListener("DOMContentLoaded", function () {
             rateField: filter.rateField,
             countField: filter.countField,
             rate: Number(filter.rate.value),
-            count: filter.countValues[Number(filter.count.value) - 1]
+            count: filter.countValues[Number(filter.count.value) - 1],
+            targetField: filter.targetField,
+            targets: filter.targetInputs ? {
+                '1': [1], '2': [2, 3], '3': [3]
+            }[filter.targetInputs.find(radio => radio.checked).value] : null
         }));
         let markFilterValue = parseInt(document.getElementById('markFilter').value);
         let limitFilterValue = parseInt(document.getElementById('limitFilter').value);
@@ -939,8 +979,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const matchesSpirit = !spiritEnabled ||
                 (item.spirit_gauge >= spiritGaugeValue && item.spirit_chance >= spiritChanceValue);
 			let matcheshp_debuff = hp_debuffValue == 0 || item.hp_debuff >= hp_debuffValue;
-            const matchesBuffFilters = activeBuffFilters.every(({ rateField, countField, rate, count }) =>
-                item[rateField] >= rate && item[countField] >= count);
+            const matchesBuffFilters = activeBuffFilters.every(({ rateField, countField, rate, count, targetField, targets }) =>
+                item[rateField] >= rate && item[countField] >= count &&
+                (!targetField || targets.includes(item[targetField])));
             let matchesDescription;
             const searchText = `${item.description} ${item.skill_name} ${item.skill_char}`;
 
