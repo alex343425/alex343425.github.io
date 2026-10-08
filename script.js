@@ -135,6 +135,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Modal 元素
     const modal = document.getElementById("charModal");
     const span = document.getElementsByClassName("close")[0];
+
+    span.addEventListener("click", function () {
+        modal.style.display = "none";
+    });
 	
 	// --- 新增：網址參數解析函式 ---
     function applyUrlParams() {
