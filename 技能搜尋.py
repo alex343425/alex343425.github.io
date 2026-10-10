@@ -788,7 +788,113 @@ def remove_debuff_search(y):
     return max(effects, key=lambda item: (item[2], item[0], item[1])) if effects else (0, 0, 0)
 
 
+def stat_effect_count_search(y):
+    """回傳 (上升回數, 下降回數)，各能力只保存一個整數回數。"""
+    # 每段浮動回數先取最小值；同能力、同方向有多段效果時取最大值。
+    stat_names = ('最大HP', '攻撃力', '攻撃魔力', '防御力',
+                  '回復魔力', 'すばやさ', '状態異常耐性')
+    y = y.translate(str.maketrans('０１２３４５６７８９ＨＰ＆（）',
+                                '0123456789HP&()'))
+    y = re.sub(r'<br\s*/?>', '。', y, flags=re.IGNORECASE)
+    stat_pattern = '(?:' + '|'.join(stat_names + ('全パラメータ',)) + ')'
+    effect_pattern = (
+        r'(?P<stats>' + stat_pattern + r'(?:\s*&\s*' + stat_pattern + r')*)'
+        r'\s*(?:を\s*)?(?P<count>\d+)'
+        r'(?:\s*[~〜～－–—-]\s*(?P<end_count>\d+))?\s*回\s*'
+        r'(?:ほんの少し|少し|超大幅|大幅)?\s*(?P<direction>アップ|ダウン)'
+        r'(?:\s*(?P<exclude_hp>\(\s*HPを除く\s*\)))?')
+    counts = {'アップ': {}, 'ダウン': {}}
+
+    for effect in re.finditer(effect_pattern, y):
+        count = int(effect.group('count'))
+        if effect.group('end_count') is not None:
+            count = min(count, int(effect.group('end_count')))
+        result = counts[effect.group('direction')]
+        for stat in re.split(r'\s*&\s*', effect.group('stats')):
+            if stat == '全パラメータ':
+                # 全パラメータ僅包含六種能力，不含状態異常耐性。
+                affected_stats = stat_names[1:6] if effect.group('exclude_hp') else stat_names[:6]
+            else:
+                affected_stats = (stat,)
+            for affected_stat in affected_stats:
+                result[affected_stat] = max(result.get(affected_stat, count), count)
+
+    return tuple({stat: result[stat] for stat in stat_names if stat in result}
+                 for result in (counts['アップ'], counts['ダウン']))
+
+
+def status_infliction_count_search(y, skill_name=''):
+    """回傳 (幻惑類標籤, 呪い標籤, 同時有機率與多次賦予的效果)。"""
+    # リルンゴ這兩招的異常會賦予我方，依指定排除。
+    if skill_name in ('アイドル・ステップ', 'ぬこぬこ・ラブ・パフォーマンス'):
+        return 0, 0, []
+
+    y = y.translate(str.maketrans('０１２３４５６７８９％＆（）',
+                                '0123456789%&()'))
+    y = re.sub(r'<br\s*/?>', '。', y, flags=re.IGNORECASE)
+    status_pattern = (r'(?:致死毒|爆毒|劇毒|猛毒|毒|金縛り|麻痺|混乱|'
+                      r'幻惑|幻覚|悩殺|呪い|封印|失神|スタン|昏睡|眠り|'
+                      r'「特殊な幻惑」(?:\([^()]*\))?)')
+    number_pattern = r'\d+(?:\s*[~〜～－–—-]\s*\d+)?'
+    effect_pattern = (
+        r'(?:(?P<before_count>' + number_pattern + r')\s*回\s*)?'
+        r'(?P<statuses>' + status_pattern +
+        r'(?:\s*(?:[&・、,]|と)\s*' + status_pattern + r')*)'
+        r'\s*(?:の追加効果|(?:状態)?を?\s*'
+        r'(?:(?P<after_count>' + number_pattern + r')\s*回\s*)?付与|'
+        r'状態に(?:する|し))')
+    chance_pattern = r'確率|(?:ごく)?稀(?:に)?|まれに|\d+(?:\.\d+)?\s*%\s*で'
+    illusion_count = curse_count = 0
+    probabilistic_multiple_effects = []
+
+    for effect in re.finditer(effect_pattern, y):
+        statuses = effect.group('statuses')
+        has_illusion = re.search(r'幻惑|幻覚|悩殺', statuses) is not None
+        has_curse = '呪い' in statuses
+        if not (has_illusion or has_curse):
+            continue
+
+        # 僅取此賦予效果前的機率；其他效果、對象與括號內的機率不沿用。
+        clause_start = max(y.rfind(c, 0, effect.start())
+                           for c in '。・、：:()\r\n') + 1
+        prefix = y[clause_start:effect.start()]
+        has_chance = re.search(chance_pattern, prefix) is not None
+        count_text = effect.group('before_count') or effect.group('after_count')
+        counts = [int(n) for n in re.findall(r'\d+', count_text)] if count_text else [1]
+        # 浮動賦予次數取最小值；同類有多項效果時保留最大的分類。
+        tag = 1 if has_chance else min(counts) + 1
+        if has_illusion:
+            illusion_count = max(illusion_count, tag)
+        if has_curse:
+            curse_count = max(curse_count, tag)
+        if has_chance and max(counts) > 1:
+            probabilistic_multiple_effects.append(y[clause_start:effect.end()])
+
+    return illusion_count, curse_count, probabilistic_multiple_effects
+
+
 def skill_description_search(d):
+    # 異常賦予：有機率=1、無機率單次=2、無機率 N 次=N+1。
+    d.pop('illusion_count', None)
+    d.pop('curse_count', None)
+    illusion_count, curse_count, probabilistic_multiple_effects = status_infliction_count_search(
+        d['description'], d['skill_name'])
+    if illusion_count:
+        d['illusion_count'] = illusion_count
+    if curse_count:
+        d['curse_count'] = curse_count
+    for effect in probabilistic_multiple_effects:
+        print(f"狀態異常回數警告：技能「{d['skill_name']}」同時有機率與多次賦予：{effect}")
+
+    # 能力作用回數：僅標記明寫 N 回的アップ／ダウン，重算時清除舊值。
+    d.pop('stat_up_count', None)
+    d.pop('stat_down_count', None)
+    stat_up_count, stat_down_count = stat_effect_count_search(d['description'])
+    if stat_up_count:
+        d['stat_up_count'] = stat_up_count
+    if stat_down_count:
+        d['stat_down_count'] = stat_down_count
+
     # 不利効果消除：清除舊值，再依目前描述重算三個標籤。
     for key in ('remove_debuff_rate', 'remove_debuff_count', 'remove_debuff_target'):
         d.pop(key, None)

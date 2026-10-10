@@ -5,11 +5,99 @@ let globalData = []; // 新增：用於保存完整的原始 data，方便追加
 let isInventoryEnabled = false; // 新增：紀錄是否已啟用持有資料系統
 let isCharInventoryEnabled = false; // 新增：紀錄是否已啟用持有角色系統
 
+function buildOmenRequirements(groups) {
+    const requirements = { up: {}, down: {}, status: {} };
+    // 群組順序：全能力 → 不含 HP → 單能力；後者覆蓋前者。
+    groups.forEach(group => {
+        const selected = group.inputs.find(input => input.checked);
+        if (!selected) return;
+        const value = Number(selected.value);
+        if (group.stats) {
+            group.stats.forEach(stat => { requirements[group.direction][stat] = value; });
+        } else {
+            requirements.status[group.field] = value;
+        }
+    });
+    return requirements;
+}
+
+function matchesOmenRequirements(item, requirements) {
+    return ['up', 'down'].every(direction =>
+        Object.entries(requirements[direction]).every(([stat, count]) =>
+            (item[`stat_${direction}_count`]?.[stat] ?? 0) >= count)) &&
+        Object.entries(requirements.status).every(([field, count]) =>
+            (item[field] ?? 0) >= count);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     let searchMode = 'original'; 
     let enemyDmgUpFilterValue = 'noFilter'; 
 	let elementDmgUpFilterValue = 0; 
 	
+    const omenStats = [
+        { key: 'hp', stat: '最大HP' }, { key: 'atk', stat: '攻撃力' },
+        { key: 'matk', stat: '攻撃魔力' }, { key: 'def', stat: '防御力' },
+        { key: 'heal', stat: '回復魔力' }, { key: 'speed', stat: 'すばやさ' }
+    ];
+    const omenUpValues = [2, 3, 5, 7, 10];
+    const omenDownValues = [2, 3, 5];
+    const omenFilterGroups = [
+        { key: 'up_all', direction: 'up', stats: omenStats.map(item => item.stat), values: omenUpValues },
+        { key: 'down_all', direction: 'down', stats: omenStats.map(item => item.stat), values: omenDownValues },
+        { key: 'up_no_hp', direction: 'up', stats: omenStats.slice(1).map(item => item.stat), values: omenUpValues },
+        { key: 'down_no_hp', direction: 'down', stats: omenStats.slice(1).map(item => item.stat), values: omenDownValues },
+        ...omenStats.flatMap(({ key, stat }) => [
+            { key: `up_${key}`, direction: 'up', stats: [stat], values: omenUpValues },
+            { key: `down_${key}`, direction: 'down', stats: [stat], values: omenDownValues }
+        ]),
+        { key: 'up_resist', direction: 'up', stats: ['状態異常耐性'], values: omenUpValues },
+        { key: 'down_resist', direction: 'down', stats: ['状態異常耐性'], values: omenUpValues },
+        { key: 'illusion', field: 'illusion_count', values: [1, 2, 3], labels: ['機率1回', '必定1回', '2回以上'] },
+        { key: 'curse', field: 'curse_count', values: [1, 2, 3], labels: ['機率1回', '必定1回', '2回以上'] }
+    ];
+    omenFilterGroups.forEach(group => {
+        const options = document.querySelector(`[data-omen-group="${group.key}"]`);
+        group.inputs = group.values.map((value, index) => {
+            const label = document.createElement('label');
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.name = `omen_${group.key}`;
+            input.value = String(value);
+            input.id = `omen-${group.key}-${value}`;
+            label.append(input, group.labels?.[index] ?? `${value}回`);
+            options.append(label);
+            input.addEventListener('change', () => {
+                if (input.checked) {
+                    group.inputs.forEach(other => { if (other !== input) other.checked = false; });
+                }
+                filterData(globalData);
+            });
+            return input;
+        });
+    });
+
+    const searchPanels = [
+        { key: 'keywords', button: document.getElementById('toggleKeywordButtons'),
+          panel: document.getElementById('keywordButtonsArea'), label: '展開常用關鍵字：' },
+        { key: 'omen', button: document.getElementById('toggleOmenFilters'),
+          panel: document.getElementById('omenFilterArea'), label: '展開星之魔宮殿預兆篩選：' }
+    ];
+    let activeSearchPanel = null;
+    function setSearchPanel(key) {
+        activeSearchPanel = key;
+        searchPanels.forEach(({ key: panelKey, button, panel, label }) => {
+            const expanded = panelKey === key;
+            panel.style.display = expanded ? 'block' : 'none';
+            panel.setAttribute('aria-hidden', String(!expanded));
+            button.setAttribute('aria-expanded', String(expanded));
+            button.textContent = label + (expanded ? '(展開中)' : '');
+        });
+    }
+    searchPanels.forEach(({ key, button }) => {
+        button.addEventListener('click', () => setSearchPanel(activeSearchPanel === key ? null : key));
+    });
+    setSearchPanel(null);
+
     const spiritToggle = document.getElementById('spirit_gauge');
     const spiritChanceFilter = document.getElementById('spiritChanceFilter');
     const spiritGaugeFilter = document.getElementById('spiritGaugeFilter');
@@ -227,11 +315,22 @@ document.addEventListener("DOMContentLoaded", function () {
         if (params.has('sType')) setCheckedValues('.skill-type-filter', params.get('sType'), '__'); 
         if (params.has('cEm')) setCheckedValues('.char-em-filter', params.get('cEm'));
         if (params.has('cWep')) setCheckedValues('.char-wep-filter', params.get('cWep'));
+        omenFilterGroups.forEach(group => {
+            const value = params.get(`omen_${group.key}`);
+            group.inputs.forEach(input => { input.checked = input.value === value; });
+        });
+        if (omenFilterGroups.some(group => group.inputs.some(input => input.checked))) {
+            setSearchPanel('omen');
+        }
     }
 
     // --- 新增：匯出篩選按鈕事件 ---
     document.getElementById('exportFilterBtn').addEventListener('click', function() {
         const params = new URLSearchParams();
+        omenFilterGroups.forEach(group => {
+            const selected = group.inputs.find(input => input.checked);
+            if (selected) params.set(`omen_${group.key}`, selected.value);
+        });
 
         // 收集文字與下拉選單
         const desc = document.getElementById('descriptionFilter').value;
@@ -450,7 +549,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     function loadData(restoreUrlParams = true) {
-        fetch('data.json?v=20261007-remove-debuff-filter')
+        fetch('data.json?v=20261010-omen-filter')
         .then(response => response.json())
 		.then(data => {
 			globalData = data; // 將取得的資料存入全域變數
@@ -496,16 +595,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (event.keyCode === 13) {
                     event.preventDefault();
                     filterData(data);
-                }
-            });
-            document.querySelector("#toggleKeywordButtons").addEventListener("click", function() {
-                const keywordArea = document.querySelector("#keywordButtonsArea");
-                if (keywordArea.style.display === "none") {
-                    keywordArea.style.display = "block";
-                    this.innerText = "收起常用關鍵字";
-                } else {
-                    keywordArea.style.display = "none";
-                    this.innerText = "展開常用關鍵字";
                 }
             });
             document.querySelectorAll(".keywordBtn").forEach(button => {
@@ -555,6 +644,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.checked = false;
         });
+        setSearchPanel(null);
         document.querySelectorAll('select').forEach(select => {
             select.selectedIndex = 0;
         });
@@ -902,6 +992,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function filterData(data) {
+        const omenRequirements = buildOmenRequirements(omenFilterGroups);
         const barrierFilterTags = {
             noFilter: [],
             contains1: [1],
@@ -984,6 +1075,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         let filteredData = data.filter(item => {
+            const matchesOmen = matchesOmenRequirements(item, omenRequirements);
             const matchesDrainBaria = drainBariaTags.length === 0 || drainBariaTags.includes(item.drain_baria);
             const matchesDispelBaria = dispelBariaTags.length === 0 || dispelBariaTags.includes(item.dispel_baria);
             const matchesSpirit = !spiritEnabled ||
@@ -1064,7 +1156,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			let matchesStock = !onlyShowStockValue || (item.stock && item.stock > 0);
 			let matchesCharStock = !onlyShowCharStockValue || item.charStock === true;
 			
-            return matchesDrainBaria && matchesDispelBaria && matchesSpirit && matcheshp_debuff && matchesBuffFilters && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesPlayerDmgDown && matchesElementDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
+            return matchesOmen && matchesDrainBaria && matchesDispelBaria && matchesSpirit && matcheshp_debuff && matchesBuffFilters && matchesDescription && matchesCharEm && matchesCharWep && matchesSkillType && matchesStatDown && matchesSkillState && matchesmarkFilter && matchesstatus_condition_downFilter && matchesEnemyDmgUp && matchesElementDmgUp && matchesPlayerDmgUp && matchesEnemyDmgDown && matchesPlayerDmgDown && matchesElementDmgDown && matchesCharSource && matchesLimitFilter && matchesStock && matchesCharStock;
         });
         currentPage = 1;
         currentFilteredData = filteredData;

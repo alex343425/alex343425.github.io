@@ -7,6 +7,10 @@
 1. 執行 spirit_update.py
 2. 執行更新角色名.py，順便更新
 3. 執行 技能搜尋.py
+
+4. 執行\AssetStudio-master\download_and_export.py
+
+下面廢棄
 4. 複製檔案「data_leader_wep.json」「data.json」 「data_cheerleading.json」
 5. 下載 https://az-otogi-web-assets.azureedge.net/prodassets//GeneralWebGL/Assets/chara_icon
 https://web-assets.otogi-frontier.com/prodassets/GeneralWebGL/Assets/item_icon

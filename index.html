@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261010-search-result-count"></script>
+    <script src="script.js?v=20261010-omen-filter"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -184,6 +184,74 @@
         
         .keywordBtn:hover {
             background-color: #fff1b8;
+        }
+
+        .search-panel-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        #omenFilterArea {
+            margin-top: 10px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .omen-filter-hint {
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 13px;
+            color: #555;
+            background: #f5f7fa;
+        }
+
+        .omen-filter-table {
+            min-width: 850px;
+            width: 100%;
+        }
+
+        .omen-filter-table th,
+        .omen-filter-table td {
+            padding: 6px 10px;
+            color: var(--text-color);
+            background: inherit;
+            position: static;
+            white-space: nowrap;
+        }
+
+        .omen-filter-table .omen-priority,
+        .omen-filter-table .omen-status {
+            background: #cfe2f3;
+        }
+
+        .omen-filter-table .omen-single {
+            background: #fff2cc;
+        }
+
+        .omen-filter-table .omen-empty {
+            background: white;
+            border: none;
+        }
+
+        .omen-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .omen-options label {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .omen-options input {
+            margin: 0;
+            accent-color: var(--primary-color);
         }
 
         /* 表格樣式 */
@@ -760,8 +828,11 @@
 
         <div class="filter-row">
             <div style="width: 100%;">
-                <button id="toggleKeywordButtons">展開常用關鍵字</button>
-                <div id="keywordButtonsArea" style="display: none;">
+                <div class="search-panel-buttons">
+                    <button id="toggleKeywordButtons" type="button" aria-controls="keywordButtonsArea" aria-expanded="false">展開常用關鍵字：</button>
+                    <button id="toggleOmenFilters" type="button" aria-controls="omenFilterArea" aria-expanded="false">展開星之魔宮殿預兆篩選：</button>
+                </div>
+                <div id="keywordButtonsArea" style="display: none;" aria-hidden="true">
                     <strong>常用指令：</strong><br>
                     <button class="keywordBtn" data-keyword="デバフムーブ">debuff move</button>
                     <button class="keywordBtn" data-keyword="スティール">偷竊(主動技)</button>
@@ -793,20 +864,52 @@
                     <button class="keywordBtn" data-keyword="混乱">混亂</button>
                     <button class="keywordBtn" data-keyword="呪い">詛咒</button>
                     <button class="keywordBtn" data-keyword="封印">封印</button>
-                    <hr>
-                    <strong>星宮解預兆 (配合 前到後且同句 模式)：</strong><br>
-                    <button class="keywordBtn" data-keyword="攻撃 回 アップ">攻擊多回UP</button>
-                    <button class="keywordBtn" data-keyword="防御 回 アップ">防禦多回UP</button>
-                    <button class="keywordBtn" data-keyword="攻撃魔力 回 アップ">攻魔多回UP</button>
-                    <button class="keywordBtn" data-keyword="すばやさ 回 アップ">速度多回UP</button>
-                    <button class="keywordBtn" data-keyword="HP 回 アップ">HP多回UP</button>
-                    <button class="keywordBtn" data-keyword="全パラ 回 アップ">全能力多回UP</button>
-                    <button class="keywordBtn" data-keyword="攻撃 回 ダウン">攻擊多回下降</button>
-                    <button class="keywordBtn" data-keyword="防御 回 ダウン">防禦多回下降</button>
-                    <button class="keywordBtn" data-keyword="攻撃魔力 回 ダウン">攻魔多回下降</button>
-                    <button class="keywordBtn" data-keyword="すばやさ 回 ダウン">速度多回下降</button>
-                    <button class="keywordBtn" data-keyword="状態異常耐性 回 アップ">異常耐性多回UP</button>
-                    <button class="keywordBtn" data-keyword="状態異常耐性 回 ダウン">異常耐性多回下降</button>
+                </div>
+                <div id="omenFilterArea" style="display: none;" aria-hidden="true">
+                    <p class="omen-filter-hint">至少指定回數；同列只能選一項，可再次點擊取消。單能力條件優先於全能力條件，不含 HP 的條件優先於全能力條件。</p>
+                    <table class="omen-filter-table" aria-label="星之魔宮殿預兆篩選">
+                        <tbody>
+                            <tr class="omen-priority"><th colspan="4">優先查詢：</th></tr>
+                            <tr class="omen-priority">
+                                <td>全能力上升</td><td><div class="omen-options" data-omen-group="up_all" role="group" aria-label="全能力上升"></div></td>
+                                <td>全能力下降</td><td><div class="omen-options" data-omen-group="down_all" role="group" aria-label="全能力下降"></div></td>
+                            </tr>
+                            <tr class="omen-priority">
+                                <td>全能力上升(不含HP)</td><td><div class="omen-options" data-omen-group="up_no_hp" role="group" aria-label="全能力上升不含HP"></div></td>
+                                <td>全能力下降(不含HP)</td><td><div class="omen-options" data-omen-group="down_no_hp" role="group" aria-label="全能力下降不含HP"></div></td>
+                            </tr>
+                            <tr class="omen-single"><th colspan="2">單能力上升：</th><th colspan="2">單能力下降：</th></tr>
+                            <tr class="omen-single">
+                                <td>最大HP</td><td><div class="omen-options" data-omen-group="up_hp" role="group" aria-label="最大HP上升"></div></td>
+                                <td>最大HP</td><td><div class="omen-options" data-omen-group="down_hp" role="group" aria-label="最大HP下降"></div></td>
+                            </tr>
+                            <tr class="omen-single">
+                                <td>攻撃力</td><td><div class="omen-options" data-omen-group="up_atk" role="group" aria-label="攻撃力上升"></div></td>
+                                <td>攻撃力</td><td><div class="omen-options" data-omen-group="down_atk" role="group" aria-label="攻撃力下降"></div></td>
+                            </tr>
+                            <tr class="omen-single">
+                                <td>攻撃魔力</td><td><div class="omen-options" data-omen-group="up_matk" role="group" aria-label="攻撃魔力上升"></div></td>
+                                <td>攻撃魔力</td><td><div class="omen-options" data-omen-group="down_matk" role="group" aria-label="攻撃魔力下降"></div></td>
+                            </tr>
+                            <tr class="omen-single">
+                                <td>防御力</td><td><div class="omen-options" data-omen-group="up_def" role="group" aria-label="防御力上升"></div></td>
+                                <td>防御力</td><td><div class="omen-options" data-omen-group="down_def" role="group" aria-label="防御力下降"></div></td>
+                            </tr>
+                            <tr class="omen-single">
+                                <td>回復魔力</td><td><div class="omen-options" data-omen-group="up_heal" role="group" aria-label="回復魔力上升"></div></td>
+                                <td>回復魔力</td><td><div class="omen-options" data-omen-group="down_heal" role="group" aria-label="回復魔力下降"></div></td>
+                            </tr>
+                            <tr class="omen-single">
+                                <td>すばやさ</td><td><div class="omen-options" data-omen-group="up_speed" role="group" aria-label="すばやさ上升"></div></td>
+                                <td>すばやさ</td><td><div class="omen-options" data-omen-group="down_speed" role="group" aria-label="すばやさ下降"></div></td>
+                            </tr>
+                            <tr class="omen-status"><th colspan="2">狀態異常：</th><td colspan="2" rowspan="5" class="omen-empty"></td></tr>
+                            <tr class="omen-status"><td>異常耐性上升</td><td><div class="omen-options" data-omen-group="up_resist" role="group" aria-label="異常耐性上升"></div></td></tr>
+                            <tr class="omen-status"><td>異常耐性下降</td><td><div class="omen-options" data-omen-group="down_resist" role="group" aria-label="異常耐性下降"></div></td></tr>
+                            <tr class="omen-status"><td>賦予幻惑系</td><td><div class="omen-options" data-omen-group="illusion" role="group" aria-label="賦予幻惑系"></div></td></tr>
+                            <tr class="omen-status"><td>賦予詛咒</td><td><div class="omen-options" data-omen-group="curse" role="group" aria-label="賦予詛咒"></div></td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
