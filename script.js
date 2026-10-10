@@ -850,8 +850,14 @@ document.addEventListener("DOMContentLoaded", function () {
         const paginationTop = document.getElementById('paginationTop');
         const paginationBottom = document.getElementById('pagination');
         
-        paginationTop.innerHTML = '';
-        paginationBottom.innerHTML = '';
+        [paginationTop, paginationBottom].forEach(container => {
+            container.innerHTML = '';
+            const resultCount = document.createElement('span');
+            resultCount.className = 'search-result-count';
+            resultCount.setAttribute('role', 'status');
+            resultCount.textContent = `搜尋結果：${totalItems} 筆`;
+            container.appendChild(resultCount);
+        });
     
         if (totalItems <= pageSize) {
             return; 

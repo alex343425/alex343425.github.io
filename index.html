@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261008-modal-close-fix"></script>
+    <script src="script.js?v=20261010-search-result-count"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -236,9 +236,15 @@
         #pagination, #paginationTop {
             display: flex;
             justify-content: center;
+            align-items: center;
             gap: 5px;
             margin: 15px 0;
             flex-wrap: wrap;
+        }
+
+        .search-result-count {
+            margin-right: 10px;
+            white-space: nowrap;
         }
 
         #pagination button, #paginationTop button {
