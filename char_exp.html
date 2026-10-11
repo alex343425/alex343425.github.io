@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蝸牛關卡練轉生角色 次數計算器</title>
+    <title>練轉生角色 次數計算器</title>
     <style>
         :root {
             --primary-color: #4a6fa5;
@@ -62,7 +62,13 @@
         .info-item {
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 4px 12px;
             margin-bottom: 4px;
+        }
+
+        .info-item strong {
+            white-space: nowrap;
         }
 
         .info-item:last-child {
@@ -137,27 +143,37 @@
             margin-bottom: 8px;
         }
 
-        .result-runs {
+        .result-bonus {
             font-size: 2.5rem;
             font-weight: bold;
             line-height: 1.2;
             color: #fff;
         }
 
-        .result-detail {
-            margin-top: 12px;
-            padding-top: 12px;
+        .result-stages {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 0.85rem;
-            opacity: 0.95;
-            display: flex;
-            justify-content: space-around;
         }
 
-        .detail-item span {
+        .result-runs {
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            font-weight: bold;
+            line-height: 1.2;
+        }
+
+        .result-detail {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            opacity: 0.95;
+        }
+
+        .result-detail span {
             display: block;
             font-weight: bold;
-            font-size: 1rem;
             margin-top: 2px;
         }
 
@@ -184,12 +200,16 @@
 <body>
 
 <div class="container">
-    <h1>蝸牛關卡練轉生角色 次數計算器</h1>
+    <h1>練轉生角色 次數計算器</h1>
 
     <div class="info-panel">
         <div class="info-item">
-            <span>基礎經驗值/場：</span>
+            <span>蝸牛關卡 基礎經驗值/場：</span>
             <strong>206,336 EXP</strong>
+        </div>
+        <div class="info-item">
+            <span>主線後半關卡 基礎經驗值/場：</span>
+            <strong>4,255 EXP</strong>
         </div>
         <div class="info-item">
             <span>升級所需經驗值：</span>
@@ -249,16 +269,24 @@
     </form>
 
     <div class="result-card">
-        <div class="result-title">升級所需通關次數</div>
-        <div class="result-runs" id="runsResult">116 次</div>
-        <div class="result-detail">
-            <div class="detail-item">
-                總經驗加成
-                <span id="bonusResult">+0%</span>
+        <div class="result-title">總經驗加成</div>
+        <div class="result-bonus" id="bonusResult">+0%</div>
+        <div class="result-stages">
+            <div class="stage-result">
+                <div class="result-title">蝸牛關卡</div>
+                <div class="result-runs" id="runsResult">116 場</div>
+                <div class="result-detail">
+                    每場獲得經驗
+                    <span id="expPerRunResult">206,336 EXP</span>
+                </div>
             </div>
-            <div class="detail-item">
-                每場獲得經驗
-                <span id="expPerRunResult">206,336</span>
+            <div class="stage-result">
+                <div class="result-title">主線後半</div>
+                <div class="result-runs" id="mainRunsResult">5,601 場</div>
+                <div class="result-detail">
+                    每場獲得經驗
+                    <span id="mainExpPerRunResult">4,255 EXP</span>
+                </div>
             </div>
         </div>
     </div>
@@ -266,12 +294,13 @@
     <div class="notes-section">
         <p>1. 只有上場的五個角色可以吃到加成</p>
         <p>2. 可以自己組四個角色+借好友的角色</p>
-        <p>3. 關卡有低機率讓基礎經驗增加為256336(只影響角色經驗、不影響帳號經驗)，本計算器不計算隨機出現的加成</p>
+        <p>3. 蝸牛關卡有低機率讓基礎經驗增加為256336(只影響角色經驗、不影響帳號經驗)，本計算器不計算隨機出現的加成</p>
     </div>
 </div>
 
 <script>
     const BASE_EXP = 206336;
+    const MAIN_STORY_BASE_EXP = 4255;
     const TARGET_EXP = 23828223;
 
     function clamp(val, min, max) {
@@ -295,14 +324,18 @@
 
         // 單場獲得經驗值 = 基礎經驗值 * (1 + 總加成/100)
         const expPerRun = Math.floor(BASE_EXP * (1 + totalBonusPercent / 100));
+        const mainExpPerRun = Math.floor(MAIN_STORY_BASE_EXP * (1 + totalBonusPercent / 100));
 
         // 計算所需場次（無條件進位）
         const runsNeeded = Math.ceil(TARGET_EXP / expPerRun);
+        const mainRunsNeeded = Math.ceil(TARGET_EXP / mainExpPerRun);
 
         // 渲染結果與千分位格式化
         document.getElementById('bonusResult').innerText = `+${totalBonusPercent}%`;
-        document.getElementById('expPerRunResult').innerText = expPerRun.toLocaleString();
-        document.getElementById('runsResult').innerText = `${runsNeeded.toLocaleString()} 次`;
+        document.getElementById('expPerRunResult').innerText = `${expPerRun.toLocaleString()} EXP`;
+        document.getElementById('runsResult').innerText = `${runsNeeded.toLocaleString()} 場`;
+        document.getElementById('mainExpPerRunResult').innerText = `${mainExpPerRun.toLocaleString()} EXP`;
+        document.getElementById('mainRunsResult').innerText = `${mainRunsNeeded.toLocaleString()} 場`;
     }
 
     // 初始執行一次
