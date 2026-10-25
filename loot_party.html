@@ -1533,6 +1533,8 @@ function openTarotModal(e, type) {
     
     if (type === 'char') {
         img.src = "./tarot_char.png";
+    } else if (type === 'char2') {
+        img.src = "./tarot_char_2.png";
     } else {
         img.src = "./tarot_wep.png";
     }
@@ -1575,6 +1577,8 @@ function displayResult(teamData, totalScore) {
 
         if (m.char.tarot === 1) {
             wepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char')">(塔羅牌限角)</span>`;
+        } else if (m.char.tarot === 2) {
+            wepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char2')">(塔羅牌限角2)</span>`;
         }
         
         let rowClass = isLeader ? 'res-bg-green' : 'res-bg-white';
@@ -1618,6 +1622,8 @@ function displayResult(teamData, totalScore) {
         
         if (f.char.tarot === 1) {
              fWepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char')">(塔羅牌限角)</span>`;
+        } else if (f.char.tarot === 2) {
+            fWepDisplayVal += `<br><span class="tarot-link" onclick="openTarotModal(event, 'char2')">(塔羅牌限角2)</span>`;
         }
 
         rows += `
