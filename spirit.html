@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>精靈技能搜尋</title>
+    <link rel="stylesheet" href="skill-translation.css?v=20261113-1">
+    <script src="skill-translation.js?v=20261113-1"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -619,6 +621,7 @@
         </section>
 
         <div class="summary" aria-live="polite">
+            <div id="skillTranslationControls" class="skill-translation-controls"></div>
             <span id="resultCount">正在讀取精靈資料…</span>
             <span>顯示順序：全部隊長技（ID 升冪）→ 全部主動技 1～3（ID 升冪）</span>
         </div>
@@ -681,6 +684,15 @@
         const searchInput = document.getElementById('searchInput');
         const elementFilters = document.getElementById('elementFilters');
         const sourceFilters = document.getElementById('sourceFilters');
+        let activeSpiritId = null;
+        const languageControl = createSkillLanguageControl({
+            container: document.getElementById('skillTranslationControls'),
+            getDescriptions: () => state.rows.map(row => ({ source: row.description, leader: row.group === 'leader' })),
+            onChange: () => {
+                applyFilters();
+                if (activeSpiritId !== null) openSpiritModal(activeSpiritId);
+            }
+        });
 
         function hasSkill(skill) {
             return skill && (String(skill.n || '').trim() || String(skill.d || '').trim());
@@ -765,7 +777,7 @@
             const selectedSkillType = document.querySelector('input[name="skillType"]:checked').value;
 
             state.filteredRows = state.rows.filter(row => {
-                const searchableText = `${row.spiritName} ${row.skillName} ${row.description}`.toLocaleLowerCase();
+                const searchableText = `${row.spiritName} ${row.skillName} ${languageControl.searchTexts(row.description, row.group === 'leader').join(' ')}`.toLocaleLowerCase();
                 const matchesKeywords = keywords.every(keyword => searchableText.includes(keyword));
                 const matchesElement = selectedElements.length === 0
                     || row.element === 7
@@ -867,7 +879,8 @@
                 row.append(typeCell);
 
                 appendTextCell(row, item.skillName, 'skill-name');
-                appendTextCell(row, item.description, 'description');
+                const descriptionCell = appendTextCell(row, languageControl.text(item.description, item.group === 'leader'), 'description');
+                if (item.group === 'leader') descriptionCell.style.whiteSpace = 'pre-line';
                 appendTextCell(row, item.source, 'source-cell');
                 tableBody.append(row);
             }
@@ -880,7 +893,7 @@
             container.append(tag);
         }
 
-        function appendSkillSection(container, titleText, skills) {
+        function appendSkillSection(container, titleText, skills, leader = false) {
             const title = document.createElement('div');
             title.className = 'section-title';
             title.textContent = titleText;
@@ -905,7 +918,8 @@
                 const row = document.createElement('tr');
                 appendTextCell(row, skill.type, 'type-cell');
                 appendTextCell(row, String(skill.data.n || ''), 'skill-name');
-                appendTextCell(row, String(skill.data.d || ''), 'description');
+                const descriptionCell = appendTextCell(row, languageControl.text(String(skill.data.d || ''), leader), 'description');
+                if (leader) descriptionCell.style.whiteSpace = 'pre-line';
                 tbody.append(row);
             }
             table.append(tbody);
@@ -918,6 +932,7 @@
             if (!spirit) {
                 return;
             }
+            activeSpiritId = Number(id);
 
             const modal = document.getElementById('spiritModal');
             const modalHeader = document.getElementById('modalHeader');
@@ -958,7 +973,7 @@
             if (hasSkill(spirit.leaderskill)) {
                 appendSkillSection(modalBody, '隊長技能 (Leader Skill)', [
                     { type: '隊長技', data: spirit.leaderskill }
-                ]);
+                ], true);
             }
 
             const activeSkills = [];
@@ -992,6 +1007,7 @@
         }
 
         function closeSpiritModal() {
+            activeSpiritId = null;
             document.getElementById('spiritModal').style.display = 'none';
         }
 
@@ -1119,6 +1135,7 @@
                 }
                 state.spiritsById = new Map(spiritData.map(spirit => [Number(spirit.id), spirit]));
                 state.rows = buildRows(spiritData);
+                languageControl.setReady();
                 renderSourceFilters(spiritData);
                 applyFilters();
             })

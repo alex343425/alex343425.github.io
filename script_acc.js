@@ -10,6 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const keywordInput = document.getElementById('descriptionFilter');
     const tableBody = document.getElementById('tableBody');
+    const languageControl = createSkillLanguageControl({
+        container: document.getElementById('skillTranslationControls'),
+        getDescriptions: () => originalData.map(item => item.d || ''),
+        onChange: applyFiltersAndSort
+    });
 
     function loadData() {
         fetch('data_acc.json')
@@ -21,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(data => {
                 originalData = data.map((item, index) => ({ ...item, _origIndex: index }));
+                languageControl.setReady();
                 applyFiltersAndSort();
             })
             .catch(error => {
@@ -39,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return originalData.filter(item => {
             const matchesPass = filterPass === 'all' || String(item.pass) === filterPass;
             const matchesAccSource = selectedAccSources.size === 0 || selectedAccSources.has(String(item.acc_source));
-            const searchableText = `${item.n || ''}\n${item.d || ''}`.toLocaleLowerCase();
+            const searchableText = `${item.n || ''}\n${languageControl.searchTexts(item.d).join('\n')}`.toLocaleLowerCase();
             const matchesKeyword = keywords.every(keyword => searchableText.includes(keyword));
 
             return matchesPass && matchesAccSource && matchesKeyword;
@@ -86,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTable(data) {
         tableBody.replaceChildren();
+        document.getElementById('resultCount').textContent = `搜尋結果：${data.length} 筆`;
 
         if (data.length === 0) {
             renderMessage('沒有符合篩選條件的飾品。');
@@ -123,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const descriptionCell = document.createElement('td');
             descriptionCell.className = 'description-width';
-            descriptionCell.textContent = item.d || '--';
+            descriptionCell.textContent = languageControl.text(item.d) || '--';
             row.appendChild(descriptionCell);
 
             fragment.appendChild(row);

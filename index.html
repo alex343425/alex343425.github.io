@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：固有技能</title>
-    <script src="script.js?v=20261010-omen-filter"></script>
+    <link rel="stylesheet" href="skill-translation.css?v=20261113-1">
+    <script src="skill-translation.js?v=20261113-1"></script>
+    <script src="script.js?v=20261113-shared-translation"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -1273,7 +1275,11 @@
 
     </div>
 
-    <div id="paginationTop"></div>
+    <div id="paginationTop">
+        <button id="skillLanguageToggle" type="button" aria-label="切換技能描述的日文／繁體中文" aria-pressed="false" title="目前為日文，按下切換為繁體中文" disabled>
+            <span class="language-ja">日文</span> / <span class="language-zh">中文</span>
+        </button>
+    </div>
 
     <div class="table-wrapper">
         <table border="0">
@@ -1296,6 +1302,13 @@
     </div>
     
     <div id="pagination"></div>
+
+    <div id="translationOverlay" class="translation-overlay" hidden>
+        <div class="translation-progress" role="status" aria-live="polite" aria-atomic="true">
+            <div class="translation-spinner" aria-hidden="true"></div>
+            <p id="translationMessage">正在抓取中文文本…</p>
+        </div>
+    </div>
 
     <div id="charModal" class="modal">
         <div class="modal-content">

@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：武器一覽</title>
+    <link rel="stylesheet" href="skill-translation.css?v=20261113-1">
+    <script src="skill-translation.js?v=20261113-1"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -238,8 +240,14 @@
 
         // 排序狀態: col (欄位名稱), order (0:原始, 1:大到小, 2:小到大)
         let sortState = { col: null, order: 0 };
+        let languageControl;
 
         document.addEventListener("DOMContentLoaded", function () {
+            languageControl = createSkillLanguageControl({
+                container: document.getElementById('paginationTop'),
+                getDescriptions: () => originalData.flatMap(item => [item.skill_d || '', item.d || '']),
+                onChange: filterData
+            });
             loadData();
 
             // 綁定重置按鈕
@@ -279,6 +287,7 @@
                     item._origIndex = index;
                     return item;
                 });
+                languageControl.setReady();
                 
                 // 綁定篩選器事件
                 document.querySelectorAll('.char-wep-filter').forEach(checkbox => {
@@ -311,7 +320,7 @@
                     matchesKeyword = keywords.every(kw => 
                         (item.n && item.n.toLowerCase().includes(kw)) ||
                         (item.skill_n && item.skill_n.toLowerCase().includes(kw)) ||
-                        (item.skill_d && item.skill_d.toLowerCase().includes(kw))
+                        languageControl.searchTexts(item.skill_d).some(text => text.toLowerCase().includes(kw))
                     );
                 }
 
@@ -397,13 +406,13 @@
 
                 // 技能與描述防呆
                 let skillName = item.skill_n ? item.skill_n : '--';
-                let skillDesc = item.skill_d ? item.skill_d : '--';
+                let skillDesc = item.skill_d ? languageControl.display(item.skill_d) : '--';
                 // JSON中的換行符轉換
                 skillDesc = skillDesc.replace(/\\n/g, '<br>');
 
                 tr.innerHTML = `
                     <td style="text-align: center;">${imgHtml}</td>
-                    <td><span class="name-tooltip" title="${item.d || '無說明'}">${item.n}</span></td>
+                    <td><span class="name-tooltip" title="${String(languageControl.display(item.d) || '無說明').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}">${item.n}</span></td>
                     <td class="fixed-width">${item.wc}</td>
                     <td class="num-width">${item.Hp}</td>
                     <td class="num-width">${item.Offence}</td>
@@ -434,6 +443,13 @@
             
             paginationTop.innerHTML = '';
             paginationBottom.innerHTML = '';
+            paginationTop.appendChild(languageControl.button);
+            for (const container of [paginationTop, paginationBottom]) {
+                const count = document.createElement('span');
+                count.textContent = `搜尋結果：${totalItems} 筆`;
+                count.setAttribute('role', 'status');
+                container.appendChild(count);
+            }
 
             if (totalItems <= pageSize) return; 
 

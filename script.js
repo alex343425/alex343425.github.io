@@ -33,7 +33,19 @@ document.addEventListener("DOMContentLoaded", function () {
     let searchMode = 'original'; 
     let enemyDmgUpFilterValue = 'noFilter'; 
 	let elementDmgUpFilterValue = 0; 
-	
+
+    let activeModalData = null;
+    let modalRequestId = 0;
+    const languageControl = createSkillLanguageControl({
+        getDescriptions: () => globalData.map(item => item.description),
+        onChange: () => {
+            filterData(globalData);
+            if (activeModalData) renderModalTables(activeModalData);
+        }
+    });
+    const languageToggle = languageControl.button;
+    const displayDescription = (source, leader = false) => languageControl.display(source, leader);
+
     const omenStats = [
         { key: 'hp', stat: '最大HP' }, { key: 'atk', stat: '攻撃力' },
         { key: 'matk', stat: '攻撃魔力' }, { key: 'def', stat: '防御力' },
@@ -554,6 +566,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		.then(data => {
 			globalData = data; // 將取得的資料存入全域變數
 			currentFilteredData = data;    
+			languageControl.setReady();
 			renderTable(data);
 			currentPage = 1; 
             // ... (其餘 Event Listeners 保持不變) ...
@@ -690,6 +703,8 @@ document.addEventListener("DOMContentLoaded", function () {
     window.openCharModal = function(index) {
         const item = currentFilteredData[index];
         if (!item) return;
+        const requestId = ++modalRequestId;
+        activeModalData = null;
 
         const modalHeader = document.getElementById("modalHeader");
         const modalBody = document.getElementById("modalBody");
@@ -726,11 +741,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 return res.json();
             })
             .then(charData => {
+                if (requestId !== modalRequestId) return;
+                activeModalData = charData;
                 renderModalTables(charData);
                 // 4. 表格渲染完成後，附加角色圖片
                 appendImagesToModal(baseIdStr);
             })
             .catch(err => {
+                if (requestId !== modalRequestId) return;
                 console.error("Fetch error:", err);
                 modalBody.innerHTML = '<p style="color:red;">找不到該角色的詳細資料檔 (JSON)。</p>';
             });
@@ -742,6 +760,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         // 建立圖片的容器
         let imageContainer = document.createElement('div');
+        imageContainer.className = 'modal-character-images';
         imageContainer.style.textAlign = 'center';
         imageContainer.style.marginTop = '30px';
         imageContainer.style.borderTop = '2px solid #eee';
@@ -797,6 +816,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function renderModalTables(data) {
         const modalBody = document.getElementById("modalBody");
+        const images = modalBody.querySelector('.modal-character-images');
         let html = '';
 
         // Helper function to create table rows
@@ -824,7 +844,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td style="width:20%">${formatSkillName(s)}</td>
                         <td style="width:10%; text-align:center;">${s.skill_type}</td>
                         <td style="width:10%; text-align:center;">${s.skill_state}</td>
-                        <td>${s.description}</td>
+                        <td>${displayDescription(s.description)}</td>
                       </tr>`
             );
         }
@@ -837,7 +857,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ['技能名', '描述'], 
                 l => `<tr>
                         <td style="width:25%">${formatSkillName(l)}</td>
-                        <td>${l.description}</td>
+                        <td>${displayDescription(l.description, true)}</td>
                       </tr>`
             );
         }
@@ -850,7 +870,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ['技能名', '描述'], 
                 w => `<tr>
                         <td style="width:25%">${formatSkillName(w)}</td>
-                        <td>${w.description}</td>
+                        <td>${displayDescription(w.description)}</td>
                       </tr>`
             );
         }
@@ -863,13 +883,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 ['名稱', '描述'], 
                 a => `<tr>
                         <td style="width:25%">${formatSkillName(a)}</td>
-                        <td>${a.description}</td>
+                        <td>${displayDescription(a.description)}</td>
                       </tr>`
             );
         }
 
         if (html === '') html = '<p>此檔案中沒有技能資料。</p>';
         modalBody.innerHTML = html;
+        if (images) modalBody.appendChild(images);
     }
 
     function renderTable(data, page = 1) {
@@ -909,9 +930,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 imgCellContent = '--';
             }
 
-            let displayDescription = item.description;
+            let renderedDescription = displayDescription(item.description);
             if (keywords.length > 0) {
-                displayDescription = highlightKeywords(displayDescription, keywords);
+                renderedDescription = highlightKeywords(renderedDescription, keywords);
             }
 			// 在這行下面：
             let stockCellContent = isInventoryEnabled ? `<td style="text-align: center; font-weight: bold; color: ${item.stock > 0 ? '#d35400' : '#aaa'};">${item.stock || 0}</td>` : '';
@@ -928,7 +949,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 ${charStockCellContent}
                 <td>${item.char_em}</td>
                 <td>${item.char_wep}</td>
-                <td class="description-column">${displayDescription}</td>`;
+                <td class="description-column">${renderedDescription}</td>`;
             tableBody.appendChild(tr);
         });
 
@@ -942,6 +963,7 @@ document.addEventListener("DOMContentLoaded", function () {
         
         [paginationTop, paginationBottom].forEach(container => {
             container.innerHTML = '';
+            if (container === paginationTop) container.appendChild(languageToggle);
             const resultCount = document.createElement('span');
             resultCount.className = 'search-result-count';
             resultCount.setAttribute('role', 'status');
@@ -1085,26 +1107,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 item[rateField] >= rate && item[countField] >= count &&
                 (!targetField || targets.includes(item[targetField])));
             let matchesDescription;
-            const searchText = `${item.description} ${item.skill_name} ${item.skill_char}`;
+            // 中文模式同時支援譯文與原文，原有日文常用關鍵字仍可使用。
+            const searchTexts = [...new Set([displayDescription(item.description), item.description])]
+                .map(description => `${description} ${item.skill_name} ${item.skill_char}`);
 
             switch (searchMode) {
                 case 'original':
-                    matchesDescription = keywords.every(keyword =>
-                        searchText.includes(keyword)
-                    );
+                    matchesDescription = searchTexts.some(text => keywords.every(keyword => text.includes(keyword)));
                     break;
 
                 case 'sequential': {
                     let combinedKeywords = keywords.join('.*');
                     let regex = new RegExp(combinedKeywords);
-                    matchesDescription = regex.test(searchText);
+                    matchesDescription = searchTexts.some(text => regex.test(text));
                     break;
                 }
 
                 case 'strictSequential': {
-                    let combinedKeywords2 = keywords.join('[^、。・]*');
+                    let combinedKeywords2 = keywords.join('[^、，。・]*');
                     let regex2 = new RegExp(combinedKeywords2);
-                    matchesDescription = regex2.test(searchText);
+                    matchesDescription = searchTexts.some(text => regex2.test(text));
                     break;
                 }
             }

@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>篩選表格：隊長技+專武</title>
+    <link rel="stylesheet" href="skill-translation.css?v=20261113-1">
+    <script src="skill-translation.js?v=20261113-1"></script>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -445,6 +447,17 @@
 
         document.addEventListener("DOMContentLoaded", function () {
             let searchMode = 'original';
+            let originalData = [];
+            let activeModalData = null;
+            let modalRequestId = 0;
+            const languageControl = createSkillLanguageControl({
+                container: document.getElementById('paginationTop'),
+                getDescriptions: () => originalData.map(item => ({ source: item.description, leader: item.type === '隊長技能' })),
+                onChange: () => {
+                    filterData(originalData);
+                    if (activeModalData) renderModalTables(activeModalData);
+                }
+            });
 
             // Modal 元素
             const modal = document.getElementById("charModal");
@@ -464,6 +477,8 @@
                 fetch('data_leader_wep.json')
                 .then(response => response.json())
                 .then(data => {
+                    originalData = data;
+                    languageControl.setReady();
                     currentFilteredData = data; // 初始化數據
                     renderTable(data, 1);
                     
@@ -561,6 +576,8 @@
     window.openCharModal = function(index) {
         const item = currentFilteredData[index];
         if (!item) return;
+        const requestId = ++modalRequestId;
+        activeModalData = null;
 
         const modalHeader = document.getElementById("modalHeader");
         const modalBody = document.getElementById("modalBody");
@@ -597,6 +614,8 @@
                 return res.json();
             })
             .then(charData => {
+                if (requestId !== modalRequestId) return;
+                activeModalData = charData;
                 // 呼叫原本 lswep 網頁的表格渲染函式 (名稱請根據原本網頁的函式對齊，一般為 renderModalTables)
                 renderModalTables(charData);
                 
@@ -604,6 +623,7 @@
                 appendImagesToModal(baseIdStr);
             })
             .catch(err => {
+                if (requestId !== modalRequestId) return;
                 console.error("Fetch error:", err);
                 modalBody.innerHTML = '<p style="color:red;">找不到該角色的詳細資料檔 (JSON)。</p>';
             });
@@ -615,6 +635,7 @@
         
         // 建立圖片的容器
         let imageContainer = document.createElement('div');
+        imageContainer.className = 'modal-character-images';
         imageContainer.style.textAlign = 'center';
         imageContainer.style.marginTop = '30px';
         imageContainer.style.borderTop = '2px solid #eee';
@@ -665,6 +686,7 @@
     }
             function renderModalTables(data) {
                 const modalBody = document.getElementById("modalBody");
+                const images = modalBody.querySelector('.modal-character-images');
                 let html = '';
 
                 // Helper function to create table rows
@@ -692,7 +714,7 @@
                                 <td style="width:20%">${s.skill_name}</td>
                                 <td style="width:10%; text-align:center;">${s.skill_type}</td>
                                 <td style="width:10%; text-align:center;">${s.skill_state}</td>
-                                <td>${s.description}</td>
+                                <td>${languageControl.display(s.description)}</td>
                             </tr>`
                     );
                 }
@@ -705,7 +727,7 @@
                         ['技能名', '描述'], 
                         l => `<tr>
                                 <td style="width:25%">${l.skill_name}</td>
-                                <td>${l.description}</td>
+                                <td>${languageControl.display(l.description, true)}</td>
                             </tr>`
                     );
                 }
@@ -718,7 +740,7 @@
                         ['技能名', '描述'], 
                         w => `<tr>
                                 <td style="width:25%">${w.skill_name}</td>
-                                <td>${w.description}</td>
+                                <td>${languageControl.display(w.description)}</td>
                             </tr>`
                     );
                 }
@@ -731,13 +753,14 @@
                         ['名稱', '描述'], 
                         a => `<tr>
                                 <td style="width:25%">${a.skill_name}</td>
-                                <td>${a.description}</td>
+                                <td>${languageControl.display(a.description)}</td>
                             </tr>`
                     );
                 }
 
                 if (html === '') html = '<p>此檔案中沒有技能資料。</p>';
                 modalBody.innerHTML = html;
+                if (images) modalBody.appendChild(images);
             }
 
             // 暴露給全域以便按鈕調用
@@ -752,6 +775,13 @@
                 
                 paginationTop.innerHTML = '';
                 paginationBottom.innerHTML = '';
+                paginationTop.appendChild(languageControl.button);
+                for (const container of [paginationTop, paginationBottom]) {
+                    const count = document.createElement('span');
+                    count.textContent = `搜尋結果：${totalItems} 筆`;
+                    count.setAttribute('role', 'status');
+                    container.appendChild(count);
+                }
 
                 if (totalItems <= pageSize) {
                     return; 
@@ -863,7 +893,7 @@
                         <td>${imgCellContent}</td>
                         <td class="fixed-width">${item.char_em}</td>
                         <td class="fixed-width">${item.char_wep}</td>
-                        <td class="description-column">${item.description}</td>
+                        <td class="description-column">${languageControl.display(item.description, item.type === '隊長技能')}</td>
                     `;
                     
                     tableBody.appendChild(tr);
@@ -901,6 +931,7 @@
 
                 let filteredData = data.filter(item => {
                     let keywords = descriptionKeyword.split(' ');
+                    const descriptions = languageControl.searchTexts(item.description, item.type === '隊長技能');
                     let matchesDescription = false;
                     
                     // 描述搜尋邏輯
@@ -909,18 +940,18 @@
                     } else {
                         switch (searchMode) {
                         case 'original':
-                            matchesDescription = keywords.every(keyword =>
-                                    item.description.includes(keyword) || item.skill_name.includes(keyword));
+                            matchesDescription = descriptions.some(text => keywords.every(keyword =>
+                                    text.includes(keyword) || item.skill_name.includes(keyword)));
                             break;
                         case 'sequential':
                             let combinedKeywords = keywords.join('.*');
                             let regex = new RegExp(combinedKeywords);
-                            matchesDescription = regex.test(item.description);
+                            matchesDescription = descriptions.some(text => regex.test(text));
                             break;
                         case 'strictSequential':
-                            let combinedKeywords2 = keywords.join('[^、。・]*');
+                            let combinedKeywords2 = keywords.join('[^、，。・]*');
                             let regex2 = new RegExp(combinedKeywords2);
-                            matchesDescription = regex2.test(item.description);
+                            matchesDescription = descriptions.some(text => regex2.test(text));
                             break;
                         }
                     }

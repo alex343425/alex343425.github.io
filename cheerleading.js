@@ -2,6 +2,13 @@ document.addEventListener("DOMContentLoaded", function () {
   const dataSource = 'data_cheerleading.json';
   let dataCache = [];
   let currentFilteredData = []; // 用於保存當前過濾後的資料，給 Modal 根據 index 讀取
+  let activeModalData = null;
+  let modalRequestId = 0;
+  const languageControl = createSkillLanguageControl({
+    container: document.getElementById('skillTranslationControls'),
+    label: '切換角色詳細資料的日文／繁體中文',
+    onChange: () => { if (activeModalData) renderModalTables(activeModalData); }
+  });
 
   // 讀取資料
   function loadData() {
@@ -9,6 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .then(response => response.json())
       .then(data => {
         dataCache = data;
+        languageControl.setReady();
         filterAndRender();
         setupFilters();
         setupModal(); // 初始化 Modal 事件
@@ -90,6 +98,8 @@ document.addEventListener("DOMContentLoaded", function () {
   window.openCharModal = function(index) {
       const item = currentFilteredData[index];
       if (!item) return;
+      const requestId = ++modalRequestId;
+      activeModalData = null;
 
       const modalHeader = document.getElementById("modalHeader");
       const modalBody = document.getElementById("modalBody");
@@ -131,6 +141,8 @@ document.addEventListener("DOMContentLoaded", function () {
               return res.json();
           })
           .then(charData => {
+              if (requestId !== modalRequestId) return;
+              activeModalData = charData;
               // 執行原本啦啦隊頁面的表格渲染函式 (請確認名稱是否為 renderModalTables)
               if (typeof renderModalTables === 'function') {
                   renderModalTables(charData);
@@ -140,6 +152,7 @@ document.addEventListener("DOMContentLoaded", function () {
               appendImagesToModal(baseIdStr);
           })
           .catch(err => {
+              if (requestId !== modalRequestId) return;
               console.error("Fetch error:", err);
               modalBody.innerHTML = '<p style="color:red;">找不到該角色的詳細資料檔 (JSON)。</p>';
           });
@@ -151,6 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
       
       // 建立圖片的容器
       let imageContainer = document.createElement('div');
+      imageContainer.className = 'modal-character-images';
       imageContainer.style.textAlign = 'center';
       imageContainer.style.marginTop = '30px';
       imageContainer.style.borderTop = '2px solid #eee';
@@ -203,6 +217,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // 生成 Modal 內的表格
   function renderModalTables(data) {
     const modalBody = document.getElementById("modalBody");
+    const images = modalBody.querySelector('.modal-character-images');
     let html = '';
 
     // Helper function
@@ -228,7 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <td style="width:20%">${s.skill_name}</td>
                     <td style="width:10%; text-align:center;">${s.skill_type}</td>
                     <td style="width:10%; text-align:center;">${s.skill_state}</td>
-                    <td>${s.description}</td>
+                    <td>${languageControl.display(s.description)}</td>
                 </tr>`
         );
     }
@@ -241,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ['技能名', '描述'], 
             l => `<tr>
                     <td style="width:25%">${l.skill_name}</td>
-                    <td>${l.description}</td>
+                    <td>${languageControl.display(l.description, true)}</td>
                 </tr>`
         );
     }
@@ -254,7 +269,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ['技能名', '描述'], 
             w => `<tr>
                     <td style="width:25%">${w.skill_name}</td>
-                    <td>${w.description}</td>
+                    <td>${languageControl.display(w.description)}</td>
                 </tr>`
         );
     }
@@ -267,13 +282,14 @@ document.addEventListener("DOMContentLoaded", function () {
             ['名稱', '描述'], 
             a => `<tr>
                     <td style="width:25%">${a.skill_name}</td>
-                    <td>${a.description}</td>
+                    <td>${languageControl.display(a.description)}</td>
                 </tr>`
         );
     }
 
     if (html === '') html = '<p>此檔案中沒有技能資料。</p>';
     modalBody.innerHTML = html;
+    if (images) modalBody.appendChild(images);
   }
 
   // 根據所有篩選條件過濾與排序資料
