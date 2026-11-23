@@ -1106,6 +1106,7 @@ async function calculateBestTeam() {
 
     let fixedLeaderChar = null;
     let friendChar = null;
+    let friendPassives = [];
     let customChar = null; // 自訂角色物件
 
     // 更新進度條UI函式
@@ -1142,6 +1143,11 @@ async function calculateBestTeam() {
             const friendData = RAW_CHAR_DATA.find(c => c.id === friendId);
             if (friendData) {
                 friendChar = { ...friendData };
+                const slots = [friendChar.sc1, friendChar.sc2, friendChar.sc3].filter(s => s > 0);
+                friendPassives = slots.map((_, index) => {
+                    const name = index === 0 ? "9周年のドキドキ" : "8周年のドキドキ";
+                    return PASSIVES.find(p => p.name === name);
+                });
             }
         }
     }
@@ -1371,14 +1377,13 @@ async function calculateBestTeam() {
             totalWep += friendWep;
 
             const fSlots = [friendChar.sc1, friendChar.sc2, friendChar.sc3].filter(s => s > 0);
-            const ANNIV_8_VAL = 3.3;
-            friendPassiveScore = fSlots.length * ANNIV_8_VAL;
+            friendPassiveScore = friendPassives.reduce((sum, p) => sum + p.value, 0);
             
             friendDetails = {
                 char: friendChar,
                 wepVal: friendWep,
                 slots: fSlots,
-                assignedPassives: fSlots.map(() => ({name: "8周年のドキドキ(Friend)", rank: "S3", value: ANNIV_8_VAL}))
+                assignedPassives: friendPassives
             };
         }
 
