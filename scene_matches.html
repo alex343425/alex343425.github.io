@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>寢室場景命中表</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182334;
+      --header: #1c2d46;
+      --line: #d6e0ec;
+      --original: #f1f6fb;
+      --variant: #fff;
+      --page-padding: clamp(.375rem, 2.6vw, 2rem);
+      --portrait-height: 3.625rem;
+      --image-column: calc(2 * var(--portrait-height) + 1.5rem);
+      --symbol-column: 7rem;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: var(--page-padding);
+      color: var(--ink);
+      background: #eaf0f7;
+      font: 1rem/1.45 system-ui, "Microsoft JhengHei", "Yu Gothic", sans-serif;
+    }
+
+    .table-scroll {
+      max-inline-size: 63rem;
+      max-block-size: calc(100dvh - 2 * var(--page-padding));
+      margin-inline: auto;
+      overflow: auto;
+      border: 1px solid #b9c9dc;
+      border-radius: .625rem;
+      background: var(--variant);
+      scrollbar-color: #91a2ba #eaf0f7;
+    }
+
+    .table-scroll:focus-visible {
+      outline: 3px solid #3565a6;
+      outline-offset: 2px;
+    }
+
+    table {
+      inline-size: 100%;
+      min-inline-size: 21rem;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .image-col { inline-size: var(--image-column); }
+    .symbol-col { inline-size: var(--symbol-column); }
+    .original-name-col { inline-size: 25%; }
+
+    td, th {
+      padding: .55rem .7rem;
+      text-align: start;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+    }
+
+    thead th {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 1;
+      padding-block: .85rem;
+      color: #fff;
+      background: var(--header);
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    thead th:nth-child(4), .variant-start {
+      border-inline-start: 1px solid var(--line);
+    }
+
+    tbody th, tbody td { border-block-end: 1px solid var(--line); }
+    tbody:last-child tr:last-child td,
+    tbody:last-child .original { border-block-end: 0; }
+    .original { background: var(--original); }
+    .portrait, .symbols, .center { text-align: center; }
+    .symbols { white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .negative { color: #981a42; font-weight: 700; }
+
+    .portrait img {
+      display: block;
+      inline-size: calc(2 * var(--portrait-height));
+      block-size: var(--portrait-height);
+      margin-inline: auto;
+      border: 1px solid #c8d4e2;
+      border-radius: .4rem;
+      background: #e2eaf4;
+      object-fit: contain;
+    }
+
+    @media (max-width: 42rem) {
+      :root {
+        --portrait-height: 1.625rem;
+        --image-column: calc(2 * var(--portrait-height) + .625rem);
+        --symbol-column: 3.65rem;
+      }
+
+      td, th { padding: .45rem .27rem; }
+      .original-name-col { inline-size: 18%; }
+      tbody { font-size: .9rem; }
+      thead th { padding-block: .6rem; }
+      .symbols { font-size: .9rem; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="寢室場景命中表">
+      <table aria-label="寢室場景命中表">
+        <colgroup>
+          <col class="image-col">
+          <col class="original-name-col">
+          <col class="symbol-col">
+          <col class="image-col">
+          <col>
+          <col class="symbol-col">
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col" class="center">角色圖片</th>
+            <th scope="col">角色名</th>
+            <th scope="col" class="center">原始版相手</th>
+            <th scope="col" class="center">✖ 版圖片</th>
+            <th scope="col">✖ 版名字</th>
+            <th scope="col" class="center">✖ 版相手</th>
+          </tr>
+        </thead>
+        <tbody data-original-id="10211">
+          <tr data-version-id="80851">
+            <td class="original portrait"><img src="./img/10211.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">スペクルム</th>
+            <td class="original symbols">-</td>
+            <td class="portrait variant-start"><img src="./img/80851.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">スペクルム</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10241">
+          <tr data-version-id="11611">
+            <td class="original portrait" rowspan="2"><img src="./img/10241.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" rowspan="2" lang="ja">リラ</th>
+            <td class="original symbols" rowspan="2">〇</td>
+            <td class="portrait variant-start"><img src="./img/11611.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">リラお雛様ver.</td>
+            <td class="symbols">〇／<span class="negative">✖</span></td>
+          </tr>
+          <tr data-version-id="17351">
+            <td class="portrait variant-start"><img src="./img/17351.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">リラ(第2部)</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10251">
+          <tr data-version-id="11881">
+            <td class="original portrait" rowspan="2"><img src="./img/10251.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" rowspan="2" lang="ja">マウラ</th>
+            <td class="original symbols" rowspan="2">〇</td>
+            <td class="portrait variant-start"><img src="./img/11881.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">マウラ真鯉ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+          <tr data-version-id="17341">
+            <td class="portrait variant-start"><img src="./img/17341.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">マウラ(第2部)</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10301">
+          <tr data-version-id="17531">
+            <td class="original portrait"><img src="./img/10301.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">チェシャー</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/17531.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">チェシャー(第2部)</td>
+            <td class="symbols">〇／<span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10331">
+          <tr data-version-id="12251">
+            <td class="original portrait"><img src="./img/10331.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">レーウ</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/12251.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">レーウ水着ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10361">
+          <tr data-version-id="12271">
+            <td class="original portrait"><img src="./img/10361.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ライメント夫人</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/12271.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ライメント夫人水着ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10411">
+          <tr data-version-id="17931">
+            <td class="original portrait"><img src="./img/10411.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ウェンディ</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/17931.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ウェンディ(第2部)</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10421">
+          <tr data-version-id="17271">
+            <td class="original portrait"><img src="./img/10421.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ルース</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/17271.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ルース(第2部)</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10451">
+          <tr data-version-id="17101">
+            <td class="original portrait"><img src="./img/10451.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ヘンゼル</th>
+            <td class="original symbols">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/17101.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ヘンゼル(第2部)</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10461">
+          <tr data-version-id="17111">
+            <td class="original portrait"><img src="./img/10461.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">グレーテル</th>
+            <td class="original symbols">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/17111.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">グレーテル(第2部)</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10491">
+          <tr data-version-id="11101">
+            <td class="original portrait"><img src="./img/10491.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">オデット</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/11101.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ブラック・オデット</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10601">
+          <tr data-version-id="12701">
+            <td class="original portrait"><img src="./img/10601.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ラプンツェル</th>
+            <td class="original symbols">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/12701.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ラプンツェル包帯ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10611">
+          <tr data-version-id="12681">
+            <td class="original portrait" rowspan="2"><img src="./img/10611.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" rowspan="2" lang="ja">マザー・ティターニア</th>
+            <td class="original symbols" rowspan="2">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/12681.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">マザー・ティターニア修道女ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+          <tr data-version-id="19591">
+            <td class="portrait variant-start"><img src="./img/19591.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">マザー・ティターニアマネージャー2022ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="10921">
+          <tr data-version-id="17391">
+            <td class="original portrait"><img src="./img/10921.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">鬼島 うらら</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/17391.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">鬼島 うらら(第2部)</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="11091">
+          <tr data-version-id="12911">
+            <td class="original portrait"><img src="./img/11091.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ジャックオランタン</th>
+            <td class="original symbols">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/12911.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ジャックオランタンXmas ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="11131">
+          <tr data-version-id="14011">
+            <td class="original portrait"><img src="./img/11131.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ココロニ</th>
+            <td class="original symbols">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/14011.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ココロニ 花嫁ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="11201">
+          <tr data-version-id="12391">
+            <td class="original portrait" rowspan="2"><img src="./img/11201.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" rowspan="2" lang="ja">ナイトメア</th>
+            <td class="original symbols" rowspan="2">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/12391.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ナイトメア水着ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+          <tr data-version-id="19081">
+            <td class="portrait variant-start"><img src="./img/19081.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ナイトメア映画祭2022ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="11361">
+          <tr data-version-id="14131">
+            <td class="original portrait"><img src="./img/11361.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ヨハンナ・ディ・アルク</th>
+            <td class="original symbols">〇／-</td>
+            <td class="portrait variant-start"><img src="./img/14131.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ヨハンナ 水着ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="11671">
+          <tr data-version-id="14111">
+            <td class="original portrait"><img src="./img/11671.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">銀角</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/14111.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">銀角 水着ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="12181">
+          <tr data-version-id="13701">
+            <td class="original portrait"><img src="./img/12181.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">珠絵</th>
+            <td class="original symbols">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/13701.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">珠絵 テイマーver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="12621">
+          <tr data-version-id="14191">
+            <td class="original portrait"><img src="./img/12621.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ファンティーヌ</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/14191.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ファンティーヌ 夏祭ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="12811">
+          <tr data-version-id="14611">
+            <td class="original portrait"><img src="./img/12811.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">メリー</th>
+            <td class="original symbols">-／〇</td>
+            <td class="portrait variant-start"><img src="./img/14611.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">メリー お嬢様ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="14061">
+          <tr data-version-id="16581">
+            <td class="original portrait"><img src="./img/14061.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">イシュタル</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/16581.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">イシュタル バニーver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="14161">
+          <tr data-version-id="16941">
+            <td class="original portrait"><img src="./img/14161.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">アルブス・ツークツワンク</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/16941.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">アルブス・ツークツワンクXmas ver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="14911">
+          <tr data-version-id="17541">
+            <td class="original portrait" rowspan="2"><img src="./img/14911.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" rowspan="2" lang="ja">クルプン</th>
+            <td class="original symbols" rowspan="2">〇／〇</td>
+            <td class="portrait variant-start"><img src="./img/17541.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">クルプン イースターver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+          <tr data-version-id="19001">
+            <td class="portrait variant-start"><img src="./img/19001.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">クルプン猫カフェ2022ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="15061">
+          <tr data-version-id="17991">
+            <td class="original portrait" rowspan="3"><img src="./img/15061.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" rowspan="3" lang="ja">ショパン</th>
+            <td class="original symbols" rowspan="3">〇</td>
+            <td class="portrait variant-start"><img src="./img/17991.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ショパン 水着ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+          <tr data-version-id="19301">
+            <td class="portrait variant-start"><img src="./img/19301.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ショパン ヴェルコスver.</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+          <tr data-version-id="20381">
+            <td class="portrait variant-start"><img src="./img/20381.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ショパンバレンタイン2023ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="16291">
+          <tr data-version-id="19441">
+            <td class="original portrait" rowspan="2"><img src="./img/16291.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" rowspan="2" lang="ja">シェイクスピア</th>
+            <td class="original symbols" rowspan="2">〇</td>
+            <td class="portrait variant-start"><img src="./img/19441.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">シェイクスピア・リリィ</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+          <tr data-version-id="22871">
+            <td class="portrait variant-start"><img src="./img/22871.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">シェイクスピア水着2025ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="80391">
+          <tr data-version-id="16431">
+            <td class="original portrait"><img src="./img/80391.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ルビー</th>
+            <td class="original symbols">-／〇</td>
+            <td class="portrait variant-start"><img src="./img/16431.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ルビー</td>
+            <td class="symbols"><span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="81061">
+          <tr data-version-id="19551">
+            <td class="original portrait"><img src="./img/81061.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">サラマンダー</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/19551.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">サラマンダー花嫁2022ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／〇</td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="81121">
+          <tr data-version-id="21531">
+            <td class="original portrait"><img src="./img/81121.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">ペガサス</th>
+            <td class="original symbols">〇</td>
+            <td class="portrait variant-start"><img src="./img/21531.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">ペガサス正月2024ver.</td>
+            <td class="symbols"><span class="negative">✖</span>／<span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+        <tbody data-original-id="81341">
+          <tr data-version-id="21641">
+            <td class="original portrait"><img src="./img/81341.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <th class="original" scope="rowgroup" lang="ja">カラドボルグ</th>
+            <td class="original symbols">-／〇</td>
+            <td class="portrait variant-start"><img src="./img/21641.png" alt="" width="116" height="58" loading="lazy" decoding="async"></td>
+            <td lang="ja">カラドボルグ パジャマver.</td>
+            <td class="symbols">〇／<span class="negative">✖</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>
